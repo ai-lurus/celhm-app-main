@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd ../.. && pnpm build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && pnpm install",
+  "devCommand": "cd ../.. && pnpm dev",
+  "env": {
+    "NEXT_PUBLIC_ENABLE_MOCKS": "true",
+    "NEXT_PUBLIC_API_URL": "https://celhm-api.vercel.app"
+  }
+}
+

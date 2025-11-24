@@ -1,0 +1,19 @@
+{
+  "extends": "./packages/config/tsconfig/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@celhm/ui": ["./packages/ui/src"],
+      "@celhm/types": ["./packages/types/src"],
+      "@celhm/config": ["./packages/config"]
+    }
+  },
+  "include": [],
+  "references": [
+    { "path": "./apps/web" },
+    { "path": "./apps/api" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/types" }
+  ]
+}
+
