@@ -1,37 +1,38 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useTickets } from '../../lib/hooks/useTickets'
+import { useStock } from '../../lib/hooks/useStock'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '../../lib/api'
+import { useAuthStore } from '../../stores/auth'
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null)
+  const user = useAuthStore((state) => state.user)
 
-  useEffect(() => {
-    // Get user from localStorage for demo
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+  // Get tickets for stats
+  const { data: ticketsData } = useTickets({ page: 1, pageSize: 100 })
+  const tickets = ticketsData?.data || []
 
-  // Mock data for dashboard
-  const mockTickets = [
-    { id: 1, folio: 'LAB-SUC01-202412-0001', customerName: 'Ana Rodríguez', state: 'RECIBIDO' },
-    { id: 2, folio: 'LAB-SUC01-202412-0002', customerName: 'Roberto Silva', state: 'DIAGNOSTICO' },
-    { id: 3, folio: 'LAB-SUC01-202412-0003', customerName: 'Laura Martínez', state: 'ESPERANDO_PIEZA' },
-    { id: 4, folio: 'LAB-SUC01-202412-0004', customerName: 'Miguel Torres', state: 'EN_REPARACION' },
-  ]
+  // Get low stock alerts
+  const { data: lowStockAlerts = [] } = useQuery({
+    queryKey: ['stock', 'alerts'],
+    queryFn: async () => {
+      const response = await api.get('/stock/alerts')
+      return response.data
+    },
+    enabled: !!user,
+  })
 
-  const mockStock = [
-    { id: 1, name: 'Pantalla LCD iPhone 12 Negro', qty: 3, min: 5 },
-    { id: 2, name: 'Batería Samsung Galaxy S21', qty: 2, min: 5 },
-  ]
+  // Get all stock to calculate total value
+  const { data: stockData } = useStock({ page: 1, pageSize: 1000 })
+  const stockItems = stockData?.data || []
 
-  const totalTickets = mockTickets.length
-  const activeTickets = mockTickets.filter(t => 
+  const totalTickets = ticketsData?.pagination.total || 0
+  const activeTickets = tickets.filter(t => 
     !['ENTREGADO', 'CANCELADO'].includes(t.state)
   ).length
-  const lowStockItems = mockStock.filter(s => s.qty <= s.min).length
-  const totalStockValue = 50000
+  const lowStockItems = lowStockAlerts.length
+  const totalStockValue = stockItems.reduce((sum, item) => sum + (item.price * item.qty), 0)
 
   return (
     <div className="space-y-6">
@@ -74,7 +75,7 @@ export default function DashboardPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tickets Recientes</h3>
           <div className="space-y-4">
-            {mockTickets.slice(0, 5).map((ticket) => (
+            {tickets.slice(0, 5).map((ticket) => (
               <div key={ticket.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{ticket.folio}</p>
@@ -90,26 +91,31 @@ export default function DashboardPage() {
                 </span>
               </div>
             ))}
+            {tickets.length === 0 && (
+              <p className="text-sm text-gray-500">No hay tickets recientes</p>
+            )}
           </div>
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Alertas de Stock</h3>
           <div className="space-y-4">
-            {mockStock.filter(s => s.qty <= s.min).map((stock) => (
-              <div key={stock.id} className="flex items-center justify-between">
+            {lowStockAlerts.slice(0, 5).map((alert: any) => (
+              <div key={alert.id} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">{stock.name}</p>
+                  <p className="text-sm font-medium">
+                    {alert.variant?.name || alert.variant?.product?.name || 'Producto desconocido'}
+                  </p>
                   <p className="text-xs text-gray-500">
-                    Stock: {stock.qty} / Mín: {stock.min}
+                    Stock: {alert.qty} / Mín: {alert.min} - {alert.branch?.name || ''}
                   </p>
                 </div>
                 <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-                  Crítico
+                  {alert.qty <= 0 ? 'Crítico' : 'Bajo'}
                 </span>
               </div>
             ))}
-            {mockStock.filter(s => s.qty <= s.min).length === 0 && (
+            {lowStockAlerts.length === 0 && (
               <p className="text-sm text-gray-500">No hay alertas de stock</p>
             )}
           </div>

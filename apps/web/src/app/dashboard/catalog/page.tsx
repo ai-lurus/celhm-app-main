@@ -44,41 +44,7 @@ interface Brand {
   value: string;
 }
 
-// Removed initialProducts - now using API
-
-// --- Datos de filtros (Mock) ---
-const filtersData: {
-  categorias: { type: string, label: string, data: Category[] },
-  marcas: { type: string, label: string, options: Brand[] }
-} = {
-  "categorias": {
-    "type": "tree",
-    "label": "Categorías",
-    "data": [
-      {
-        "id": 1, "name": "ACCESORIOS", "children": [
-          { "id": 10, "name": "Pantallas" },
-          { "id": 11, "name": "Baterías" },
-          { "id": 12, "name": "Cables" },
-          { "id": 13, "name": "Accesorios" },
-        ]
-      },
-      {
-        "id": 2, "name": "EQUIPOS", "children": [
-          { "id": 40, "name": "Celulares" },
-          { "id": 41, "name": "Tablets" },
-        ]
-      },
-    ]
-  },
-  "marcas": {
-    "type": "select", "label": "Marca", "options": [
-      { "label": "Apple", "value": "Apple" },
-      { "label": "Samsung", "value": "Samsung" },
-      { "label": "Genérica", "value": "Genérica" }
-    ]
-  },
-};
+// Removed initialProducts and filtersData - now using API (useCategories and useBrands hooks)
 
 // --- Estados para formularios ---
 const newProductInitialState: NewProductForm = {

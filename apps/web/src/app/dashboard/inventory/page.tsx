@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useStock, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem, InventoryItem } from '../../../lib/hooks/useStock'
 import { useCreateMovement } from '../../../lib/hooks/useMovements'
+import { useCategories, useBrands } from '../../../lib/hooks/useCatalog'
 import { useAuthStore } from '../../../stores/auth'
 
 //-------------
@@ -67,61 +68,7 @@ interface NewProductForm {
   min_stock: number;
 }
 
-// --- datos de filtros (Mock) ---
-const filtersData: {
-  categorias: { type: string, label: string, data: Category[] },
-  marcas: { type: string, label: string, options: Brand[] }
-} = {
-  "categorias": {
-    "type": "tree",
-    "label": "Categorías",
-    "data": [
-      {
-        "id": 1, "name": "ACCESORIOS", "children": [
-          {
-            "id": 10, "name": "Micas", "children": [
-              {
-                "id": 20, "name": "Glass (cristal)", "children": [
-                  {
-                    "id": 30, "name": "iPhone", "children": [
-                      { "id": 301, "name": "11" },
-                      { "id": 302, "name": "12 Pro Max" },
-                      { "id": 303, "name": "15 Plus" }
-                    ]
-                  },
-                  { "id": 31, "name": "Samsung" },
-                  { "id": 32, "name": "Xiaomi" }
-                ]
-              },
-              {
-                "id": 21, "name": "Hydrogel", "children": [
-                  { "id": 311, "name": "iPhone" },
-                  { "id": 312, "name": "Samsung" }
-                ]
-              }
-            ]
-          },
-          { "id": 11, "name": "Protectores (marcas)" },
-          { "id": 12, "name": "Cables y Cargadores" }
-        ]
-      },
-      {
-        "id": 2, "name": "EQUIPOS", "children": [
-          { "id": 40, "name": "Celulares" },
-          { "id": 41, "name": "Tablets" },
-          { "id": 42, "name": "Smart Watch" }
-        ]
-      },
-    ]
-  },
-  "marcas": {
-    "type": "select", "label": "Marca", "options": [
-      { "label": "Apple", "value": "Apple" },
-      { "label": "Samsung", "value": "Samsung" },
-      { "label": "Genérica", "value": "Genérica" }
-    ]
-  },
-};
+// Removed filtersData mock - now using API (useCategories and useBrands hooks)
 
 const newProductInitialState: NewProductForm = {
   name: '',
@@ -144,7 +91,7 @@ export default function InventoryPage() {
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [modelSearch, setModelSearch] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<'normal' | 'low' | 'critical' | ''>('');
-  const [filterCategoryPath, setFilterCategoryPath] = useState<number[]>([]);
+  const [filterCategory, setFilterCategory] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
@@ -153,7 +100,7 @@ export default function InventoryPage() {
     marca: selectedBrand || undefined,
     modelo: modelSearch || undefined,
     estado: selectedStatus || undefined,
-    categoriaId: filterCategoryPath.length > 0 ? filterCategoryPath[filterCategoryPath.length - 1].toString() : undefined,
+    categoriaId: filterCategory || undefined,
     page: currentPage,
     pageSize: itemsPerPage,
   });
@@ -163,9 +110,13 @@ export default function InventoryPage() {
   const deleteItem = useDeleteInventoryItem();
   const createMovement = useCreateMovement();
 
+  // Get categories and brands from API
+  const { data: categories = [] } = useCategories();
+  const { data: brands = [] } = useBrands();
+
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedCategoryPath, setSelectedCategoryPath] = useState<number[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [newProduct, setNewProduct] = useState<NewProductForm>(newProductInitialState);
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
 
@@ -190,29 +141,19 @@ export default function InventoryPage() {
   
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBrand, modelSearch, selectedStatus, filterCategoryPath, itemsPerPage]);
+  }, [selectedBrand, modelSearch, selectedStatus, filterCategory, itemsPerPage]);
 
   //---------------------
   // LOGICA DE FUNCIONES
   //----------------------
 
-  const findPathToCategory = (id: number, categories: Category[] = filtersData.categorias.data, path: number[] = []): number[] | null => {
-    for (const category of categories) {
-      const currentPath = [...path, category.id];
-      if (category.id === id) return currentPath;
-      if (category.children) {
-        const foundPath = findPathToCategory(id, category.children, currentPath);
-        if (foundPath) return foundPath;
-      }
-    }
-    return null;
-  };
+  // Simplified category handling - using flat list from API
 
   // --- Gestion de productos (agregar/editar) ---
   const openAddModal = () => {
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategoryPath([]);
+    setSelectedCategory('');
     setIsModalOpen(true);
     setShowActionsDropdown(false);
   };
@@ -228,8 +169,8 @@ export default function InventoryPage() {
       initial_stock: item.qty,
       min_stock: item.min,
     });
-    const path = findPathToCategory(item.categoryId);
-    setSelectedCategoryPath(path || []);
+    // Note: categoryId is not directly available in InventoryItem, would need to get from variant.product.category
+    setSelectedCategory('');
     setIsModalOpen(true);
   };
 
@@ -237,72 +178,32 @@ export default function InventoryPage() {
     setIsModalOpen(false);
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategoryPath([]);
+    setSelectedCategory('');
   };
 
-  const handleCategoryChange = (level: number, categoryId: string) => {
-    const newPath = selectedCategoryPath.slice(0, level);
-    if (categoryId) newPath.push(parseInt(categoryId));
-    setSelectedCategoryPath(newPath);
-  };
 
   const renderCategorySelectors = () => {
-    const selectors = [];
-    let currentLevelOptions: Category[] | undefined = filtersData.categorias.data;
-
-    if (currentLevelOptions) {
-      selectors.push(
-        <div key={0}>
-          <label className="block text-sm font-medium text-gray-700">Categoría Nivel 1</label>
-          <select onChange={(e) => handleCategoryChange(0, e.target.value)} value={selectedCategoryPath[0] || ''} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-            <option value="">Selecciona...</option>
-            {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-          </select>
-        </div>
-      );
-    }
-    for (let i = 0; i < selectedCategoryPath.length; i++) {
-      if (!currentLevelOptions) break;
-      const selectedId = selectedCategoryPath[i];
-      const selectedNode: Category | undefined = currentLevelOptions.find(
-        (opt: Category) => opt.id === selectedId
-      );
-      if (selectedNode?.children && selectedNode.children.length > 0) {
-        currentLevelOptions = selectedNode.children; 
-        selectors.push(
-          <div key={i + 1}>
-            <label className="block text-sm font-medium text-gray-700">{`Categoría Nivel ${i + 2}`}</label>
-            <select onChange={(e) => handleCategoryChange(i + 1, e.target.value)} value={selectedCategoryPath[i + 1] || ''} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-              <option value="">Selecciona...</option>
-              {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-            </select>
-          </div>
-        );
-      } else {
-        currentLevelOptions = undefined; 
-      }
-    }
-    return selectors;
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Categoría</label>
+        <select 
+          onChange={(e) => setSelectedCategory(e.target.value)} 
+          value={selectedCategory} 
+          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+        >
+          <option value="">Selecciona una categoría</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+    );
   };
 
   const handleSaveProduct = async () => {
-    const finalCategoryId = selectedCategoryPath[selectedCategoryPath.length - 1];
     if (!newProduct.name) {
       alert('Por favor, completa el nombre.');
       return;
-    }
-    
-    // validar categoria hoja
-    let selectedNode: Category | undefined;
-    let categoryList: Category[] | undefined = filtersData.categorias.data;
-    for (const id of selectedCategoryPath) {
-      if (!categoryList) break;
-      selectedNode = categoryList.find(node => node.id === id);
-      categoryList = selectedNode?.children;
-    }
-    if (selectedNode?.children && selectedNode.children.length > 0) {
-        alert('Debes seleccionar la categoría más específica.');
-        return;
     }
     
     try {
@@ -330,6 +231,7 @@ export default function InventoryPage() {
           qty: newProduct.initial_stock,
           min: newProduct.min_stock,
           max: 100,
+          // Note: category is not part of CreateInventoryItemDto, it's set on the product
         });
       }
       closeModal();
@@ -338,50 +240,24 @@ export default function InventoryPage() {
     }
   };
 
-  // --- filtros en la sidebar ---
-  const handlePageFilterCategoryChange = (level: number, categoryId: string) => {
-    const newPath = filterCategoryPath.slice(0, level);
-    if (categoryId) newPath.push(parseInt(categoryId));
-    setFilterCategoryPath(newPath);
-  };
+  // Simplified category filtering - using flat list from API
 
   const renderPageFilterSelectors = () => {
-    const selectors = [];
-    let currentLevelOptions: Category[] | undefined = filtersData.categorias.data;
-
-    if (currentLevelOptions) {
-      selectors.push(
-        <div key="filter-0">
-          <label className="block text-sm font-medium text-gray-700">Categoría Nivel 1</label>
-          <select onChange={(e) => handlePageFilterCategoryChange(0, e.target.value)} value={filterCategoryPath[0] || ''} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Todas las categorías</option>
-            {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-          </select>
-        </div>
-      );
-    }
-    for (let i = 0; i < filterCategoryPath.length; i++) {
-      if (!currentLevelOptions) break; 
-      const selectedId = filterCategoryPath[i];
-      const selectedNode: Category | undefined = currentLevelOptions.find(
-        (opt: Category) => opt.id === selectedId
-      );
-      if (selectedNode?.children && selectedNode.children.length > 0) {
-        currentLevelOptions = selectedNode.children;
-        selectors.push(
-          <div key={`filter-${i + 1}`}>
-            <label className="block text-sm font-medium text-gray-700">{`Categoría Nivel ${i + 2}`}</label>
-            <select onChange={(e) => handlePageFilterCategoryChange(i + 1, e.target.value)} value={filterCategoryPath[i + 1] || ''} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
-              <option value="">Todas en {selectedNode.name}</option>
-              {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-            </select>
-          </div>
-        );
-      } else {
-        currentLevelOptions = undefined;
-      }
-    }
-    return selectors;
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <select 
+          onChange={(e) => setFilterCategory(e.target.value)} 
+          value={filterCategory} 
+          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+        >
+          <option value="">Todas las categorías</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+    );
   };
 
   // --- eliminar ---
@@ -624,7 +500,7 @@ export default function InventoryPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
               <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2">
                 <option value="">Todas las marcas</option>
-                {filtersData.marcas.options.map(brand => <option key={brand.value} value={brand.value}>{brand.label}</option>)}
+                {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
               </select>
             </div>
             <div>
@@ -748,7 +624,8 @@ export default function InventoryPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Marca</label>
                   <select value={newProduct.brand} onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                    <option value="">Selecciona una marca</option>{filtersData.marcas.options.map(brand => <option key={brand.value} value={brand.value}>{brand.label}</option>)}
+                    <option value="">Selecciona una marca</option>
+                    {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700">Precio</label><input type="number" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
