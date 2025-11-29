@@ -1,14 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && cd prisma && pnpm db:generate && cd ../apps/api && pnpm build && mkdir -p api && cp dist/main.js api/main.js",
+  "buildCommand": "cd ../.. && pnpm install && cd prisma && pnpm db:generate && cd ../apps/api && pnpm build",
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api/main.js"
+      "dest": "/api"
     }
   ],
   "functions": {
-    "api/main.js": {
+    "api/index.js": {
       "includeFiles": "../../node_modules/.prisma/**"
     }
   }
