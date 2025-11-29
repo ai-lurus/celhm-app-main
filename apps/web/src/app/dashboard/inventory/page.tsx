@@ -323,7 +323,7 @@ export default function InventoryPage() {
   // --- exportar csv ---
   const handleExportCSV = () => {
     const headers = ["id", "sku", "name", "brand", "model", "qty", "min", "max", "reserved", "price", "status", "categoryId"];
-    const data = filteredInventory.map(item => [
+    const data = inventoryItems.map(item => [
       item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`, 
       item.brand, item.model, item.qty, item.min, item.max, item.reserved, item.price, item.status, item.categoryId
     ].join(','));
