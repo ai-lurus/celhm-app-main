@@ -21,10 +21,8 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string): Promise<AuthUser | null> {
-    // Log for debugging
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('🔐 Validating user:', email);
-    }
+    // Log for debugging (temporary - enable in production for troubleshooting)
+    console.log('🔐 Validating user:', email);
 
     // Find user by email
     const user = await this.prisma.user.findUnique({
@@ -38,49 +36,46 @@ export class AuthService {
     });
 
     if (!user) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('❌ User not found:', email);
-      }
+      console.log('❌ User not found:', email);
       return null;
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('👤 User found:', { id: user.id, email: user.email, hasPassword: !!user.password, membershipsCount: user.memberships.length });
-    }
+    console.log('👤 User found:', { 
+      id: user.id, 
+      email: user.email, 
+      hasPassword: !!user.password, 
+      membershipsCount: user.memberships.length,
+      passwordHash: user.password ? `${user.password.substring(0, 20)}...` : 'null'
+    });
 
     // If user has password, validate it
     if (user.password) {
       const isPasswordValid = await compare(password, user.password);
+      console.log('🔑 Password validation result:', isPasswordValid);
       if (!isPasswordValid) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('❌ Invalid password for user:', email);
-        }
+        console.log('❌ Invalid password for user:', email);
         return null;
       }
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('✅ Password valid for user:', email);
-      }
+      console.log('✅ Password valid for user:', email);
     } else {
       // If no password set, user might be using Supabase Auth
       // For now, reject if no password
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('❌ User has no password set:', email);
-      }
+      console.log('❌ User has no password set:', email);
       return null;
     }
 
     // Get first membership (or use default organization)
     const membership = user.memberships[0];
     if (!membership) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('❌ User has no memberships:', email);
-      }
+      console.log('❌ User has no memberships:', email);
       return null;
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('✅ User validated successfully:', { email, role: membership.role, organizationId: membership.organizationId });
-    }
+    console.log('✅ User validated successfully:', { 
+      email, 
+      role: membership.role, 
+      organizationId: membership.organizationId 
+    });
 
     return {
       id: user.id,
