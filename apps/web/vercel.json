@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @celhm/types build && pnpm --filter @celhm/web build",
+  "buildCommand": "cd ../.. && pnpm --filter @celhm/types build && pnpm --filter @celhm/web build",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install",
