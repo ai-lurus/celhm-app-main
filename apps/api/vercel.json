@@ -1,12 +1,6 @@
 {
   "version": 2,
   "buildCommand": "cd ../.. && pnpm install && cd prisma && pnpm db:generate && cd ../apps/api && pnpm build",
-  "builds": [
-    {
-      "src": "src/main.ts",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
