@@ -19,6 +19,8 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { SecurityHeadersInterceptor } from './common/interceptors/security-headers.interceptor';
 import { RateLimitInterceptor } from './common/interceptors/rate-limit.interceptor';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 @Module({
   imports: [
@@ -75,6 +77,10 @@ import { RateLimitInterceptor } from './common/interceptors/rate-limit.intercept
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
   ],
 })
