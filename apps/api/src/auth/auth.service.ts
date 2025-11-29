@@ -28,6 +28,11 @@ export class AuthService {
       return this.mockAuthService.validateUser(email, password);
     }
 
+    // Log for debugging
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔐 Validating user:', email);
+    }
+
     // Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -40,25 +45,48 @@ export class AuthService {
     });
 
     if (!user) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ User not found:', email);
+      }
       return null;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('👤 User found:', { id: user.id, email: user.email, hasPassword: !!user.password, membershipsCount: user.memberships.length });
     }
 
     // If user has password, validate it
     if (user.password) {
       const isPasswordValid = await compare(password, user.password);
       if (!isPasswordValid) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('❌ Invalid password for user:', email);
+        }
         return null;
+      }
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Password valid for user:', email);
       }
     } else {
       // If no password set, user might be using Supabase Auth
       // For now, reject if no password
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ User has no password set:', email);
+      }
       return null;
     }
 
     // Get first membership (or use default organization)
     const membership = user.memberships[0];
     if (!membership) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ User has no memberships:', email);
+      }
       return null;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ User validated successfully:', { email, role: membership.role, organizationId: membership.organizationId });
     }
 
     return {
