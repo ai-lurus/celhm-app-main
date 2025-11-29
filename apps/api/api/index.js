@@ -10,7 +10,9 @@ async function bootstrap() {
     const app = await NestFactory.create(AppModule);
     
     // Enable CORS
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    // Detect production: Vercel sets VERCEL=1, or NODE_ENV=production
+    // Default: if no CORS_ORIGINS is set, allow all vercel.app domains in production
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || !process.env.NODE_ENV;
     const hasExplicitCorsOrigins = process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim() !== '';
     
     const allowedOrigins = hasExplicitCorsOrigins
@@ -26,7 +28,7 @@ async function bootstrap() {
     console.log('  Is Production:', isProduction);
     console.log('  Has Explicit CORS_ORIGINS:', hasExplicitCorsOrigins);
     console.log('  Allowed Origins:', allowedOrigins.length > 0 ? allowedOrigins : 'Pattern matching (vercel.app)');
-    console.log('  CORS_ORIGINS env:', process.env.CORS_ORIGINS || 'not set');
+    console.log('  CORS_ORIGINS env:', process.env.CORS_ORIGINS || 'not set (using default: allow vercel.app)');
 
     app.enableCors({
       origin: (origin, callback) => {
