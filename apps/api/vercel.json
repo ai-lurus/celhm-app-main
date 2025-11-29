@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @celhm/types build && pnpm --filter @celhm/api build",
+  "buildCommand": "cd ../.. && pnpm install && cd prisma && npx prisma generate --schema=./schema.prisma && cd ../apps/api && pnpm --filter @celhm/types build && pnpm build",
   "builds": [
     {
       "src": "src/main.ts",

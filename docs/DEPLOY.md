@@ -46,10 +46,16 @@
 
 2. **Configurar Build Settings:**
    ```
-   Build Command: pnpm install && pnpm --filter @celhm/types build && pnpm --filter @celhm/api build
+   Build Command: (ya configurado en vercel.json)
    Output Directory: apps/api/dist
    Install Command: pnpm install
    ```
+   
+   **Nota:** El `vercel.json` ya incluye el build command que:
+   - Instala dependencias
+   - Genera Prisma Client desde `prisma/schema.prisma`
+   - Construye @celhm/types
+   - Construye la API
 
 3. **Variables de Entorno:**
    - `DATABASE_URL`: Tu conexión a Supabase
