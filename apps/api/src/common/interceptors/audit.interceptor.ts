@@ -20,6 +20,16 @@ export class AuditInterceptor implements NestInterceptor {
 
     const startTime = Date.now();
 
+    // Log all requests to /auth/login for debugging
+    if (url.includes('/auth/login') && method === 'POST') {
+      console.log('🔍 [AUDIT INTERCEPTOR] Login request intercepted:', {
+        method,
+        url,
+        body: request.body ? { email: request.body.email, passwordLength: request.body.password?.length } : 'no body',
+        ip,
+      });
+    }
+
     return next.handle().pipe(
       tap(() => {
         const duration = Date.now() - startTime;
