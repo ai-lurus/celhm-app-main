@@ -1,14 +1,15 @@
 {
   "version": 2,
   "buildCommand": "cd ../.. && pnpm install && cd prisma && pnpm db:generate && cd ../apps/api && pnpm build",
+  "outputDirectory": "dist",
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/main.ts"
+      "dest": "/api/main.js"
     }
   ],
   "functions": {
-    "src/main.ts": {
+    "dist/main.js": {
       "includeFiles": "../../node_modules/.prisma/**"
     }
   }
