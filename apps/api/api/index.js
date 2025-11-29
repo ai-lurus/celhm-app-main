@@ -115,6 +115,19 @@ async function bootstrap() {
 }
 
 module.exports = async (req, res) => {
+  // Log all incoming requests for debugging
+  if (req.url.includes('/auth/login') && req.method === 'POST') {
+    console.log('🚀 [VERCEL WRAPPER] Login request received:', {
+      method: req.method,
+      url: req.url,
+      body: req.body ? { email: req.body.email, passwordLength: req.body.password?.length } : 'no body',
+      headers: {
+        'content-type': req.headers['content-type'],
+        'origin': req.headers.origin,
+      },
+    });
+  }
+  
   const app = await bootstrap();
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp(req, res);
