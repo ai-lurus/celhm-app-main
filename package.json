@@ -4,7 +4,7 @@
   "description": "SaaS Multi-tenant para inventario por sucursal y tickets de reparación",
   "private": true,
   "scripts": {
-    "dev": "pnpm -r dev",
+    "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:unit": "pnpm -r test:unit",
@@ -19,10 +19,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "pnpm -r clean",
-    "db:generate": "pnpm --filter api db:generate",
-    "db:migrate": "pnpm --filter api db:migrate",
-    "db:seed": "pnpm --filter api db:seed",
-    "db:studio": "pnpm --filter api db:studio"
+    "db:generate": "pnpm --filter @celhm/prisma db:generate",
+    "db:migrate": "pnpm --filter @celhm/prisma db:migrate",
+    "db:seed": "pnpm --filter @celhm/prisma db:seed",
+    "db:studio": "pnpm --filter @celhm/prisma db:studio"
   },
   "devDependencies": {
     "@playwright/test": "^1.40.0",

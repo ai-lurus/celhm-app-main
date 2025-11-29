@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useStock, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem, InventoryItem } from '../../../lib/hooks/useStock'
+import { useCreateMovement } from '../../../lib/hooks/useMovements'
+import { useAuthStore } from '../../../stores/auth'
 
 //-------------
 // ICONOS
@@ -53,20 +56,7 @@ interface Brand {
   label: string;
   value: string;
 }
-interface InventoryItem {
-  id: number;
-  sku: string;
-  name: string;
-  brand: string;
-  model: string;
-  qty: number;
-  min: number;
-  max: number;
-  reserved: number;
-  price: number;
-  status: 'normal' | 'low' | 'critical';
-  categoryId: number;
-}
+// InventoryItem is now imported from useStock hook
 interface NewProductForm {
   name: string;
   brand: string;
@@ -143,26 +133,35 @@ const newProductInitialState: NewProductForm = {
   min_stock: 5,
 };
 
-// --- datos de formularios iniciales ---
-const initialInventory: InventoryItem[] = [
-  { id: 1, sku: 'LCD-IP12-BLK', name: 'Pantalla LCD iPhone 12 Negro', brand: 'Apple', model: 'iPhone 12', qty: 25, min: 5, max: 100, reserved: 2, price: 2500, status: 'normal', categoryId: 302 },
-  { id: 3, sku: 'BAT-SGS21-4000', name: 'Batería Samsung Galaxy S21', brand: 'Samsung', model: 'Galaxy S21', qty: 3, min: 5, max: 100, reserved: 1, price: 800, status: 'low', categoryId: 40 },
-  { id: 4, sku: 'MIC-HYD-IP11', name: 'Mica Hydrogel iPhone 11', brand: 'Genérica', model: 'iPhone 11', qty: 50, min: 10, max: 200, reserved: 5, price: 150, status: 'normal', categoryId: 311 },
-  { id: 5, sku: 'ACC-CAB-LIG', name: 'Cable Lightning', brand: 'Genérica', model: 'Varios', qty: 15, min: 5, max: 50, reserved: 0, price: 200, status: 'normal', categoryId: 12 },
-];
+// Removed initialInventory - now using API
 
 const CSV_TEMPLATE_HEADERS = "sku,name,brand,model,qty,min,max,price,status,categoryId";
 
 export default function InventoryPage() {
-  const [user, setUser] = useState<any>(null);
+  const user = useAuthStore((state) => state.user);
   
   // --- estados de filtros y paginacion ---
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [modelSearch, setModelSearch] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<'normal' | 'low' | 'critical' | ''>('');
   const [filterCategoryPath, setFilterCategoryPath] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
+
+  // API hooks
+  const { data: stockData, isLoading, error } = useStock({
+    marca: selectedBrand || undefined,
+    modelo: modelSearch || undefined,
+    estado: selectedStatus || undefined,
+    categoriaId: filterCategoryPath.length > 0 ? filterCategoryPath[filterCategoryPath.length - 1].toString() : undefined,
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
+
+  const createItem = useCreateInventoryItem();
+  const updateItem = useUpdateInventoryItem();
+  const deleteItem = useDeleteInventoryItem();
+  const createMovement = useCreateMovement();
 
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -185,13 +184,9 @@ export default function InventoryPage() {
   // --- estado para el Dropdown del boton "acciones" (NUEVO) ---
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
-  // estado principal de datos
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventory);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, [])
+  // Get inventory items from API
+  const inventoryItems = stockData?.data || [];
+  const pagination = stockData?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
   
   useEffect(() => {
     setCurrentPage(1);
@@ -290,10 +285,10 @@ export default function InventoryPage() {
     return selectors;
   };
 
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     const finalCategoryId = selectedCategoryPath[selectedCategoryPath.length - 1];
-    if (!newProduct.name || !finalCategoryId) {
-      alert('Por favor, completa el nombre y selecciona una categoría final.');
+    if (!newProduct.name) {
+      alert('Por favor, completa el nombre.');
       return;
     }
     
@@ -310,41 +305,37 @@ export default function InventoryPage() {
         return;
     }
     
-    if (itemToEdit) {
-      setInventoryItems(prevItems => prevItems.map(item => {
-        if (item.id === itemToEdit.id) {
-          return {
-            ...item,
+    try {
+      if (itemToEdit) {
+        await updateItem.mutateAsync({
+          id: itemToEdit.id,
+          data: {
             name: newProduct.name,
             brand: newProduct.brand,
             price: newProduct.price,
             sku: newProduct.sku,
-            qty: newProduct.initial_stock,
-            min: newProduct.min_stock,
-            categoryId: finalCategoryId,
-            status: newProduct.initial_stock <= newProduct.min_stock ? (newProduct.initial_stock <= 0 ? 'critical' : 'low') : 'normal',
-          };
-        }
-        return item;
-      }));
-    } else {
-      const newItem: InventoryItem = {
-        id: Math.max(0, ...inventoryItems.map(i => i.id)) + 1,
-        sku: newProduct.sku || `SKU-${Date.now()}`,
-        name: newProduct.name,
-        brand: newProduct.brand,
-        model: 'Nuevo Modelo',
-        qty: newProduct.initial_stock,
-        min: newProduct.min_stock,
-        max: 100, 
-        reserved: 0,
-        price: newProduct.price,
-        status: newProduct.initial_stock <= newProduct.min_stock ? (newProduct.initial_stock <= 0 ? 'critical' : 'low') : 'normal',
-        categoryId: finalCategoryId,
-      };
-      setInventoryItems([...inventoryItems, newItem]);
+            initial_stock: newProduct.initial_stock,
+            min_stock: newProduct.min_stock,
+            max_stock: 100,
+          },
+        });
+      } else {
+        await createItem.mutateAsync({
+          branchId: user?.branchId,
+          name: newProduct.name,
+          brand: newProduct.brand,
+          model: 'Nuevo Modelo',
+          sku: newProduct.sku || undefined,
+          price: newProduct.price,
+          qty: newProduct.initial_stock,
+          min: newProduct.min_stock,
+          max: 100,
+        });
+      }
+      closeModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar'}`);
     }
-    closeModal();
   };
 
   // --- filtros en la sidebar ---
@@ -402,10 +393,14 @@ export default function InventoryPage() {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
   };
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (itemToDelete) {
-      setInventoryItems(prevItems => prevItems.filter(item => item.id !== itemToDelete.id));
-      closeDeleteModal();
+      try {
+        await deleteItem.mutateAsync(itemToDelete.id);
+        closeDeleteModal();
+      } catch (error: any) {
+        alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar'}`);
+      }
     }
   };
 
@@ -420,29 +415,33 @@ export default function InventoryPage() {
     setIsMovementModalOpen(false);
     setItemForMovement(null);
   };
-  const handleSaveMovement = () => {
+  const handleSaveMovement = async () => {
     if (movementQuantity <= 0) {
       alert('La cantidad debe ser mayor a 0.');
       return;
     }
-    setInventoryItems(prevItems => prevItems.map(item => {
-      if (itemForMovement && item.id === itemForMovement.id) {
-        const newQty = movementType === 'entrada' 
-          ? item.qty + movementQuantity 
-          : item.qty - movementQuantity;
-        if (newQty < 0) {
-          alert('Error: No se puede registrar una salida que deje el stock en negativo.');
-          return item;
-        }
-        return {
-          ...item,
-          qty: newQty,
-          status: newQty <= item.min ? (newQty <= 0 ? 'critical' : 'low') : 'normal'
-        };
-      }
-      return item;
-    }));
-    closeMovementModal();
+    if (!itemForMovement || !user?.branchId) {
+      alert('Error: No se puede registrar el movimiento.');
+      return;
+    }
+
+    // Check if salida would result in negative stock
+    if (movementType === 'salida' && itemForMovement.qty - movementQuantity < 0) {
+      alert('Error: No se puede registrar una salida que deje el stock en negativo.');
+      return;
+    }
+
+    try {
+      await createMovement.mutateAsync({
+        branchId: user.branchId,
+        variantId: itemForMovement.variantId,
+        type: movementType,
+        qty: movementQuantity,
+      });
+      closeMovementModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al registrar movimiento'}`);
+    }
   };
 
   // --- exportar csv ---
@@ -547,46 +546,12 @@ export default function InventoryPage() {
     reader.readAsText(csvFile);
   };
   
-  // --- filtrado y paginacion ---
-  const getAllChildrenIds = (categoryId: number): number[] => {
-    let ids: number[] = [categoryId];
-    let queue: Category[] = [...filtersData.categorias.data];
-    let node: Category | undefined = undefined;
-    while (queue.length > 0) {
-        const current = queue.shift();
-        if (!current) continue;
-        if (current.id === categoryId) { node = current; break; }
-        if (current.children) queue.push(...current.children);
-    }
-    if (!node) return [categoryId];
-    let childrenQueue = node.children ? [...node.children] : [];
-    while (childrenQueue.length > 0) {
-        const child = childrenQueue.shift();
-        if (!child) continue;
-        ids.push(child.id);
-        if (child.children) childrenQueue.push(...child.children);
-    }
-    return ids;
-  };
-
-  const filteredInventory = inventoryItems.filter(item => {
-    let categoryMatch = true;
-    if (filterCategoryPath.length > 0) {
-      const lastSelectedCategoryId = filterCategoryPath[filterCategoryPath.length - 1];
-      const allowedCategoryIds = getAllChildrenIds(lastSelectedCategoryId);
-      categoryMatch = allowedCategoryIds.includes(item.categoryId);
-    }
-    const brandMatch = selectedBrand === '' || item.brand === selectedBrand;
-    const modelMatch = modelSearch === '' || item.model.toLowerCase().includes(modelSearch.toLowerCase());
-    const statusMatch = selectedStatus === '' || item.status === selectedStatus;
-    return categoryMatch && brandMatch && modelMatch && statusMatch;
-  });
-
-  const totalItems = filteredInventory.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedInventory = filteredInventory.slice(startIndex, endIndex);
+  // Filtering and pagination now handled by backend API
+  const paginatedInventory = inventoryItems;
+  const totalItems = pagination.total;
+  const totalPages = pagination.totalPages;
+  const startIndex = (pagination.page - 1) * pagination.pageSize;
+  const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
 
   return (
     <div className="space-y-6">
@@ -668,7 +633,7 @@ export default function InventoryPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2">
+              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-gray-300 rounded-md px-3 py-2">
                 <option value="">Todos los estados</option>
                 <option value="normal">Normal</option>
                 <option value="low">Bajo</option>
@@ -681,6 +646,13 @@ export default function InventoryPage() {
         {/* --- tabla --- */}
         <div className="w-full md:w-3/4">
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            {isLoading && (
+              <div className="p-8 text-center text-gray-500">Cargando inventario...</div>
+            )}
+            {error && (
+              <div className="p-8 text-center text-red-500">Error al cargar inventario: {error instanceof Error ? error.message : 'Error desconocido'}</div>
+            )}
+            {!isLoading && !error && (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -729,12 +701,13 @@ export default function InventoryPage() {
                 </tbody>
               </table>
             </div>
+            )}
             
             {/* --- paginacion --- */}
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
               </div>
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
@@ -749,11 +722,11 @@ export default function InventoryPage() {
                     <option value={50}>50</option>
                   </select>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
                     <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-                      Pág {currentPage} de {totalPages || 1}
+                      Pág {pagination.page} de {totalPages || 1}
                     </span>
-                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
                   </nav>
                 </div>
               </div>
