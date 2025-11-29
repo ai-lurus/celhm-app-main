@@ -15,7 +15,7 @@
   ],
   "functions": {
     "src/main.ts": {
-      "includeFiles": "node_modules/.prisma/**"
+      "includeFiles": "../../node_modules/.prisma/**"
     }
   }
 }
