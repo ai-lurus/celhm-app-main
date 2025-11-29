@@ -247,7 +247,9 @@ export default function CatalogPage() {
     for (let i = 0; i < filterCategoryPath.length; i++) {
       if (!currentLevelOptions) break;
       const selectedId = filterCategoryPath[i];
-      const selectedNode = currentLevelOptions.find(opt => opt.id === selectedId);
+      const selectedNode: Category | undefined = currentLevelOptions.find(
+        (opt: Category) => opt.id === selectedId
+      );
 
       if (selectedNode?.children && selectedNode.children.length > 0) {
         currentLevelOptions = selectedNode.children;
