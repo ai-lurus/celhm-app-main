@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "prebuild": "cd ../.. && pnpm --filter @celhm/prisma db:generate",
+    "prebuild": "cd ../.. && pnpm --filter @celhm/prisma db:generate || true",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
