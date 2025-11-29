@@ -10,18 +10,69 @@ async function bootstrap() {
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
     : process.env.NODE_ENV === 'production'
-    ? ['https://celhm-app.vercel.app']
+    ? [] // Empty means we'll use pattern matching for vercel.app
     : ['http://localhost:3000', 'http://localhost:3001'];
+
+  // Log CORS configuration for debugging
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔒 CORS Configuration:');
+    console.log('  Allowed Origins:', allowedOrigins.length > 0 ? allowedOrigins : 'Pattern matching (vercel.app)');
+    console.log('  CORS_ORIGINS env:', process.env.CORS_ORIGINS || 'not set');
+  }
 
   app.enableCors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ CORS: Allowing request with no origin');
+        }
+        return callback(null, true);
+      }
       
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
+      // If CORS_ORIGINS is explicitly set, use exact matching
+      if (process.env.CORS_ORIGINS && allowedOrigins.length > 0) {
+        if (allowedOrigins.includes(origin)) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ CORS: Allowing origin (exact match): ${origin}`);
+          }
+          callback(null, true);
+        } else {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`❌ CORS: Blocking origin: ${origin}`);
+            console.log(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+          }
+          callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
+        }
       } else {
-        callback(new Error('Not allowed by CORS'));
+        // In production without explicit CORS_ORIGINS, allow any vercel.app subdomain
+        if (process.env.NODE_ENV === 'production') {
+          if (origin.endsWith('.vercel.app') || origin.endsWith('vercel.app')) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`✅ CORS: Allowing origin (vercel.app pattern): ${origin}`);
+            }
+            callback(null, true);
+          } else {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`❌ CORS: Blocking origin (not vercel.app): ${origin}`);
+            }
+            callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
+          }
+        } else {
+          // Development: use exact matching
+          if (allowedOrigins.includes(origin)) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`✅ CORS: Allowing origin: ${origin}`);
+            }
+            callback(null, true);
+          } else {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`❌ CORS: Blocking origin: ${origin}`);
+              console.log(`   Allowed origins: ${allowedOrigins.join(', ')}`);
+            }
+            callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
+          }
+        }
       }
     },
     credentials: true,
