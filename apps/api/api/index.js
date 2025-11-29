@@ -49,7 +49,15 @@ async function bootstrap() {
       .build();
     
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
+    // Use customSwaggerUI for Vercel serverless compatibility
+    SwaggerModule.setup('docs', app, document, {
+      customCssUrl: 'https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css',
+      customJs: [
+        'https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js',
+        'https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js',
+      ],
+      customSiteTitle: 'CELHM API Documentation',
+    });
 
     await app.init();
     cachedApp = app;
