@@ -397,6 +397,7 @@ export default function InventoryPage() {
           const min = parseInt(obj.min) || 0;
           const newItem: InventoryItem = {
             id: ++maxId,
+            variantId: maxId, // Use same ID as temporary variantId for import
             sku: obj.sku || `SKU-${Date.now() + i}`,
             name: obj.name,
             brand: obj.brand,
