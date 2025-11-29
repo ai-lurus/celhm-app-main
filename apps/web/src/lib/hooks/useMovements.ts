@@ -1,28 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
+import { CreateMovementRequest, MovementType } from '@celhm/types'
 
-export type MovementType = 'entrada' | 'salida'
-
-interface CreateMovementDto {
-  branchId: number
-  variantId: number
-  type: MovementType
-  qty: number
-  reason?: string
-  folio?: string
-  ticketId?: number
-}
+export type FrontendMovementType = 'entrada' | 'salida'
 
 export function useCreateMovement() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: CreateMovementDto) => {
-      const response = await api.post('/movements', {
+    mutationFn: async (data: { branchId: number; variantId: number; type: FrontendMovementType; qty: number; reason?: string; folio?: string; ticketId?: number }) => {
+      const backendData: CreateMovementRequest = {
         ...data,
         // Backend uses: ING (entrada), EGR (salida), VTA (venta), AJU (ajuste), TRF_OUT, TRF_IN
         type: data.type === 'entrada' ? 'ING' : 'EGR',
-      })
+      }
+      const response = await api.post('/movements', backendData)
       return response.data
     },
     onSuccess: () => {

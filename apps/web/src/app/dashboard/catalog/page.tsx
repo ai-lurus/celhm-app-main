@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useCategories, useBrands, Product } from '../../../lib/hooks/useCatalog'
+import { useAuthStore } from '../../../stores/auth'
 
 // --- Iconos ---
 const IconEdit = ({ className }: { className?: string }) => (
@@ -21,16 +23,7 @@ const IconDelete = ({ className }: { className?: string }) => (
 );
 // --- Fin iconos ---
 
-// --- Tipos de TypeScript ---
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  category: string;
-  brand: string;
-  model: string;
-  createdAt: string;
-}
+// Product type is now imported from useCatalog hook
 
 interface NewProductForm {
   name: string;
@@ -51,14 +44,7 @@ interface Brand {
   value: string;
 }
 
-// --- Datos dados inicialmente ---
-const initialProducts: Product[] = [
-  { id: 1, name: 'Pantalla LCD iPhone', description: 'Pantalla LCD para iPhone 12/13', category: 'Pantallas', brand: 'Apple', model: 'iPhone 12/13', createdAt: '2024-01-01T00:00:00Z', },
-  { id: 2, name: 'Batería Samsung Galaxy', description: 'Batería original Samsung Galaxy S21', category: 'Baterías', brand: 'Samsung', model: 'Galaxy S21', createdAt: '2024-01-01T00:00:00Z', },
-  { id: 3, name: 'Cargador USB-C', description: 'Cargador rápido USB-C 20W', category: 'Accesorios', brand: 'Generic', model: 'USB-C 20W', createdAt: '2024-01-01T00:00:00Z', },
-  { id: 4, name: 'Cable Lightning', description: 'Cable Lightning 1m', category: 'Cables', brand: 'Generic', model: 'Lightning 1m', createdAt: '2024-01-01T00:00:00Z', },
-  { id: 5, name: 'Protector de Pantalla', description: 'Protector de pantalla templado', category: 'Accesorios', brand: 'Generic', model: 'Templado', createdAt: '2024-01-01T00:00:00Z', },
-];
+// Removed initialProducts - now using API
 
 // --- Datos de filtros (Mock) ---
 const filtersData: {
@@ -104,16 +90,34 @@ const newProductInitialState: NewProductForm = {
 };
 
 export default function CatalogPage() {
-  const [user, setUser] = useState<any>(null)
+  const user = useAuthStore((state) => state.user)
   
   // --- Estados para los filtros ---
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filterCategoryPath, setFilterCategoryPath] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
-  // --- Estados para la lista de productos ---
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  // API hooks
+  const { data: productsData, isLoading, error } = useProducts({
+    categoria: selectedCategory || undefined,
+    marca: selectedBrand || undefined,
+    q: searchTerm || undefined,
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
+
+  const { data: categories = [] } = useCategories();
+  const { data: brands = [] } = useBrands();
+
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
+
+  // Get products from API
+  const products = productsData?.data || [];
+  const pagination = productsData?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
 
   // --- Estados para el Modal "Agregar/Editar" ---
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
@@ -130,11 +134,8 @@ export default function CatalogPage() {
 
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrand, searchTerm, itemsPerPage]);
 
   // -------------------------------------
   // LOGICA DE MODALES (AGREGAR/EDITAR)
@@ -157,27 +158,37 @@ export default function CatalogPage() {
     setNewProductData(newProductInitialState);
   };
 
-  const handleSaveProduct = () => {
-    if (!newProductData.name || !newProductData.category || !newProductData.brand) {
-      alert('Completa Nombre, Categoría y Marca.');
+  const handleSaveProduct = async () => {
+    if (!newProductData.name) {
+      alert('Completa el nombre del producto.');
       return;
     }
 
-    if (productToEdit) {
-      // Actualizar
-      setProducts(prevProducts => prevProducts.map(p => 
-        p.id === productToEdit.id ? { ...p, ...newProductData } : p
-      ));
-    } else {
-      // Crear
-      const newProduct: Product = {
-        id: Math.max(0, ...products.map(p => p.id)) + 1,
-        ...newProductData,
-        createdAt: new Date().toISOString(),
-      };
-      setProducts([...products, newProduct]);
+    try {
+      if (productToEdit) {
+        await updateProduct.mutateAsync({
+          id: productToEdit.id,
+          data: {
+            name: newProductData.name,
+            description: newProductData.description || undefined,
+            category: newProductData.category || undefined,
+            brand: newProductData.brand || undefined,
+            model: newProductData.model || undefined,
+          },
+        });
+      } else {
+        await createProduct.mutateAsync({
+          name: newProductData.name,
+          description: newProductData.description || undefined,
+          category: newProductData.category || undefined,
+          brand: newProductData.brand || undefined,
+          model: newProductData.model || undefined,
+        });
+      }
+      closeProductModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar'}`);
     }
-    closeProductModal();
   };
   
   const handleProductModalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -198,10 +209,14 @@ export default function CatalogPage() {
     setIsDeleteModalOpen(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
-    setProducts(prev => prev.filter(p => p.id !== itemToDelete.id));
-    closeDeleteModal();
+    try {
+      await deleteProduct.mutateAsync(itemToDelete.id);
+      closeDeleteModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar'}`);
+    }
   };
 
   // --------------------------------
@@ -217,99 +232,10 @@ export default function CatalogPage() {
     setItemToView(null);
   };
 
-  // ------------------------------
-  // LOGICA DE FILTRADO Y SIDEBAR
-  // ------------------------------
-  const handlePageFilterCategoryChange = (level: number, categoryId: string) => {
-    const newPath = filterCategoryPath.slice(0, level);
-    if (categoryId) {
-      newPath.push(parseInt(categoryId));
-    }
-    setFilterCategoryPath(newPath);
-  };
+  // Filtering now handled by backend API
 
-  const renderPageFilterSelectors = () => {
-    const selectors = [];
-    let currentLevelOptions: Category[] | undefined = filtersData.categorias.data;
-
-    if (currentLevelOptions) {
-      selectors.push(
-        <div key="filter-0">
-          <label className="block text-sm font-medium text-gray-700">Categoría Nivel 1</label>
-          <select onChange={(e) => handlePageFilterCategoryChange(0, e.target.value)} value={filterCategoryPath[0] || ''} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
-            <option value="">Todas las categorías</option>
-            {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-          </select>
-        </div>
-      );
-    }
-
-    for (let i = 0; i < filterCategoryPath.length; i++) {
-      if (!currentLevelOptions) break;
-      const selectedId = filterCategoryPath[i];
-      const selectedNode: Category | undefined = currentLevelOptions.find(
-        (opt: Category) => opt.id === selectedId
-      );
-
-      if (selectedNode?.children && selectedNode.children.length > 0) {
-        currentLevelOptions = selectedNode.children;
-        selectors.push(
-          <div key={`filter-${i + 1}`}>
-            <label className="block text-sm font-medium text-gray-700">{`Categoría Nivel ${i + 2}`}</label>
-            <select onChange={(e) => handlePageFilterCategoryChange(i + 1, e.target.value)} value={filterCategoryPath[i + 1] || ''} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
-              <option value="">Todas en {selectedNode.name}</option>
-              {currentLevelOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}</option>)}
-            </select>
-          </div>
-        );
-      } else {
-        currentLevelOptions = undefined;
-        break;
-      }
-    }
-    return selectors;
-  };
-
-  // Mas funciones para un filtrado mas profundo, tomando mas id's
-  const getAllChildrenIds = (categoryId: number): number[] => {
-    let ids: number[] = [categoryId];
-    let queue: Category[] = [...filtersData.categorias.data];
-    let node: Category | undefined = undefined;
-    
-    while (queue.length > 0) {
-        const current = queue.shift();
-        if (!current) continue;
-        if (current.id === categoryId) {
-            node = current;
-            break;
-        }
-        if (current.children) {
-            queue.push(...current.children);
-        }
-    }
-    if (!node) return [categoryId];
-    let childrenQueue = node.children ? [...node.children] : [];
-    while (childrenQueue.length > 0) {
-        const child = childrenQueue.shift();
-        if (!child) continue;
-        ids.push(child.id);
-        if (child.children) {
-            childrenQueue.push(...child.children);
-        }
-    }
-    return ids;
-  };
-
-  // logica de filtrado principal
-  const filteredProducts = products.filter(product => {
-    
-    const categoryMatch = selectedCategory === '' || product.category === selectedCategory;
-    const brandMatch = selectedBrand === '' || product.brand === selectedBrand;
-    const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        product.model.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return categoryMatch && brandMatch && searchMatch;
-  });
+  // Filtering now handled by backend API
+  const filteredProducts = products;
 
   return (
     <div className="space-y-6">
@@ -347,10 +273,9 @@ export default function CatalogPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
               <select className="w-full border border-gray-300 rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 <option value="">Todas las categorías</option>
-                <option value="Pantallas">Pantallas</option>
-                <option value="Baterías">Baterías</option>
-                <option value="Accesorios">Accesorios</option>
-                <option value="Cables">Cables</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
               </select>
             </div>
 
@@ -358,9 +283,9 @@ export default function CatalogPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
               <select className="w-full border border-gray-300 rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
                 <option value="">Todas las marcas</option>
-                <option value="Apple">Apple</option>
-                <option value="Samsung">Samsung</option>
-                <option value="Generic">Generic</option>
+                {brands.map((brand) => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -369,6 +294,13 @@ export default function CatalogPage() {
         {/* --- columna derecha: tabla de productos --- */}
         <div className="w-full md:w-3/4">
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            {isLoading && (
+              <div className="p-8 text-center text-gray-500">Cargando productos...</div>
+            )}
+            {error && (
+              <div className="p-8 text-center text-red-500">Error al cargar productos: {error instanceof Error ? error.message : 'Error desconocido'}</div>
+            )}
+            {!isLoading && !error && (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -410,10 +342,36 @@ export default function CatalogPage() {
                 </tbody>
               </table>
             </div>
+            )}
             
             {/* Paginacion */}
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-               <p className="text-sm text-gray-700">Mostrando {filteredProducts.length} productos</p>
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Mostrando <span className="font-medium">{pagination.total > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0}</span> a <span className="font-medium">{Math.min(pagination.page * pagination.pageSize, pagination.total)}</span> de <span className="font-medium">{pagination.total}</span> productos
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="itemsPerPage" className="text-sm text-gray-700">Items por pág:</label>
+                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                      Pág {pagination.page} de {pagination.totalPages || 1}
+                    </span>
+                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || pagination.totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                  </nav>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -441,18 +399,19 @@ export default function CatalogPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Categoría</label>
                   <select name="category" value={newProductData.category} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                    <option value="Pantallas">Pantallas</option>
-                    <option value="Baterías">Baterías</option>
-                    <option value="Accesorios">Accesorios</option>
-                    <option value="Cables">Cables</option>
+                    <option value="">Selecciona una categoría</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
                  <div>
                   <label className="block text-sm font-medium text-gray-700">Marca</label>
                   <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                    <option value="Apple">Apple</option>
-                    <option value="Samsung">Samsung</option>
-                    <option value="Generic">Generic</option>
+                    <option value="">Selecciona una marca</option>
+                    {brands.map((brand) => (
+                      <option key={brand} value={brand}>{brand}</option>
+                    ))}
                   </select>
                 </div>
               </div>
