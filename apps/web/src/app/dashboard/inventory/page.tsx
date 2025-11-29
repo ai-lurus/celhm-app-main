@@ -96,7 +96,7 @@ export default function InventoryPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   // API hooks
-  const { data: stockData, isLoading, error } = useStock({
+  const { data: stockData, isLoading, error, refetch } = useStock({
     marca: selectedBrand || undefined,
     modelo: modelSearch || undefined,
     estado: selectedStatus || undefined,
@@ -412,8 +412,31 @@ export default function InventoryPage() {
           };
           if (newItem.name && newItem.categoryId) newItems.push(newItem);
         }
-        setInventoryItems(prevItems => [...prevItems, ...newItems]);
-        setImportStatus(`¡Éxito! Se importaron ${newItems.length} productos.`);
+        
+        // Create items via API
+        let successCount = 0;
+        for (const item of newItems) {
+          try {
+            await createItem.mutateAsync({
+              name: item.name,
+              brand: item.brand,
+              model: item.model,
+              sku: item.sku,
+              price: item.price,
+              qty: item.qty,
+              min: item.min,
+              max: item.max,
+            });
+            successCount++;
+          } catch (err) {
+            console.error('Error creating item:', err);
+          }
+        }
+        
+        // Refetch inventory to show new items
+        await refetch();
+        
+        setImportStatus(`¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`);
         setCsvFile(null);
         setIsImportModalOpen(false);
       } catch (error: any) {
