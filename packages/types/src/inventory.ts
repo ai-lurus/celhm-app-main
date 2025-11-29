@@ -1,7 +1,5 @@
 import { z } from 'zod'
-
-export const MovementType = z.enum(['ING', 'EGR', 'VTA', 'AJU', 'TRF_OUT', 'TRF_IN'])
-export type MovementType = z.infer<typeof MovementType>
+import { MovementType } from './movements'
 
 export const CreateMovementSchema = z.object({
   branchId: z.number(),
