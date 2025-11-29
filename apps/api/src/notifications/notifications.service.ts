@@ -79,17 +79,18 @@ export class NotificationsService {
       });
 
       return { success: true, notification, result };
-    } catch (error) {
+    } catch (error: unknown) {
+      const err = error as { message?: string };
       // Update notification status
       await this.prisma.notification.update({
         where: { id: notification.id },
         data: {
           status: 'failed',
-          error: error.message,
+          error: err.message ?? 'Unknown error',
         },
       });
 
-      return { success: false, notification, error: error.message };
+      return { success: false, notification, error: err.message ?? 'Unknown error' };
     }
   }
 

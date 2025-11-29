@@ -81,20 +81,73 @@ export class MovementsService {
     });
   }
 
-  async getMovements(branchId: number, organizationId: number, page = 1, pageSize = 50) {
+  async getMovements(
+    branchId: number,
+    organizationId: number,
+    filters?: {
+      tipo?: MovementType;
+      variantId?: number;
+      userId?: number;
+      fechaDesde?: Date;
+      fechaHasta?: Date;
+      q?: string;
+      page?: number;
+      pageSize?: number;
+    },
+  ) {
+    const page = filters?.page || 1;
+    const pageSize = filters?.pageSize || 50;
     const skip = (page - 1) * pageSize;
+
+    const where: any = {
+      branchId,
+      branch: { organizationId },
+    };
+
+    if (filters?.tipo) {
+      where.type = filters.tipo;
+    }
+
+    if (filters?.variantId) {
+      where.variantId = filters.variantId;
+    }
+
+    if (filters?.userId) {
+      where.userId = filters.userId;
+    }
+
+    if (filters?.fechaDesde || filters?.fechaHasta) {
+      where.createdAt = {};
+      if (filters.fechaDesde) {
+        where.createdAt.gte = filters.fechaDesde;
+      }
+      if (filters.fechaHasta) {
+        // Add one day to include the entire day
+        const endDate = new Date(filters.fechaHasta);
+        endDate.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endDate;
+      }
+    }
+
+    if (filters?.q) {
+      where.OR = [
+        { folio: { contains: filters.q, mode: 'insensitive' } },
+        { variant: { sku: { contains: filters.q, mode: 'insensitive' } } },
+        { variant: { name: { contains: filters.q, mode: 'insensitive' } } },
+        { variant: { product: { name: { contains: filters.q, mode: 'insensitive' } } } },
+        { variant: { product: { model: { contains: filters.q, mode: 'insensitive' } } } },
+      ];
+    }
 
     const [movements, total] = await Promise.all([
       this.prisma.movement.findMany({
-        where: {
-          branchId,
-          branch: { organizationId },
-        },
+        where,
         include: {
           variant: {
             include: {
               product: {
                 select: {
+                  id: true,
                   name: true,
                   brand: true,
                   model: true,
@@ -104,8 +157,16 @@ export class MovementsService {
           },
           user: {
             select: {
+              id: true,
               name: true,
               email: true,
+            },
+          },
+          branch: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
             },
           },
         },
@@ -113,12 +174,7 @@ export class MovementsService {
         skip,
         take: pageSize,
       }),
-      this.prisma.movement.count({
-        where: {
-          branchId,
-          branch: { organizationId },
-        },
-      }),
+      this.prisma.movement.count({ where }),
     ]);
 
     return {

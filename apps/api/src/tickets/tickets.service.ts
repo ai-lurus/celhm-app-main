@@ -6,6 +6,7 @@ import { FoliosService } from '../folios/folios.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStateDto } from './dto/update-ticket-state.dto';
 import { AddTicketPartDto } from './dto/add-ticket-part.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 @Injectable()
 export class TicketsService {
@@ -159,6 +160,39 @@ export class TicketsService {
             code: true,
           },
         },
+      },
+    });
+  }
+
+  async updateTicket(id: number, updateTicketDto: UpdateTicketDto, user: AuthUser) {
+    const ticket = await this.prisma.ticket.findFirst({
+      where: {
+        id,
+        branch: { organizationId: user.organizationId },
+      },
+    });
+
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    return this.prisma.ticket.update({
+      where: { id },
+      data: {
+        customerName: updateTicketDto.customerName ?? ticket.customerName,
+        customerPhone: updateTicketDto.customerPhone ?? ticket.customerPhone,
+        customerEmail: updateTicketDto.customerEmail ?? ticket.customerEmail,
+        device: updateTicketDto.device ?? ticket.device,
+        brand: updateTicketDto.brand ?? ticket.brand,
+        model: updateTicketDto.model ?? ticket.model,
+        serialNumber: updateTicketDto.serialNumber ?? ticket.serialNumber,
+        problem: updateTicketDto.problem ?? ticket.problem,
+        diagnosis: updateTicketDto.diagnosis ?? ticket.diagnosis,
+        solution: updateTicketDto.solution ?? ticket.solution,
+        estimatedCost: updateTicketDto.estimatedCost ?? ticket.estimatedCost,
+        finalCost: updateTicketDto.finalCost ?? ticket.finalCost,
+        estimatedTime: updateTicketDto.estimatedTime ?? ticket.estimatedTime,
+        warrantyDays: updateTicketDto.warrantyDays ?? ticket.warrantyDays,
       },
     });
   }
