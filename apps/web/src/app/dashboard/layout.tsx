@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../../stores/auth'
 // Removed @celhm/ui import for now
@@ -12,26 +12,24 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const user = useAuthStore((state) => state.user)
+  const token = useAuthStore((state) => state.token)
+  const logout = useAuthStore((state) => state.logout)
 
   useEffect(() => {
-    // Get user from localStorage for demo
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    } else {
+    // Check if user is authenticated
+    if (!user || !token) {
       router.push('/login')
     }
-  }, [router])
+  }, [user, token, router])
 
-  if (!user) {
-    return <div>Cargando...</div>
+  if (!user || !token) {
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
-    router.push('/')
+    logout()
+    router.push('/login')
   }
 
   return (
