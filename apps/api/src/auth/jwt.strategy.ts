@@ -18,10 +18,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any): Promise<AuthUser> {
+    // Log for debugging (remove in production)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Validating JWT payload:', { sub: payload.sub, email: payload.email });
+    }
+    
     const user = await this.authService.validateJwtPayload(payload);
     if (!user) {
-      throw new UnauthorizedException();
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('❌ JWT validation failed for payload:', payload);
+      }
+      throw new UnauthorizedException('Invalid token');
     }
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ JWT validation successful for user:', user.email);
+    }
+    
     return user;
   }
 }

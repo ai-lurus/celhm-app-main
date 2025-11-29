@@ -80,8 +80,15 @@ export class AuthService {
       branchId: user.branchId,
     };
 
+    const access_token = this.jwtService.sign(payload);
+    
+    // Log for debugging (remove in production)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔑 Generated JWT token for user:', user.email);
+    }
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token,
       user,
     };
   }
