@@ -50,13 +50,20 @@ export class AuthService {
 
     // If user has password, validate it
     if (user.password) {
-      const isPasswordValid = await compare(password, user.password);
-      console.log('🔑 Password validation result:', isPasswordValid);
-      if (!isPasswordValid) {
-        console.log('❌ Invalid password for user:', email);
+      try {
+        const isPasswordValid = await compare(password, user.password);
+        console.log('🔑 Password validation result:', isPasswordValid);
+        console.log('🔑 Password provided length:', password.length);
+        console.log('🔑 Password hash length:', user.password.length);
+        if (!isPasswordValid) {
+          console.log('❌ Invalid password for user:', email);
+          return null;
+        }
+        console.log('✅ Password valid for user:', email);
+      } catch (error: any) {
+        console.error('❌ Error comparing password:', error.message);
         return null;
       }
-      console.log('✅ Password valid for user:', email);
     } else {
       // If no password set, user might be using Supabase Auth
       // For now, reject if no password
