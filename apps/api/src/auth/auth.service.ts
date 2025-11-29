@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { Role } from '@prisma/client';
-import { MockAuthService } from './mock-auth.service';
 import { compare } from 'bcryptjs';
 
 export interface AuthUser {
@@ -19,15 +18,9 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private mockAuthService: MockAuthService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<AuthUser | null> {
-    // Check if mocks are enabled
-    if (process.env.NEXT_PUBLIC_ENABLE_MOCKS === 'true') {
-      return this.mockAuthService.validateUser(email, password);
-    }
-
     // Log for debugging
     if (process.env.NODE_ENV !== 'production') {
       console.log('🔐 Validating user:', email);

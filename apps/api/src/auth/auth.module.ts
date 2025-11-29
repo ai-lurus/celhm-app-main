@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
-import { MockAuthService } from './mock-auth.service';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { MockAuthService } from './mock-auth.service';
   controllers: [AuthController],
   providers: [
     AuthService,
-    MockAuthService,
     JwtStrategy,
   ],
   exports: [AuthService],
