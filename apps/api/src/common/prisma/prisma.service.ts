@@ -18,7 +18,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     try {
-      // Use connectOrCreate for better error handling in serverless
+      // In serverless environments (Vercel), we use lazy connection
+      // The connection will be established on first query
+      // This avoids connection issues during cold starts
+      if (process.env.VERCEL) {
+        this.logger.log('⚠️ Running on Vercel - using lazy connection');
+        // Don't connect immediately in serverless
+        return;
+      }
+      
       await this.$connect();
       this.logger.log('✅ Database connected successfully');
     } catch (error: any) {
