@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { AuthUser } from '../auth/auth.service';
+import type { AuthUser } from '../auth/auth.service';
 import { OrgService } from './org.service';
 
 @ApiTags('organizations')

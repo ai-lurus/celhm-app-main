@@ -1,9 +1,9 @@
 import { Controller, Post, Get, Patch, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { TicketState } from '@prisma/client';
+import type { TicketState } from '@prisma/client';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { AuthUser } from '../auth/auth.service';
+import type { AuthUser } from '../auth/auth.service';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketStateDto } from './dto/update-ticket-state.dto';
