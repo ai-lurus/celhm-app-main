@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../common/prisma/prisma.service';
 import { Role } from '@prisma/client';
 import { MockAuthService } from './mock-auth.service';
+import { compare } from 'bcryptjs';
 
 export interface AuthUser {
   id: number;
@@ -27,9 +28,47 @@ export class AuthService {
       return this.mockAuthService.validateUser(email, password);
     }
 
-    // TODO: Implement Supabase Auth validation
-    // For now, return null to indicate no real auth
-    return null;
+    // Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      include: {
+        memberships: {
+          include: { organization: true },
+        },
+        branch: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    // If user has password, validate it
+    if (user.password) {
+      const isPasswordValid = await compare(password, user.password);
+      if (!isPasswordValid) {
+        return null;
+      }
+    } else {
+      // If no password set, user might be using Supabase Auth
+      // For now, reject if no password
+      return null;
+    }
+
+    // Get first membership (or use default organization)
+    const membership = user.memberships[0];
+    if (!membership) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email || '',
+      name: user.name || '',
+      role: membership.role,
+      organizationId: membership.organizationId,
+      branchId: user.branchId || undefined,
+    };
   }
 
   async login(user: AuthUser) {

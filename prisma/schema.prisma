@@ -87,6 +87,7 @@ model User {
   authUserId           String?  @unique // Supabase Auth UUID
   email                String?  @unique
   name                 String?
+  password             String?  // Hashed password for local auth (optional if using Supabase Auth)
   defaultOrganizationId Int?
   defaultOrganization   Organization? @relation("DefaultOrganization", fields: [defaultOrganizationId], references: [id])
   role                 Role // rol por defecto; permisos finos por OrgMembership
