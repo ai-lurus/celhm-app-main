@@ -5,12 +5,25 @@ import { PrismaClient } from '@prisma/client';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
 
+  constructor() {
+    super({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
+  }
+
   async onModuleInit() {
     try {
+      // Use connectOrCreate for better error handling in serverless
       await this.$connect();
       this.logger.log('✅ Database connected successfully');
-    } catch (error) {
-      this.logger.error('❌ Failed to connect to database:', error);
+    } catch (error: any) {
+      this.logger.error('❌ Failed to connect to database:', error.message);
+      this.logger.debug('DATABASE_URL configured:', !!process.env.DATABASE_URL);
       // Don't throw - allow app to start even if DB is temporarily unavailable
       // The connection will be retried on first query
     }
