@@ -7,7 +7,9 @@ let cachedApp;
 
 async function bootstrap() {
   if (!cachedApp) {
+    console.log('🚀 [BOOTSTRAP] Creating NestJS application...');
     const app = await NestFactory.create(AppModule);
+    console.log('✅ [BOOTSTRAP] NestJS application created');
     
     // Enable CORS
     // Detect production: Vercel sets VERCEL=1, or NODE_ENV=production
@@ -108,7 +110,10 @@ async function bootstrap() {
     });
 
     await app.init();
+    console.log('✅ [BOOTSTRAP] NestJS application initialized');
     cachedApp = app;
+  } else {
+    console.log('♻️ [BOOTSTRAP] Using cached NestJS application');
   }
   
   return cachedApp;
@@ -128,8 +133,15 @@ module.exports = async (req, res) => {
     });
   }
   
-  const app = await bootstrap();
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp(req, res);
+  try {
+    const app = await bootstrap();
+    console.log('✅ [VERCEL WRAPPER] App bootstrapped, getting Express instance');
+    const expressApp = app.getHttpAdapter().getInstance();
+    console.log('✅ [VERCEL WRAPPER] Express instance obtained, handling request');
+    expressApp(req, res);
+  } catch (error) {
+    console.error('❌ [VERCEL WRAPPER] Error in request handler:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
 };
 
