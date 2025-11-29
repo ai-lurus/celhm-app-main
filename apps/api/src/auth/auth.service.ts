@@ -23,6 +23,9 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<AuthUser | null> {
     // Log for debugging (temporary - enable in production for troubleshooting)
     console.log('🔐 Validating user:', email);
+    console.log('🔐 Password received length:', password.length);
+    console.log('🔐 Password received (first 10 chars):', password.substring(0, 10));
+    console.log('🔐 Password received (last 10 chars):', password.substring(Math.max(0, password.length - 10)));
 
     // Find user by email
     const user = await this.prisma.user.findUnique({
@@ -45,7 +48,12 @@ export class AuthService {
       email: user.email, 
       hasPassword: !!user.password, 
       membershipsCount: user.memberships.length,
-      passwordHash: user.password ? `${user.password.substring(0, 20)}...` : 'null'
+      passwordHash: user.password ? `${user.password.substring(0, 20)}...` : 'null',
+      passwordHashFull: user.password || 'null', // Log full hash for debugging
+      memberships: user.memberships.map(m => ({ 
+        organizationId: m.organizationId, 
+        role: m.role 
+      }))
     });
 
     // If user has password, validate it
