@@ -9,7 +9,7 @@ const IconEdit = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
   </svg>
-); 
+);
 const IconView = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -57,7 +57,7 @@ const newProductInitialState: NewProductForm = {
 
 export default function CatalogPage() {
   const user = useAuthStore((state) => state.user)
-  
+
   // --- Estados para los filtros ---
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
@@ -156,7 +156,7 @@ export default function CatalogPage() {
       alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar'}`);
     }
   };
-  
+
   const handleProductModalChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setNewProductData({ ...newProductData, [name]: value });
@@ -192,7 +192,7 @@ export default function CatalogPage() {
     setItemToView(item);
     setIsViewModalOpen(true);
   };
-  
+
   const closeViewModal = () => {
     setIsViewModalOpen(false);
     setItemToView(null);
@@ -211,7 +211,7 @@ export default function CatalogPage() {
           <h1 className="text-2xl font-bold text-gray-900">Catálogo de Productos</h1>
           <p className="text-gray-600">Gestión centralizada de productos</p>
         </div>
-        <button 
+        <button
           onClick={() => {
             setProductToEdit(null);
             setNewProductData(newProductInitialState);
@@ -233,7 +233,7 @@ export default function CatalogPage() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
               <input type="text" placeholder="Nombre, Modelo..." className="w-full border border-gray-300 rounded-md px-3 py-2" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-            
+
             {/* filtro simple de categoria (para coincidir con los datos mock actuales) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
@@ -267,49 +267,49 @@ export default function CatalogPage() {
               <div className="p-8 text-center text-red-500">Error al cargar productos: {error instanceof Error ? error.message : 'Error desconocido'}</div>
             )}
             {!isLoading && !error && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca/Modelo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{product.name}</div></td>
-                      <td className="px-6 py-4 whitespace-nowrap"><span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{product.category}</span></td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{product.brand}</div>
-                          <div className="text-sm text-gray-500">{product.model}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4"><div className="text-sm text-gray-900 max-w-xs truncate">{product.description}</div></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
-                          <button onClick={() => openViewModal(product)} title="Ver Detalles" className="p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors">
-                            <IconView className="w-5 h-5" />
-                          </button>
-                          <button onClick={() => openEditProductModal(product)} title="Editar" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors">
-                            <IconEdit className="w-5 h-5" />
-                          </button>
-                          <button onClick={() => openDeleteModal(product)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors">
-                            <IconDelete className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca/Modelo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredProducts.map((product: Product) => (
+                      <tr key={product.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{product.name}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{product.category}</span></td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{product.brand}</div>
+                            <div className="text-sm text-gray-500">{product.model}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4"><div className="text-sm text-gray-900 max-w-xs truncate">{product.description}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-3">
+                            <button onClick={() => openViewModal(product)} title="Ver Detalles" className="p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors">
+                              <IconView className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => openEditProductModal(product)} title="Editar" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors">
+                              <IconEdit className="w-5 h-5" />
+                            </button>
+                            <button onClick={() => openDeleteModal(product)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors">
+                              <IconDelete className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-            
+
             {/* Paginacion */}
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
@@ -371,7 +371,7 @@ export default function CatalogPage() {
                     ))}
                   </select>
                 </div>
-                 <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700">Marca</label>
                   <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
                     <option value="">Selecciona una marca</option>

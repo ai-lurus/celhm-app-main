@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
-import { StockItem, ApiResponse, StockStatus, CreateInventoryItemRequest, UpdateInventoryItemRequest } from '@celhm/types'
 
 // Frontend InventoryItem type (mapped from backend)
 export interface InventoryItem {
@@ -66,7 +65,7 @@ export function useStock(params: GetStockParams = {}) {
       if (params.page) queryParams.append('page', params.page.toString())
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
 
-      const response = await api.get<ApiResponse<StockItem>>(`/stock?${queryParams.toString()}`)
+      const response = await api.get<ApiResponse<InventoryItem>>(`/stock?${queryParams.toString()}`)
       return {
         data: response.data.data.map(mapStockItemToInventoryItem),
         pagination: response.data.pagination,

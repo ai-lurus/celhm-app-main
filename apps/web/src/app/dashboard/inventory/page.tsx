@@ -323,7 +323,7 @@ export default function InventoryPage() {
   // --- exportar csv ---
   const handleExportCSV = () => {
     const headers = ["id", "sku", "name", "brand", "model", "qty", "min", "max", "reserved", "price", "status", "categoryId"];
-    const data = inventoryItems.map(item => [
+    const data = inventoryItems.map((item:InventoryItem) => [
       item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`, 
       item.brand, item.model, item.qty, item.min, item.max, item.reserved, item.price, item.status, item.categoryId
     ].join(','));
@@ -382,7 +382,7 @@ export default function InventoryPage() {
         }
         
         const newItems: InventoryItem[] = [];
-        let maxId = Math.max(0, ...inventoryItems.map(i => i.id));
+        let maxId = Math.max(0, ...inventoryItems.map((i:InventoryItem) => i.id));
 
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(',');
@@ -568,7 +568,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedInventory.map((item) => (
+                  {paginatedInventory.map((item:InventoryItem) => (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
