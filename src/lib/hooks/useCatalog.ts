@@ -23,8 +23,18 @@ interface GetProductsParams {
   pageSize?: number
 }
 
+interface ProductsResponse {
+  data: Product[]
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
+}
+
 export function useProducts(params: GetProductsParams = {}) {
-  return useQuery({
+  return useQuery<ProductsResponse>({
     queryKey: ['catalog', 'products', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
