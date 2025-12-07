@@ -23,8 +23,8 @@ export default function SalesPage() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [viewingSale, setViewingSale] = useState<Sale | null>(null)
 
-  const { data: branches } = useBranches()
-  const branchId = user?.branchId || branches?.[0]?.id || 1
+  const { data: branches = [] } = useBranches()
+  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
   const { data: salesData, isLoading } = useSales({ branchId, page, pageSize: 20 })
   const { data: customersData } = useCustomers({ page: 1, pageSize: 100 })

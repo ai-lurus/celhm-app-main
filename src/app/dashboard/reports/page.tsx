@@ -31,8 +31,8 @@ export default function ReportsPage() {
   }
   const [activeTab, setActiveTab] = useState<'sales' | 'tickets' | 'inventory'>('sales')
   
-  const { data: branches } = useBranches()
-  const branchId = user?.branchId || branches?.[0]?.id
+  const { data: branches = [] } = useBranches()
+  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : undefined)
 
   // Fechas por defecto: hoy
   const today = new Date()

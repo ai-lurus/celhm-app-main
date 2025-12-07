@@ -81,8 +81,8 @@ interface StatusForm {
 
 export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
-  const { data: branches } = useBranches()
-  const branchId = user?.branchId || branches?.[0]?.id || 1
+  const { data: branches = [] } = useBranches()
+  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')

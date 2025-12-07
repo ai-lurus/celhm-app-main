@@ -18,8 +18,8 @@ export default function CashPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [viewingCut, setViewingCut] = useState<CashCut | null>(null)
 
-  const { data: branches } = useBranches()
-  const branchId = user?.branchId || branches?.[0]?.id || 1
+  const { data: branches = [] } = useBranches()
+  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
   const { data: registers } = useCashRegisters(branchId)
   const { data: cutsData, isLoading } = useCashCuts({
