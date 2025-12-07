@@ -10,7 +10,7 @@ interface GetTicketsParams {
 }
 
 export function useTickets(params: GetTicketsParams = {}) {
-  return useQuery({
+  return useQuery<ApiResponse<Ticket>>({
     queryKey: ['tickets', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
@@ -30,7 +30,7 @@ export function useTickets(params: GetTicketsParams = {}) {
 }
 
 export function useTicket(id: number) {
-  return useQuery({
+  return useQuery<Ticket>({
     queryKey: ['tickets', id],
     queryFn: async () => {
       const response = await api.get<Ticket>(`/tickets/${id}`)

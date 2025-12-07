@@ -45,7 +45,7 @@ interface GetCustomersParams {
 }
 
 export function useCustomers(params: GetCustomersParams = {}) {
-  return useQuery({
+  return useQuery<ApiResponse<Customer>>({
     queryKey: ['customers', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
@@ -65,7 +65,7 @@ export function useCustomers(params: GetCustomersParams = {}) {
 }
 
 export function useCustomer(id: number) {
-  return useQuery({
+  return useQuery<Customer>({
     queryKey: ['customers', id],
     queryFn: async () => {
       const response = await api.get<Customer>(`/customers/${id}`)

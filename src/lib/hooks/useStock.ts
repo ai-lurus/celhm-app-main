@@ -52,8 +52,18 @@ interface GetStockParams {
   pageSize?: number
 }
 
+interface StockResponse {
+  data: InventoryItem[]
+  pagination: {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  }
+}
+
 export function useStock(params: GetStockParams = {}) {
-  return useQuery({
+  return useQuery<StockResponse>({
     queryKey: ['stock', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()

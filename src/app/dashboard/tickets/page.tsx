@@ -121,7 +121,7 @@ export default function TicketsPage() {
   const updateTicket = useUpdateTicket()
   const updateTicketState = useUpdateTicketState()
 
-  const tickets = ticketsData?.data || []
+  const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
 
   const handleOpenCreate = () => {
     setEditingTicket(null)

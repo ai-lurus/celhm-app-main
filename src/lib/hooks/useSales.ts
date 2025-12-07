@@ -87,7 +87,7 @@ interface GetSalesParams {
 }
 
 export function useSales(params: GetSalesParams = {}) {
-  return useQuery({
+  return useQuery<ApiResponse<Sale>>({
     queryKey: ['sales', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
@@ -111,7 +111,7 @@ export function useSales(params: GetSalesParams = {}) {
 }
 
 export function useSale(id: number) {
-  return useQuery({
+  return useQuery<Sale>({
     queryKey: ['sales', id],
     queryFn: async () => {
       const response = await api.get<Sale>(`/sales/${id}`)

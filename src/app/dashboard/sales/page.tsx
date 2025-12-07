@@ -34,10 +34,10 @@ export default function SalesPage() {
   const createSale = useCreateSale()
   const addPayment = useAddPayment()
 
-  const sales = salesData?.data || []
-  const customers = customersData?.data || []
-  const tickets = ticketsData?.data || []
-  const products = productsData?.data || []
+  const sales = Array.isArray((salesData as any)?.data) ? (salesData as any).data : []
+  const customers = Array.isArray((customersData as any)?.data) ? (customersData as any).data : []
+  const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
+  const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
 
   // Form state
   const [saleForm, setSaleForm] = useState({

@@ -47,12 +47,11 @@ export default function CustomersPage() {
   })
 
   const { data: customersData, isLoading } = useCustomers({ q: searchTerm, page, pageSize: 20 })
+  const customers = Array.isArray((customersData as any)?.data) ? (customersData as any).data : []
+  const pagination = (customersData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 }
   const createCustomer = useCreateCustomer()
   const updateCustomer = useUpdateCustomer()
   const deleteCustomer = useDeleteCustomer()
-
-  const customers = customersData?.data || []
-  const pagination = customersData?.pagination
 
   const handleOpenCreate = () => {
     setEditingCustomer(null)

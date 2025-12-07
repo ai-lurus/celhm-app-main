@@ -81,7 +81,7 @@ interface GetInventoryReportParams {
 }
 
 export function useSalesReport(params: GetSalesReportParams) {
-  return useQuery({
+  return useQuery<SalesReport>({
     queryKey: ['reports', 'sales', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
@@ -101,7 +101,7 @@ export function useSalesReport(params: GetSalesReportParams) {
 }
 
 export function useTicketsReport(params: GetTicketsReportParams = {}) {
-  return useQuery({
+  return useQuery<TicketsReport>({
     queryKey: ['reports', 'tickets', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
@@ -121,7 +121,7 @@ export function useTicketsReport(params: GetTicketsReportParams = {}) {
 }
 
 export function useInventoryReport(params: GetInventoryReportParams = {}) {
-  return useQuery({
+  return useQuery<InventoryReport>({
     queryKey: ['reports', 'inventory', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()

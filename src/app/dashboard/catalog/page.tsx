@@ -84,8 +84,8 @@ export default function CatalogPage() {
   const deleteProduct = useDeleteProduct();
 
   // Get products from API
-  const products = productsData?.data || [];
-  const pagination = productsData?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
+  const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
+  const pagination = (productsData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 }
 
   // --- Estados para el Modal "Agregar/Editar" ---
   const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);

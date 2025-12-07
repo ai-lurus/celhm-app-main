@@ -140,7 +140,7 @@ export default function InventoryPage() {
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
   // Get inventory items from API
-  const inventoryItems = stockData?.data || [];
+  const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
   const pagination = stockData?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
   
   useEffect(() => {
