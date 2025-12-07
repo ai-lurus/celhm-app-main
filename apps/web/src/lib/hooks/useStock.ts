@@ -66,7 +66,7 @@ export function useStock(params: GetStockParams = {}) {
       if (params.page) queryParams.append('page', params.page.toString())
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
 
-      const response = await api.get<ApiResponse<InventoryItem>>(`/stock?${queryParams.toString()}`)
+      const response = await api.get<ApiResponse<StockItem>>(`/stock?${queryParams.toString()}`)
       return {
         data: response.data.data.map(mapStockItemToInventoryItem),
         pagination: response.data.pagination,
