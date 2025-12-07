@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSalesReport, useTicketsReport, useInventoryReport } from '../../../lib/hooks/useReports'
+import { useSalesReport, useTicketsReport, useInventoryReport, InventoryReport } from '../../../lib/hooks/useReports'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
@@ -344,7 +344,7 @@ export default function ReportsPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {inventoryReport.lowStockItems.map((item) => (
+                      {inventoryReport.lowStockItems.map((item: InventoryReport['lowStockItems'][0]) => (
                         <tr key={item.id} className={item.qty <= 0 ? 'bg-red-50' : ''}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {item.variant.name}

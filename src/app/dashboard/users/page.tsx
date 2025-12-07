@@ -58,7 +58,7 @@ export default function UsersPage() {
     )
   }
 
-  const filteredMembers = (members || []).filter((member) => {
+  const filteredMembers = (members || []).filter((member: OrgMember) => {
     const user = member.user
     const nameMatch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false
     const emailMatch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false
@@ -130,7 +130,7 @@ export default function UsersPage() {
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
               <option value="">Todos los roles</option>
-              {allRoles.map((role) => (
+              {allRoles.map((role: Role) => (
                 <option key={role} value={role}>
                   {formatRole(role)}
                 </option>

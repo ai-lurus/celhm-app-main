@@ -173,7 +173,7 @@ export default function CustomersPage() {
                 </td>
               </tr>
             ) : (
-              customers.map((customer) => (
+              customers.map((customer: Customer) => (
                 <tr key={customer.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{customer.name}</div>

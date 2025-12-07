@@ -339,7 +339,7 @@ export default function TicketsPage() {
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
               >
                 <option value="">Todos los estados</option>
-                {allStates.map((state) => (
+                {allStates.map((state: TicketState) => (
                   <option key={state} value={state}>
                     {formatState(state)}
                   </option>
@@ -387,8 +387,8 @@ export default function TicketsPage() {
             </div>
           ) : activeView === 'kanban' ? (
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'].map((state) => {
-                const stateTickets = tickets.filter((ticket) => ticket.state === state)
+              {(['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
+                const stateTickets = tickets.filter((ticket: Ticket) => ticket.state === state)
                 return (
                   <div key={state} className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
@@ -398,7 +398,7 @@ export default function TicketsPage() {
                       </span>
                     </div>
                     <div className="space-y-3">
-                      {stateTickets.map((ticket) => (
+                      {stateTickets.map((ticket: Ticket) => (
                         <div key={ticket.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                           <div className="flex items-start justify-between mb-2">
                             <div className="text-sm font-medium text-gray-900">{ticket.folio}</div>
@@ -740,7 +740,7 @@ export default function TicketsPage() {
                   onChange={(e) => setStatusForm({ ...statusForm, state: e.target.value as TicketState })}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
-                  {allStates.map((state) => (
+                  {allStates.map((state: TicketState) => (
                     <option key={state} value={state}>
                       {formatState(state)}
                     </option>

@@ -130,7 +130,7 @@ export default function CashPage() {
                 <td colSpan={8} className="px-6 py-4 text-center text-gray-500">No hay cortes registrados</td>
               </tr>
             ) : (
-              cuts.map((cut) => (
+              cuts.map((cut: CashCut) => (
                 <tr key={cut.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {new Date(cut.date).toLocaleDateString()}
@@ -184,7 +184,7 @@ export default function CashPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="">Seleccionar caja...</option>
-                  {registersArray.map((reg) => (
+                  {registersArray.map((reg: CashRegister) => (
                     <option key={reg.id} value={reg.id}>
                       {reg.name}
                     </option>

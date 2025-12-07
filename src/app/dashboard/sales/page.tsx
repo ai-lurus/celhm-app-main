@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod } from '../../../lib/hooks/useSales'
-import { useCustomers } from '../../../lib/hooks/useCustomers'
+import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod, SaleLine, Payment } from '../../../lib/hooks/useSales'
+import { useCustomers, Customer } from '../../../lib/hooks/useCustomers'
 import { useTickets } from '../../../lib/hooks/useTickets'
-import { useProducts } from '../../../lib/hooks/useCatalog'
+import { Ticket } from '@celhm/types'
+import { useProducts, Product } from '../../../lib/hooks/useCatalog'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -172,7 +173,7 @@ export default function SalesPage() {
                 <td colSpan={7} className="px-6 py-4 text-center text-gray-500">No hay ventas registradas</td>
               </tr>
             ) : (
-              sales.map((sale) => (
+              sales.map((sale: Sale) => (
                 <tr key={sale.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{sale.folio}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -237,7 +238,7 @@ export default function SalesPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   >
                     <option value="">Seleccionar cliente...</option>
-                    {customers.map((c) => (
+                    {customers.map((c: Customer) => (
                       <option key={c.id} value={c.id}>
                         {c.name} - {c.phone}
                       </option>
@@ -252,7 +253,7 @@ export default function SalesPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   >
                     <option value="">Ninguna</option>
-                    {tickets.map((t) => (
+                    {tickets.map((t: Ticket) => (
                       <option key={t.id} value={t.id}>
                         {t.folio} - {t.customerName}
                       </option>
@@ -273,7 +274,7 @@ export default function SalesPage() {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {saleForm.lines.map((line, index) => (
+                  {saleForm.lines.map((line: CreateSaleLine, index: number) => (
                     <div key={index} className="grid grid-cols-5 gap-2 items-end">
                       <div>
                         <label className="block text-xs text-gray-600 mb-1">Producto</label>
@@ -283,7 +284,7 @@ export default function SalesPage() {
                           className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                         >
                           <option value="">Seleccionar...</option>
-                          {products.map((p) => (
+                          {products.map((p: Product) => (
                             <option key={p.id} value={p.id}>
                               {p.name}
                             </option>
@@ -490,7 +491,7 @@ export default function SalesPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {viewingSale.lines.map((line) => (
+                    {viewingSale.lines.map((line: SaleLine) => (
                       <tr key={line.id}>
                         <td className="px-4 py-2 text-sm">{line.description}</td>
                         <td className="px-4 py-2 text-sm">{line.qty}</td>
@@ -511,7 +512,7 @@ export default function SalesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Pagos</label>
                   <div className="space-y-2">
-                    {viewingSale.payments.map((payment) => (
+                    {viewingSale.payments.map((payment: Payment) => (
                       <div key={payment.id} className="flex justify-between text-sm">
                         <span>{payment.method} - {payment.reference || 'Sin referencia'}</span>
                         <span>${payment.amount.toLocaleString()}</span>
