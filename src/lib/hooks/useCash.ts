@@ -47,7 +47,7 @@ interface GetCashCutsParams {
 }
 
 export function useCashRegisters(branchId: number) {
-  return useQuery({
+  return useQuery<CashRegister[]>({
     queryKey: ['cash', 'registers', branchId],
     queryFn: async () => {
       const response = await api.get<CashRegister[]>(`/cash/registers?branchId=${branchId}`)
@@ -62,7 +62,7 @@ export function useCashRegisters(branchId: number) {
 }
 
 export function useCashCuts(params: GetCashCutsParams) {
-  return useQuery({
+  return useQuery<ApiResponse<CashCut>>({
     queryKey: ['cash', 'cuts', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()

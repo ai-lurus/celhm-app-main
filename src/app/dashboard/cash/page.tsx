@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useCashRegisters, useCashCuts, useCreateCashCut, useCashCut, CashCut } from '../../../lib/hooks/useCash'
+import { useCashRegisters, useCashCuts, useCreateCashCut, useCashCut, CashCut, CashRegister } from '../../../lib/hooks/useCash'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -18,8 +18,8 @@ export default function CashPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [viewingCut, setViewingCut] = useState<CashCut | null>(null)
 
-  const { data: branches = [] } = useBranches()
-  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
+  const { data: branches } = useBranches()
+  const branchId = user?.branchId || (Array.isArray(branches) && branches.length > 0 ? branches[0].id : 1)
 
   const { data: registers } = useCashRegisters(branchId)
   const { data: cutsData, isLoading } = useCashCuts({
@@ -30,8 +30,9 @@ export default function CashPage() {
 
   const createCashCut = useCreateCashCut()
 
-  const cuts = cutsData?.data || []
-  const selectedRegister = registers?.[0]
+  const cuts: CashCut[] = Array.isArray((cutsData as any)?.data) ? (cutsData as any).data : []
+  const registersArray: CashRegister[] = Array.isArray(registers) ? registers : []
+  const selectedRegister = registersArray.length > 0 ? registersArray[0] : undefined
 
   const [cutForm, setCutForm] = useState({
     cashRegisterId: selectedRegister?.id || 0,
@@ -94,7 +95,7 @@ export default function CashPage() {
               onChange={(e) => setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
             >
-              {registers?.map((reg) => (
+              {registersArray.map((reg) => (
                 <option key={reg.id} value={reg.id}>
                   {reg.name}
                 </option>
@@ -183,7 +184,7 @@ export default function CashPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="">Seleccionar caja...</option>
-                  {registers?.map((reg) => (
+                  {registersArray.map((reg) => (
                     <option key={reg.id} value={reg.id}>
                       {reg.name}
                     </option>
