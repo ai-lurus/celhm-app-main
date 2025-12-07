@@ -28,11 +28,11 @@ export default function DashboardPage() {
   const stockItems = stockData?.data || []
 
   const totalTickets = ticketsData?.pagination.total || 0
-  const activeTickets = tickets.filter(t => 
+  const activeTickets = tickets.filter((t: any) =>
     !['ENTREGADO', 'CANCELADO'].includes(t.state)
   ).length
   const lowStockItems = lowStockAlerts.length
-  const totalStockValue = stockItems.reduce((sum, item) => sum + (item.price * item.qty), 0)
+  const totalStockValue = stockItems.reduce((sum: any, item: any) => sum + (item.price * item.qty), 0)
 
   return (
     <div className="space-y-6">
@@ -75,18 +75,17 @@ export default function DashboardPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tickets Recientes</h3>
           <div className="space-y-4">
-            {tickets.slice(0, 5).map((ticket) => (
+            {tickets.slice(0, 5).map((ticket: any) => (
               <div key={ticket.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{ticket.folio}</p>
                   <p className="text-xs text-gray-500">{ticket.customerName}</p>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
-                  ticket.state === 'RECIBIDO' ? 'bg-blue-100 text-blue-800' :
+                <span className={`px-2 py-1 text-xs rounded-full ${ticket.state === 'RECIBIDO' ? 'bg-blue-100 text-blue-800' :
                   ticket.state === 'EN_REPARACION' ? 'bg-yellow-100 text-yellow-800' :
-                  ticket.state === 'REPARADO' ? 'bg-green-100 text-green-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
+                    ticket.state === 'REPARADO' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                  }`}>
                   {ticket.state}
                 </span>
               </div>
