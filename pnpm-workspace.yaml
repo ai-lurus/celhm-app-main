@@ -1,5 +1,4 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "prisma"
-
+  - "packages/types"
+  - "packages/ui"
+  - "packages/config"

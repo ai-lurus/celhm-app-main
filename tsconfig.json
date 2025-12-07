@@ -1,19 +1,35 @@
 {
-  "extends": "./packages/config/tsconfig/base.json",
+  "extends": "./packages/config/tsconfig/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@celhm/ui": ["./packages/ui/src"],
       "@celhm/types": ["./packages/types/src"],
       "@celhm/config": ["./packages/config"]
-    }
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": [],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "packages",
+    "tests"
+  ],
   "references": [
-    { "path": "./apps/web" },
-    { "path": "./apps/api" },
     { "path": "./packages/ui" },
     { "path": "./packages/types" }
   ]
 }
-

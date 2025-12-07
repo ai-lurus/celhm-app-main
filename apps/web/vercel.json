@@ -1,8 +1,0 @@
-{
-  "buildCommand": "cd ../.. && pnpm --filter @celhm/types build && pnpm --filter @celhm/web build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "installCommand": "cd ../.. && pnpm install --include-workspace-root",
-  "devCommand": "cd ../.. && pnpm dev"
-}
-
