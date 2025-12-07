@@ -6,13 +6,14 @@ import { useStock } from '../../lib/hooks/useStock'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../stores/auth'
+import { Ticket } from '@celhm/types'
 
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user)
 
   // Get tickets for stats
   const { data: ticketsData, error: ticketsError } = useTickets({ page: 1, pageSize: 100 })
-  const tickets = ticketsData?.data || []
+  const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
 
   // Get low stock alerts
   const { data: lowStockAlerts = [], error: stockAlertsError } = useQuery({
@@ -30,7 +31,7 @@ export default function DashboardPage() {
   
   // Get all stock to calculate total value
   const { data: stockData, error: stockError } = useStock({ page: 1, pageSize: 1000 })
-  const stockItems = stockData?.data || []
+  const stockItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : []
   
   // Log errors but don't render them - prevent error objects from being thrown
   useEffect(() => {
@@ -45,12 +46,12 @@ export default function DashboardPage() {
     }
   }, [ticketsError, stockError, stockAlertsError])
 
-  const totalTickets = ticketsData?.pagination.total || 0
-  const activeTickets = tickets.filter((t: any) =>
+  const totalTickets = (ticketsData as any)?.pagination?.total || 0
+  const activeTickets = tickets.filter((t: Ticket) =>
     !['ENTREGADO', 'CANCELADO'].includes(t.state)
   ).length
   const lowStockItems = lowStockAlerts.length
-  const totalStockValue = stockItems.reduce((sum: any, item: any) => sum + (item.price * item.qty), 0)
+  const totalStockValue = stockItems.reduce((sum: number, item: any) => sum + (item.price * item.qty), 0)
 
   return (
     <div className="space-y-6">
@@ -93,7 +94,7 @@ export default function DashboardPage() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Tickets Recientes</h3>
           <div className="space-y-4">
-            {tickets.slice(0, 5).map((ticket: any) => (
+            {tickets.slice(0, 5).map((ticket: Ticket) => (
               <div key={ticket.id} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">{ticket.folio}</p>

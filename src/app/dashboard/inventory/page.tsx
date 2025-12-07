@@ -141,7 +141,7 @@ export default function InventoryPage() {
 
   // Get inventory items from API
   const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
-  const pagination = stockData?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
+  const pagination = (stockData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
   
   useEffect(() => {
     setCurrentPage(1);
