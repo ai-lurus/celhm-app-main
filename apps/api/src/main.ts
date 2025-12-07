@@ -9,7 +9,7 @@ async function bootstrap() {
   // Enable CORS with security
   // Detect production: Vercel sets VERCEL=1, or NODE_ENV=production
   // Default: if no CORS_ORIGINS is set, allow all vercel.app domains in production
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || !process.env.NODE_ENV;
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
   const hasExplicitCorsOrigins = process.env.CORS_ORIGINS && process.env.CORS_ORIGINS.trim() !== '';
   
   const allowedOrigins = hasExplicitCorsOrigins
@@ -89,9 +89,11 @@ async function bootstrap() {
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     exposedHeaders: ['X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   // Global validation pipe

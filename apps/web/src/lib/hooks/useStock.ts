@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
+import { StockStatus, StockItem, CreateInventoryItemRequest, UpdateInventoryItemRequest, ApiResponse } from '@celhm/types'
 
 // Frontend InventoryItem type (mapped from backend)
 export interface InventoryItem {
