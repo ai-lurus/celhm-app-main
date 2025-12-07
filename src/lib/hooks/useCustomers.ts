@@ -58,9 +58,6 @@ export function useCustomers(params: GetCustomersParams = {}) {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading customers:', error)
-    },
   })
 }
 
@@ -73,9 +70,6 @@ export function useCustomer(id: number) {
     },
     enabled: !!id,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading customer:', error)
-    },
   })
 }
 

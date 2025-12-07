@@ -55,9 +55,6 @@ export function useCashRegisters(branchId: number) {
     },
     enabled: !!branchId,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading cash registers:', error)
-    },
   })
 }
 
@@ -78,9 +75,6 @@ export function useCashCuts(params: GetCashCutsParams) {
     },
     enabled: !!params.branchId,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading cash cuts:', error)
-    },
   })
 }
 
@@ -93,9 +87,6 @@ export function useCashCut(id: number) {
     },
     enabled: !!id,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading cash cut:', error)
-    },
   })
 }
 

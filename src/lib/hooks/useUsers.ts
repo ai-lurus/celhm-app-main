@@ -43,9 +43,6 @@ export function useUsers() {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading users:', error)
-    },
   })
 }
 

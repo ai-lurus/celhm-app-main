@@ -23,9 +23,6 @@ export function useTickets(params: GetTicketsParams = {}) {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading tickets:', error)
-    },
   })
 }
 
@@ -38,9 +35,6 @@ export function useTicket(id: number) {
     },
     enabled: !!id,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading ticket:', error)
-    },
   })
 }
 

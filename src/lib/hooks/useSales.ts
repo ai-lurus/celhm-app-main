@@ -104,9 +104,6 @@ export function useSales(params: GetSalesParams = {}) {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading sales:', error)
-    },
   })
 }
 
@@ -119,9 +116,6 @@ export function useSale(id: number) {
     },
     enabled: !!id,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading sale:', error)
-    },
   })
 }
 

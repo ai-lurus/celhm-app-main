@@ -94,9 +94,6 @@ export function useSalesReport(params: GetSalesReportParams) {
     },
     enabled: !!params.startDate && !!params.endDate,
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading sales report:', error)
-    },
   })
 }
 
@@ -114,9 +111,6 @@ export function useTicketsReport(params: GetTicketsReportParams = {}) {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading tickets report:', error)
-    },
   })
 }
 
@@ -131,9 +125,6 @@ export function useInventoryReport(params: GetInventoryReportParams = {}) {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading inventory report:', error)
-    },
   })
 }
 

@@ -18,9 +18,6 @@ export function useBranches() {
       return response.data
     },
     retry: false,
-    onError: (error: any) => {
-      console.error('Error loading branches:', error)
-    },
   })
 }
 

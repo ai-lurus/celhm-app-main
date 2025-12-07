@@ -23,9 +23,6 @@ export default function DashboardPage() {
       return response.data
     },
     enabled: !!user,
-    onError: (error: any) => {
-      console.error('Error loading stock alerts:', error)
-    },
     retry: false, // Don't retry on error to avoid showing error object
   })
   

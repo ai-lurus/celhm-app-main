@@ -9,16 +9,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       queries: {
         staleTime: 60 * 1000, // 1 minute
         retry: false, // Don't retry on error
-        onError: (error: any) => {
-          // Normalize errors to prevent rendering objects
-          console.error('Query error:', error)
-        },
       },
       mutations: {
-        onError: (error: any) => {
-          // Normalize errors to prevent rendering objects
-          console.error('Mutation error:', error)
-        },
+        retry: false,
       },
     },
   }))

@@ -61,10 +61,6 @@ export function useProducts(params: GetProductsParams = {}) {
       }
     },
     retry: false,
-    onError: (error: any) => {
-      // Normalize error to prevent rendering objects
-      console.error('Error loading products:', error)
-    },
   })
 }
 
