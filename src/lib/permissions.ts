@@ -116,7 +116,7 @@ export function hasAllPermissions(role: Role, ...permissions: PermissionKey[]): 
 /**
  * Obtiene todos los permisos de un rol
  */
-export function getRolePermissions(role: Role): typeof rolePermissions.ADMINISTRADOR {
-  return rolePermissions[role] || ({} as typeof rolePermissions.ADMINISTRADOR)
+export function getRolePermissions(role: Role): Record<PermissionKey, boolean> {
+  return rolePermissions[role] || ({} as Record<PermissionKey, boolean>)
 }
 
