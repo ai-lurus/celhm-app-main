@@ -33,7 +33,7 @@ export default function UsersPage() {
   const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
   const { data: members, isLoading } = useUsers()
-  const { data: branches } = useBranches()
+  const { data: branches = [] } = useBranches()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState<Role | ''>('')

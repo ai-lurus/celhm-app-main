@@ -11,7 +11,7 @@ export interface Branch {
 }
 
 export function useBranches() {
-  return useQuery({
+  return useQuery<Branch[]>({
     queryKey: ['branches'],
     queryFn: async () => {
       const response = await api.get<Branch[]>('/branches')
