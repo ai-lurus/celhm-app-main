@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactElement } from 'react'
 import { useCashRegisters, useCashCuts, useCreateCashCut, useCashCut, CashCut, CashRegister } from '../../../lib/hooks/useCash'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
@@ -12,7 +12,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export default function CashPage() {
+export default function CashPage(): ReactElement {
   const user = useAuthStore((state) => state.user)
   const [page, setPage] = useState(1)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)

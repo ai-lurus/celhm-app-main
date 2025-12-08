@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
 
   // Get low stock alerts
-  const { data: lowStockAlerts = [], error: stockAlertsError } = useQuery({
+  const { data: lowStockAlerts = [], error: stockAlertsError } = useQuery<any[]>({
     queryKey: ['stock', 'alerts'],
     queryFn: async () => {
       const response = await api.get('/stock/alerts')
