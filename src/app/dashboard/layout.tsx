@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/auth'
 import { usePermissions } from '../../lib/hooks/usePermissions'
 // Removed @celhm/ui import for now
 import Link from 'next/link'
+import { ThemeToggle } from '../../components/theme-toggle'
 
 export default function DashboardLayout({
   children,
@@ -35,22 +36,26 @@ export default function DashboardLayout({
     router.push('/login')
   }
 
+  const baseNavLink = 'px-3 py-2 rounded-md text-sm font-medium transition-colors'
+  const activeNavLink = 'text-primary bg-primary/10 border-b-2 border-primary'
+  const inactiveNavLink = 'text-muted-foreground hover:text-foreground hover:bg-muted'
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm border-b">
+    <div className="min-h-screen bg-background text-foreground">
+      <nav className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link href="/dashboard" className="text-xl font-bold text-gray-900">
+              <Link href="/dashboard" className="text-xl font-bold">
                 CELHM
               </Link>
               <div className="ml-10 flex space-x-8">
                 <Link
                   href="/dashboard"
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`${baseNavLink} ${
                     pathname === '/dashboard' || pathname === '/dashboard/'
-                      ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? activeNavLink
+                      : inactiveNavLink
                   }`}
                 >
                   Dashboard
@@ -58,10 +63,10 @@ export default function DashboardLayout({
                 {can('canManageTickets') && (
                   <Link
                     href="/dashboard/tickets"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/tickets')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Tickets
@@ -70,10 +75,10 @@ export default function DashboardLayout({
                 {can('canManageCustomers') && (
                   <Link
                     href="/dashboard/customers"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/customers')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Clientes
@@ -82,10 +87,10 @@ export default function DashboardLayout({
                 {can('canManageSales') && (
                   <Link
                     href="/dashboard/sales"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/sales')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Ventas
@@ -94,10 +99,10 @@ export default function DashboardLayout({
                 {can('canManageInventory') && (
                   <Link
                     href="/dashboard/inventory"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/inventory')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Inventario
@@ -106,10 +111,10 @@ export default function DashboardLayout({
                 {can('canManageCatalog') && (
                   <Link
                     href="/dashboard/catalog"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/catalog')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Catálogo
@@ -118,10 +123,10 @@ export default function DashboardLayout({
                 {can('canManageCash') && (
                   <Link
                     href="/dashboard/cash"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/cash')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Caja
@@ -130,10 +135,10 @@ export default function DashboardLayout({
                 {can('canViewFinancialReports') && (
                   <Link
                     href="/dashboard/reports"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/reports')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Reportes
@@ -142,10 +147,10 @@ export default function DashboardLayout({
                 {can('canViewAllBranches') && (
                   <Link
                     href="/dashboard/users"
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`${baseNavLink} ${
                       pathname.startsWith('/dashboard/users')
-                        ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                        ? activeNavLink
+                        : inactiveNavLink
                     }`}
                   >
                     Usuarios
@@ -154,11 +159,12 @@ export default function DashboardLayout({
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
+              <ThemeToggle />
+              <span className="text-sm text-foreground">
                 {user.name} ({user.role})
               </span>
               <button 
-                className="bg-white hover:bg-gray-50 text-gray-700 font-medium py-2 px-4 rounded-md border border-gray-300 text-sm"
+                className="bg-background hover:bg-muted text-foreground font-medium py-2 px-4 rounded-md border border-border text-sm"
                 onClick={handleLogout}
               >
                 Cerrar Sesión

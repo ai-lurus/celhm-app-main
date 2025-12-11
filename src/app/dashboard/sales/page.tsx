@@ -138,8 +138,8 @@ export default function SalesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
-          <p className="text-gray-600">Gestiona las ventas y pagos</p>
+          <h1 className="text-2xl font-bold text-foreground">Ventas</h1>
+          <p className="text-muted-foreground">Gestiona las ventas y pagos</p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -150,39 +150,39 @@ export default function SalesPage() {
       </div>
 
       {/* Tabla de Ventas */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-card rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Folio</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pagado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Pagado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Acciones</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">Cargando...</td>
+                <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">Cargando...</td>
               </tr>
             ) : sales.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">No hay ventas registradas</td>
+                <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">No hay ventas registradas</td>
               </tr>
             ) : (
               sales.map((sale: Sale) => (
-                <tr key={sale.id} className="hover:bg-gray-50">
+                <tr key={sale.id} className="hover:bg-muted">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{sale.folio}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {sale.customer?.name || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${sale.total.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${sale.paidAmount.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -190,14 +190,14 @@ export default function SalesPage() {
                       {sale.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {new Date(sale.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => setViewingSale(sale)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-primary hover:text-blue-900"
                         title="Ver detalles"
                       >
                         <IconView />
@@ -226,16 +226,16 @@ export default function SalesPage() {
       {/* Modal Crear Venta */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl my-8">
+          <div className="bg-card rounded-lg p-6 w-full max-w-3xl my-8">
             <h2 className="text-xl font-bold mb-4">Nueva Venta</h2>
             <form onSubmit={handleCreateSale} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Cliente</label>
                   <select
                     value={saleForm.customerId}
                     onChange={(e) => setSaleForm({ ...saleForm, customerId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   >
                     <option value="">Seleccionar cliente...</option>
                     {customers.map((c: Customer) => (
@@ -246,11 +246,11 @@ export default function SalesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Orden de Reparación</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Orden de Reparación</label>
                   <select
                     value={saleForm.ticketId}
                     onChange={(e) => setSaleForm({ ...saleForm, ticketId: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="w-full px-3 py-2 border border-border rounded-md"
                   >
                     <option value="">Ninguna</option>
                     {tickets.map((t: Ticket) => (
@@ -264,11 +264,11 @@ export default function SalesPage() {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Líneas de Venta</label>
+                  <label className="block text-sm font-medium text-foreground">Líneas de Venta</label>
                   <button
                     type="button"
                     onClick={handleAddLine}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-primary hover:text-blue-800"
                   >
                     + Agregar Línea
                   </button>
@@ -277,11 +277,11 @@ export default function SalesPage() {
                   {saleForm.lines.map((line: CreateSaleLine, index: number) => (
                     <div key={index} className="grid grid-cols-5 gap-2 items-end">
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Producto</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Producto</label>
                         <select
                           value={line.variantId || ''}
                           onChange={(e) => handleUpdateLine(index, 'variantId', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          className="w-full px-2 py-1 border border-border rounded text-sm"
                         >
                           <option value="">Seleccionar...</option>
                           {products.map((p: Product) => (
@@ -292,28 +292,28 @@ export default function SalesPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Descripción</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Descripción</label>
                         <input
                           type="text"
                           required
                           value={line.description}
                           onChange={(e) => handleUpdateLine(index, 'description', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          className="w-full px-2 py-1 border border-border rounded text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Cantidad</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Cantidad</label>
                         <input
                           type="number"
                           required
                           min="1"
                           value={line.qty}
                           onChange={(e) => handleUpdateLine(index, 'qty', parseInt(e.target.value))}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          className="w-full px-2 py-1 border border-border rounded text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-600 mb-1">Precio Unit.</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Precio Unit.</label>
                         <input
                           type="number"
                           required
@@ -321,7 +321,7 @@ export default function SalesPage() {
                           step="0.01"
                           value={line.unitPrice}
                           onChange={(e) => handleUpdateLine(index, 'unitPrice', parseFloat(e.target.value))}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          className="w-full px-2 py-1 border border-border rounded text-sm"
                         />
                       </div>
                       <div className="flex items-end space-x-1">
@@ -339,18 +339,18 @@ export default function SalesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descuento Total</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Descuento Total</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={saleForm.discount}
                   onChange={(e) => setSaleForm({ ...saleForm, discount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
 
-              <div className="bg-gray-50 p-4 rounded">
+              <div className="bg-muted p-4 rounded">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
                   <span>${calculateSubtotal().toLocaleString()}</span>
@@ -369,7 +369,7 @@ export default function SalesPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancelar
                 </button>
@@ -389,15 +389,15 @@ export default function SalesPage() {
       {/* Modal Agregar Pago */}
       {isPaymentModalOpen && selectedSale && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar Pago</h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Venta: {selectedSale.folio} - Total: ${selectedSale.total.toLocaleString()} - 
               Pendiente: ${(selectedSale.total - selectedSale.paidAmount).toLocaleString()}
             </p>
             <form onSubmit={handleAddPaymentToSale} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Monto</label>
                 <input
                   type="number"
                   required
@@ -406,15 +406,15 @@ export default function SalesPage() {
                   step="0.01"
                   value={paymentForm.amount}
                   onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Método de Pago</label>
                 <select
                   value={paymentForm.method}
                   onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethod })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 >
                   <option value="CASH">Efectivo</option>
                   <option value="CARD">Tarjeta</option>
@@ -423,12 +423,12 @@ export default function SalesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Referencia (opcional)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Referencia (opcional)</label>
                 <input
                   type="text"
                   value={paymentForm.reference}
                   onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-4">
@@ -438,7 +438,7 @@ export default function SalesPage() {
                     setIsPaymentModalOpen(false)
                     setSelectedSale(null)
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancelar
                 </button>
@@ -458,16 +458,16 @@ export default function SalesPage() {
       {/* Modal Ver Detalles */}
       {viewingSale && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
+          <div className="bg-card rounded-lg p-6 w-full max-w-2xl my-8">
             <h2 className="text-xl font-bold mb-4">Detalles de Venta</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Folio</label>
-                  <p className="text-sm text-gray-900">{viewingSale.folio}</p>
+                  <label className="block text-sm font-medium text-foreground">Folio</label>
+                  <p className="text-sm text-foreground">{viewingSale.folio}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Estado</label>
+                  <label className="block text-sm font-medium text-foreground">Estado</label>
                   <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(viewingSale.status)}`}>
                     {viewingSale.status}
                   </span>
@@ -475,22 +475,22 @@ export default function SalesPage() {
               </div>
               {viewingSale.customer && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Cliente</label>
-                  <p className="text-sm text-gray-900">{viewingSale.customer.name}</p>
+                  <label className="block text-sm font-medium text-foreground">Cliente</label>
+                  <p className="text-sm text-foreground">{viewingSale.customer.name}</p>
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Líneas de Venta</label>
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <label className="block text-sm font-medium text-foreground mb-2">Líneas de Venta</label>
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted">
                     <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Descripción</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Cantidad</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Precio</th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500">Subtotal</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Descripción</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Cantidad</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Precio</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-border">
                     {viewingSale.lines.map((line: SaleLine) => (
                       <tr key={line.id}>
                         <td className="px-4 py-2 text-sm">{line.description}</td>
@@ -502,7 +502,7 @@ export default function SalesPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="bg-gray-50 p-4 rounded">
+              <div className="bg-muted p-4 rounded">
                 <div className="flex justify-between">
                   <span className="font-bold">Total:</span>
                   <span className="font-bold">${viewingSale.total.toLocaleString()}</span>
@@ -510,7 +510,7 @@ export default function SalesPage() {
               </div>
               {viewingSale.payments.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pagos</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Pagos</label>
                   <div className="space-y-2">
                     {viewingSale.payments.map((payment: Payment) => (
                       <div key={payment.id} className="flex justify-between text-sm">
@@ -536,4 +536,5 @@ export default function SalesPage() {
     </div>
   )
 }
+
 

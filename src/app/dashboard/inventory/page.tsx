@@ -190,11 +190,11 @@ export default function InventoryPage() {
   const renderCategorySelectors = () => {
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-700">Categoría</label>
+        <label className="block text-sm font-medium text-foreground">Categoría</label>
         <select 
           onChange={(e) => setSelectedCategory(e.target.value)} 
           value={selectedCategory} 
-          className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+          className="mt-1 block w-full border border-border rounded-md p-2"
         >
           <option value="">Selecciona una categoría</option>
           {categories.map((cat) => (
@@ -254,11 +254,11 @@ export default function InventoryPage() {
   const renderPageFilterSelectors = () => {
     return (
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <label className="block text-sm font-medium text-foreground mb-1">Categoría</label>
         <select 
           onChange={(e) => setFilterCategory(e.target.value)} 
           value={filterCategory} 
-          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+          className="mt-1 block w-full border border-border rounded-md px-3 py-2"
         >
           <option value="">Todas las categorías</option>
           {categories.map((cat) => (
@@ -468,8 +468,8 @@ export default function InventoryPage() {
       {/* --- encabezado con menu --- */}
       <div className="flex justify-between items-center flex-wrap gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
-          <p className="text-gray-600">Gestión de stock por sucursal</p>
+          <h1 className="text-2xl font-bold text-foreground">Inventario</h1>
+          <p className="text-muted-foreground">Gestión de stock por sucursal</p>
         </div>
         
         {/* boton de acciones con menu */}
@@ -493,26 +493,26 @@ export default function InventoryPage() {
               ></div>
               
               {/* opciones */}
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
                 <button
                   onClick={openAddModal}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
                 >
-                  <IconPlus className="w-4 h-4 text-gray-500" />
+                  <IconPlus className="w-4 h-4 text-muted-foreground" />
                   <span>Agregar Manualmente</span>
                 </button>
                 <button
                   onClick={openImportModal}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 border-t border-gray-100"
+                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2 border-t border-gray-100"
                 >
-                  <IconUpload className="w-4 h-4 text-gray-500" />
+                  <IconUpload className="w-4 h-4 text-muted-foreground" />
                   <span>Importar CSV</span>
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
                 >
-                  <IconDownload className="w-4 h-4 text-gray-500" />
+                  <IconDownload className="w-4 h-4 text-muted-foreground" />
                   <span>Exportar CSV</span>
                 </button>
               </div>
@@ -526,23 +526,23 @@ export default function InventoryPage() {
         
         {/* --- sidebar filtros --- */}
         <div className="w-full md:w-1/4">
-          <div className="bg-white p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Filtros</h3>
+          <div className="bg-card p-4 rounded-lg shadow space-y-4">
+            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
             <div className="space-y-2">{renderPageFilterSelectors()}</div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-              <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-gray-300 rounded-md px-3 py-2">
+              <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
+              <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-border rounded-md px-3 py-2">
                 <option value="">Todas las marcas</option>
                 {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
-              <input value={modelSearch} onChange={(e) => setModelSearch(e.target.value)} type="text" placeholder="Buscar modelo..." className="w-full border border-gray-300 rounded-md px-3 py-2" />
+              <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
+              <input value={modelSearch} onChange={(e) => setModelSearch(e.target.value)} type="text" placeholder="Buscar modelo..." className="w-full border border-border rounded-md px-3 py-2" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-gray-300 rounded-md px-3 py-2">
+              <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
+              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-border rounded-md px-3 py-2">
                 <option value="">Todos los estados</option>
                 <option value="normal">Normal</option>
                 <option value="low">Bajo</option>
@@ -554,9 +554,9 @@ export default function InventoryPage() {
 
         {/* --- tabla --- */}
         <div className="w-full md:w-3/4">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-card rounded-lg shadow overflow-hidden">
             {isLoading && (
-              <div className="p-8 text-center text-gray-500">Cargando inventario...</div>
+              <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>
             )}
             {error && (
               <div className="p-8 text-center text-red-500">
@@ -573,36 +573,36 @@ export default function InventoryPage() {
             )}
             {!isLoading && !error && (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reservado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mín/Máx</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">SKU</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Reservado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mín/Máx</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Precio</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-border">
                   {paginatedInventory.map((item:InventoryItem) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
+                    <tr key={item.id} className="hover:bg-muted">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                          <div className="text-sm text-gray-500">{item.brand} - {item.model}</div>
+                          <div className="text-sm font-medium text-foreground">{item.name}</div>
+                          <div className="text-sm text-muted-foreground">{item.brand} - {item.model}</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.sku}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{item.qty}</div>
-                        <div className="text-sm text-gray-500">Disp: {item.qty - item.reserved}</div>
+                        <div className="text-sm font-medium text-foreground">{item.qty}</div>
+                        <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.reserved}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.min} / {item.max}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.price.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                           {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
@@ -611,7 +611,7 @@ export default function InventoryPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-3">
                           {can('canEditPrices') && (
-                            <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
+                            <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
                           )}
                           <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
                           {can('canDeleteOrders') && (
@@ -627,29 +627,29 @@ export default function InventoryPage() {
             )}
             
             {/* --- paginacion --- */}
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
               </div>
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-foreground">
                     Mostrando <span className="font-medium">{totalItems > 0 ? startIndex + 1 : 0}</span> a <span className="font-medium">{Math.min(endIndex, totalItems)}</span> de <span className="font-medium">{totalItems}</span> resultados
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-gray-700">Items por pág:</label>
-                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
                     <option value={20}>20</option>
                     <option value={50}>50</option>
                   </select>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
+                    <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
                       Pág {pagination.page} de {totalPages || 1}
                     </span>
-                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
                   </nav>
                 </div>
               </div>
@@ -663,29 +663,29 @@ export default function InventoryPage() {
       {/* agregar/editar */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-4xl max-h-full overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">{itemToEdit ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h2>
+          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-4xl max-h-full overflow-y-auto space-y-6">
+            <h2 className="text-2xl font-bold text-foreground">{itemToEdit ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div className="space-y-4">
-                <div><label className="block text-sm font-medium text-gray-700">Nombre</label><input type="text" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
+                <div><label className="block text-sm font-medium text-foreground">Nombre</label><input type="text" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Marca</label>
-                  <select value={newProduct.brand} onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                  <label className="block text-sm font-medium text-foreground">Marca</label>
+                  <select value={newProduct.brand} onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una marca</option>
                     {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
                   </select>
                 </div>
-                <div><label className="block text-sm font-medium text-gray-700">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Costo de adquisición" /></div>
-                <div><label className="block text-sm font-medium text-gray-700">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
+                <div><label className="block text-sm font-medium text-foreground">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                <div><label className="block text-sm font-medium text-foreground">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Costo de adquisición" /></div>
+                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium text-gray-700">Stock {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700">Stock Mínimo</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
+                  <div><label className="block text-sm font-medium text-foreground">Stock {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                  <div><label className="block text-sm font-medium text-foreground">Stock Mínimo</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 </div>
-                 <div><label className="block text-sm font-medium text-gray-700">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
+                 <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
               </div>
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Clasificación</h3>
+                <h3 className="text-lg font-medium text-foreground border-b pb-2">Clasificación</h3>
                 {renderCategorySelectors()}
               </div>
             </div>
@@ -700,9 +700,9 @@ export default function InventoryPage() {
       {/* eliminar */}
       {isDeleteModalOpen && itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900">Confirmar Eliminación</h2>
-            <p className="text-gray-600 mt-4">¿Estás seguro de que deseas eliminar: <span className="font-medium">{itemToDelete.name}</span>?</p>
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Confirmar Eliminación</h2>
+            <p className="text-muted-foreground mt-4">¿Estás seguro de que deseas eliminar: <span className="font-medium">{itemToDelete.name}</span>?</p>
             <div className="flex justify-end space-x-4 mt-6">
               <button onClick={closeDeleteModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
               <button onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md">Eliminar</button>
@@ -714,12 +714,12 @@ export default function InventoryPage() {
       {/* movimiento */}
       {isMovementModalOpen && itemForMovement && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900">Registrar Movimiento</h2>
-            <div className="mt-4"><p className="font-medium">{itemForMovement.name}</p><p className="text-sm text-gray-500">Stock Actual: {itemForMovement.qty}</p></div>
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Registrar Movimiento</h2>
+            <div className="mt-4"><p className="font-medium">{itemForMovement.name}</p><p className="text-sm text-muted-foreground">Stock Actual: {itemForMovement.qty}</p></div>
             <div className="space-y-4 mt-6">
-              <div><label className="block text-sm font-medium text-gray-700">Tipo</label><select value={movementType} onChange={(e) => setMovementType(e.target.value as 'entrada' | 'salida')} className="mt-1 block w-full border border-gray-300 rounded-md p-2"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div>
-              <div><label className="block text-sm font-medium text-gray-700">Cantidad</label><input type="number" min="1" value={movementQuantity} onChange={(e) => setMovementQuantity(parseInt(e.target.value) || 0)} className="mt-1 block w-full border border-gray-300 rounded-md p-2" /></div>
+              <div><label className="block text-sm font-medium text-foreground">Tipo</label><select value={movementType} onChange={(e) => setMovementType(e.target.value as 'entrada' | 'salida')} className="mt-1 block w-full border border-border rounded-md p-2"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div>
+              <div><label className="block text-sm font-medium text-foreground">Cantidad</label><input type="number" min="1" value={movementQuantity} onChange={(e) => setMovementQuantity(parseInt(e.target.value) || 0)} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
               <button onClick={closeMovementModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
@@ -732,13 +732,13 @@ export default function InventoryPage() {
       {/* importar csv */}
       {isImportModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-lg">
-            <h2 className="text-2xl font-bold text-gray-900">Importar Productos desde CSV</h2>
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-lg">
+            <h2 className="text-2xl font-bold text-foreground">Importar Productos desde CSV</h2>
             <div className="mt-6 space-y-4">
-              <p className="text-sm text-gray-600">Sube un archivo CSV. Columnas requeridas:</p>
+              <p className="text-sm text-muted-foreground">Sube un archivo CSV. Columnas requeridas:</p>
               <code className="block text-xs bg-gray-100 p-2 rounded">{CSV_TEMPLATE_HEADERS}</code>
-              <button onClick={handleDownloadTemplate} className="text-sm text-blue-600 hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4"/><span>Descargar plantilla</span></button>
-              <div><label className="block text-sm font-medium text-gray-700">Archivo</label><input type="file" accept=".csv" onChange={handleFileSelect} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" /></div>
+              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4"/><span>Descargar plantilla</span></button>
+              <div><label className="block text-sm font-medium text-foreground">Archivo</label><input type="file" accept=".csv" onChange={handleFileSelect} className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-blue-700 hover:file:bg-blue-100" /></div>
               {importStatus && <p className={`text-sm ${importStatus.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{importStatus}</p>}
             </div>
             <div className="flex justify-end space-x-4 mt-8">
@@ -752,3 +752,4 @@ export default function InventoryPage() {
     </div>
   )
 }
+

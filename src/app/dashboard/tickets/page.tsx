@@ -299,8 +299,8 @@ export default function TicketsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tickets</h1>
-          <p className="text-gray-600">Gestión de tickets de reparación</p>
+          <h1 className="text-2xl font-bold text-foreground">Tickets</h1>
+          <p className="text-muted-foreground">Gestión de tickets de reparación</p>
         </div>
         <button 
           onClick={handleOpenCreate}
@@ -313,14 +313,14 @@ export default function TicketsPage() {
       <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
         {/* Filtros */}
         <div className="w-full md:w-1/4">
-          <div className="bg-white p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Filtros</h3>
+          <div className="bg-card p-4 rounded-lg shadow space-y-4">
+            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
               <input
                 type="text"
                 placeholder="Folio, cliente, dispositivo..."
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-border rounded-md px-3 py-2"
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value)
@@ -329,14 +329,14 @@ export default function TicketsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
               <select
                 value={selectedState}
                 onChange={(e) => {
                   setSelectedState(e.target.value as TicketState | '')
                   setPage(1)
                 }}
-                className="w-full border border-gray-300 rounded-md px-3 py-2"
+                className="w-full border border-border rounded-md px-3 py-2"
               >
                 <option value="">Todos los estados</option>
                 {allStates.map((state: TicketState) => (
@@ -358,8 +358,8 @@ export default function TicketsPage() {
                 onClick={() => setActiveView('kanban')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeView === 'kanban'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 Vista Kanban
@@ -368,8 +368,8 @@ export default function TicketsPage() {
                 onClick={() => setActiveView('table')}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeView === 'table'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 Lista
@@ -378,11 +378,11 @@ export default function TicketsPage() {
           </div>
           
           {isLoading ? (
-            <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+            <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
               Cargando tickets...
             </div>
           ) : tickets.length === 0 ? (
-            <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+            <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
               No hay tickets registrados
             </div>
           ) : activeView === 'kanban' ? (
@@ -390,34 +390,34 @@ export default function TicketsPage() {
               {(['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
                 const stateTickets = tickets.filter((ticket: Ticket) => ticket.state === state)
                 return (
-                  <div key={state} className="bg-gray-50 rounded-lg p-4">
+                  <div key={state} className="bg-muted rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-gray-900">{formatState(state as TicketState)}</h3>
+                      <h3 className="font-medium text-foreground">{formatState(state as TicketState)}</h3>
                       <span className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
                         {stateTickets.length}
                       </span>
                     </div>
                     <div className="space-y-3">
                       {stateTickets.map((ticket: Ticket) => (
-                        <div key={ticket.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div key={ticket.id} className="bg-card p-4 rounded-lg shadow-sm border border-gray-200">
                           <div className="flex items-start justify-between mb-2">
-                            <div className="text-sm font-medium text-gray-900">{ticket.folio}</div>
+                            <div className="text-sm font-medium text-foreground">{ticket.folio}</div>
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
                               {formatState(ticket.state)}
                             </span>
                           </div>
                           <div className="space-y-2">
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{ticket.customerName}</p>
-                              <p className="text-xs text-gray-500">{ticket.customerPhone || '-'}</p>
+                              <p className="text-sm font-medium text-foreground">{ticket.customerName}</p>
+                              <p className="text-xs text-muted-foreground">{ticket.customerPhone || '-'}</p>
                             </div>
                             <div>
-                              <p className="text-sm text-gray-700">
+                              <p className="text-sm text-foreground">
                                 {ticket.device} {ticket.brand ? `- ${ticket.brand}` : ''}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">{ticket.problem}</p>
+                              <p className="text-xs text-muted-foreground truncate">{ticket.problem}</p>
                             </div>
-                            <div className="flex items-center justify-between text-xs text-gray-500">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
                               <span>Est: ${(ticket.estimatedCost || 0).toLocaleString()}</span>
                               <span>{ticket.estimatedTime || 0} días</span>
                             </div>
@@ -426,7 +426,7 @@ export default function TicketsPage() {
                             <button 
                               onClick={() => handleOpenView(ticket)}
                               title="Ver Detalle"
-                              className="flex-1 flex justify-center p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                              className="flex-1 flex justify-center p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
                             >
                               <IconView className="w-5 h-5" />
                             </button>
@@ -448,7 +448,7 @@ export default function TicketsPage() {
                         </div>
                       ))}
                       {stateTickets.length === 0 && (
-                        <div className="text-center py-8 text-gray-500 text-sm">
+                        <div className="text-center py-8 text-muted-foreground text-sm">
                           No hay tickets en este estado
                         </div>
                       )}
@@ -458,48 +458,48 @@ export default function TicketsPage() {
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted">
                     <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Folio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dispositivo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Problema</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Costo Est.</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Problema</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-border">
                   {tickets.map((ticket: Ticket) => (
-                      <tr key={ticket.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr key={ticket.id} className="hover:bg-muted">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                         {ticket.folio}
                       </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{ticket.customerName}</div>
-                          <div className="text-sm text-gray-500">{ticket.customerPhone || '-'}</div>
+                            <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
+                          <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{ticket.device}</div>
-                          <div className="text-sm text-gray-500">
+                            <div className="text-sm font-medium text-foreground">{ticket.device}</div>
+                          <div className="text-sm text-muted-foreground">
                             {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
                           </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">{ticket.problem}</div>
+                          <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
                           {formatState(ticket.state)}
                           </span>
                         </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         ${(ticket.estimatedCost || 0).toLocaleString()}
                       </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -507,7 +507,7 @@ export default function TicketsPage() {
                               <button 
                             onClick={() => handleOpenView(ticket)}
                                 title="Ver"
-                                className="p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                                className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
                               >
                                 <IconView className="w-5 h-5" />
                               </button>
@@ -539,15 +539,15 @@ export default function TicketsPage() {
       {/* Modal Crear/Editar Ticket */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-3xl max-h-full overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-3xl max-h-full overflow-y-auto space-y-6">
+            <h2 className="text-2xl font-bold text-foreground">
               {editingTicket ? 'Editar Ticket' : 'Crear Nuevo Ticket'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Nombre del Cliente *
                     </label>
                     <input
@@ -555,144 +555,144 @@ export default function TicketsPage() {
                       required
                       value={formData.customerName}
                       onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Teléfono</label>
                     <input
                       type="text"
                       value={formData.customerPhone}
                       onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Email</label>
                     <input
                       type="email"
                       value={formData.customerEmail}
                       onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Dispositivo *</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Dispositivo *</label>
                     <input
                       type="text"
                       required
                       value={formData.device}
                       onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: iPhone 12"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
                     <input
                       type="text"
                       value={formData.brand}
                       onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: Apple"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
                     <input
                       type="text"
                       value={formData.model}
                       onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: A2403"
                     />
                 </div>
                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Número de Serie / IMEI</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Número de Serie / IMEI</label>
                     <input
                       type="text"
                       value={formData.serialNumber}
                       onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
               </div>
               <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Problema Reportado *</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Problema Reportado *</label>
                     <textarea
                       required
                       rows={4}
                       value={formData.problem}
                       onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: Pantalla rota, no enciende..."
                     />
                 </div>
                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Diagnóstico</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
                     <textarea
                       rows={3}
                       value={formData.diagnosis}
                       onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Diagnóstico técnico..."
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Costo Estimado ($)</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
                       value={formData.estimatedCost}
                       onChange={(e) => setFormData({ ...formData, estimatedCost: parseFloat(e.target.value) || 0 })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
                   {editingTicket && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Costo Final ($)</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={formData.finalCost}
                         onChange={(e) => setFormData({ ...formData, finalCost: parseFloat(e.target.value) || 0 })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-border rounded-md px-3 py-2"
                       />
                     </div>
                   )}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tiempo Estimado (días)</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Tiempo Estimado (días)</label>
                     <input
                       type="number"
                       min="1"
                       value={formData.estimatedTime}
                       onChange={(e) => setFormData({ ...formData, estimatedTime: parseInt(e.target.value) || 1 })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
                   {!editingTicket && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Anticipo ($)</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
                         value={formData.advancePayment}
                         onChange={(e) => setFormData({ ...formData, advancePayment: parseFloat(e.target.value) || 0 })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        className="w-full border border-border rounded-md px-3 py-2"
                       />
                     </div>
                   )}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notas Internas</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Notas Internas</label>
                     <textarea
                       rows={3}
                       value={formData.internalNotes}
                       onChange={(e) => setFormData({ ...formData, internalNotes: e.target.value })}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Notas visibles solo para el personal..."
                     />
                   </div>
@@ -726,19 +726,19 @@ export default function TicketsPage() {
       {/* Modal Cambiar Estado */}
       {isStatusModalOpen && statusTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900">Cambiar Estado del Ticket</h2>
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Cambiar Estado del Ticket</h2>
             <div className="mt-4">
               <p className="font-medium">{statusTicket.folio}</p>
-              <p className="text-sm text-gray-500">{statusTicket.customerName}</p>
+              <p className="text-sm text-muted-foreground">{statusTicket.customerName}</p>
             </div>
             <form onSubmit={handleUpdateStatus} className="space-y-4 mt-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nuevo Estado</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Nuevo Estado</label>
                 <select 
                   value={statusForm.state}
                   onChange={(e) => setStatusForm({ ...statusForm, state: e.target.value as TicketState })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 >
                   {allStates.map((state: TicketState) => (
                     <option key={state} value={state}>
@@ -748,52 +748,52 @@ export default function TicketsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Diagnóstico</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
                 <textarea
                   rows={3}
                   value={statusForm.diagnosis}
                   onChange={(e) => setStatusForm({ ...statusForm, diagnosis: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Solución</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Solución</label>
                 <textarea
                   rows={3}
                   value={statusForm.solution}
                   onChange={(e) => setStatusForm({ ...statusForm, solution: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Costo Estimado ($)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={statusForm.estimatedCost}
                   onChange={(e) => setStatusForm({ ...statusForm, estimatedCost: parseFloat(e.target.value) || 0 })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Costo Final ($)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
                 <input
                   type="number"
                   min="0"
                   step="0.01"
                   value={statusForm.finalCost}
                   onChange={(e) => setStatusForm({ ...statusForm, finalCost: parseFloat(e.target.value) || 0 })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
                 <textarea
                   rows={2}
                   value={statusForm.notes}
                   onChange={(e) => setStatusForm({ ...statusForm, notes: e.target.value })}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border border-border rounded-md px-3 py-2"
                 />
             </div>
             <div className="flex justify-end space-x-4 mt-6">
@@ -820,102 +820,102 @@ export default function TicketsPage() {
       {/* Modal Ver Detalles */}
       {isViewModalOpen && viewingTicket && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Detalles del Ticket</h2>
+          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
+            <h2 className="text-2xl font-bold text-foreground">Detalles del Ticket</h2>
             
             <div className="space-y-3 pt-4">
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Folio</span>
-                <span className="font-medium text-gray-900">{viewingTicket.folio}</span>
+                <span className="font-medium text-muted-foreground">Folio</span>
+                <span className="font-medium text-foreground">{viewingTicket.folio}</span>
               </div>
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Estado</span>
+                <span className="font-medium text-muted-foreground">Estado</span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(viewingTicket.state)}`}>
                   {formatState(viewingTicket.state)}
                 </span>
               </div>
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Cliente</span>
-                <span className="font-medium text-gray-900">{viewingTicket.customerName}</span>
+                <span className="font-medium text-muted-foreground">Cliente</span>
+                <span className="font-medium text-foreground">{viewingTicket.customerName}</span>
               </div>
               {viewingTicket.customerPhone && (
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Teléfono</span>
-                  <span className="font-medium text-gray-900">{viewingTicket.customerPhone}</span>
+                <span className="font-medium text-muted-foreground">Teléfono</span>
+                  <span className="font-medium text-foreground">{viewingTicket.customerPhone}</span>
                 </div>
               )}
               {viewingTicket.customerEmail && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-gray-500">Email</span>
-                  <span className="font-medium text-gray-900">{viewingTicket.customerEmail}</span>
+                  <span className="font-medium text-muted-foreground">Email</span>
+                  <span className="font-medium text-foreground">{viewingTicket.customerEmail}</span>
               </div>
               )}
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Dispositivo</span>
-                <span className="font-medium text-gray-900 text-right">
+                <span className="font-medium text-muted-foreground">Dispositivo</span>
+                <span className="font-medium text-foreground text-right">
                   {viewingTicket.device} {viewingTicket.brand ? `(${viewingTicket.brand}` : ''}
                   {viewingTicket.model ? ` - ${viewingTicket.model})` : viewingTicket.brand ? ')' : ''}
                 </span>
               </div>
               {viewingTicket.serialNumber && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-gray-500">Número de Serie / IMEI</span>
-                  <span className="font-medium text-gray-900">{viewingTicket.serialNumber}</span>
+                  <span className="font-medium text-muted-foreground">Número de Serie / IMEI</span>
+                  <span className="font-medium text-foreground">{viewingTicket.serialNumber}</span>
                 </div>
               )}
               <div className="border-b pb-2">
-                <span className="font-medium text-gray-500">Problema Reportado</span>
-                <p className="font-medium text-gray-900 mt-1 whitespace-pre-wrap">{viewingTicket.problem}</p>
+                <span className="font-medium text-muted-foreground">Problema Reportado</span>
+                <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.problem}</p>
               </div>
               {viewingTicket.diagnosis && (
                 <div className="border-b pb-2">
-                  <span className="font-medium text-gray-500">Diagnóstico</span>
-                  <p className="font-medium text-gray-900 mt-1 whitespace-pre-wrap">{viewingTicket.diagnosis}</p>
+                  <span className="font-medium text-muted-foreground">Diagnóstico</span>
+                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.diagnosis}</p>
                 </div>
               )}
               {viewingTicket.solution && (
                 <div className="border-b pb-2">
-                  <span className="font-medium text-gray-500">Solución</span>
-                  <p className="font-medium text-gray-900 mt-1 whitespace-pre-wrap">{viewingTicket.solution}</p>
+                  <span className="font-medium text-muted-foreground">Solución</span>
+                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.solution}</p>
                 </div>
               )}
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Costo Estimado</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-muted-foreground">Costo Estimado</span>
+                <span className="font-medium text-foreground">
                   ${(viewingTicket.estimatedCost || 0).toLocaleString()}
                 </span>
               </div>
               {viewingTicket.finalCost && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-gray-500">Costo Final</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-muted-foreground">Costo Final</span>
+                  <span className="font-medium text-foreground">
                     ${(viewingTicket.finalCost || 0).toLocaleString()}
                   </span>
                 </div>
               )}
               {viewingTicket.advancePayment && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-gray-500">Anticipo</span>
-                  <span className="font-medium text-gray-900">
+                  <span className="font-medium text-muted-foreground">Anticipo</span>
+                  <span className="font-medium text-foreground">
                     ${(viewingTicket.advancePayment || 0).toLocaleString()}
                   </span>
                 </div>
               )}
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Tiempo Estimado</span>
-                <span className="font-medium text-gray-900">{viewingTicket.estimatedTime || 0} días</span>
+                <span className="font-medium text-muted-foreground">Tiempo Estimado</span>
+                <span className="font-medium text-foreground">{viewingTicket.estimatedTime || 0} días</span>
               </div>
               {viewingTicket.internalNotes && (
                 <div className="border-b pb-2">
-                  <span className="font-medium text-gray-500">Notas Internas</span>
-                  <p className="font-medium text-gray-900 mt-1 whitespace-pre-wrap">
+                  <span className="font-medium text-muted-foreground">Notas Internas</span>
+                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">
                     {viewingTicket.internalNotes}
                   </p>
                 </div>
               )}
               <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-gray-500">Fecha de Creación</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-muted-foreground">Fecha de Creación</span>
+                <span className="font-medium text-foreground">
                   {new Date(viewingTicket.createdAt).toLocaleString()}
                 </span>
               </div>
@@ -935,3 +935,4 @@ export default function TicketsPage() {
     </div>
   )
 }
+

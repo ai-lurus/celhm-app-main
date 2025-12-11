@@ -210,8 +210,8 @@ export default function CatalogPage() {
       {/* --- encabezado --- */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Catálogo de Productos</h1>
-          <p className="text-gray-600">Gestión centralizada de productos</p>
+          <h1 className="text-2xl font-bold text-foreground">Catálogo de Productos</h1>
+          <p className="text-muted-foreground">Gestión centralizada de productos</p>
         </div>
         <button
           onClick={() => {
@@ -229,17 +229,17 @@ export default function CatalogPage() {
 
         {/* --- columna izquierda: sidebar de filtros --- */}
         <div className="w-full md:w-1/4">
-          <div className="bg-white p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Filtros</h3>
+          <div className="bg-card p-4 rounded-lg shadow space-y-4">
+            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-              <input type="text" placeholder="Nombre, Modelo..." className="w-full border border-gray-300 rounded-md px-3 py-2" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
+              <input type="text" placeholder="Nombre, Modelo..." className="w-full border border-border rounded-md px-3 py-2" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
 
             {/* filtro simple de categoria (para coincidir con los datos mock actuales) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-              <select className="w-full border border-gray-300 rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+              <label className="block text-sm font-medium text-foreground mb-1">Categoría</label>
+              <select className="w-full border border-border rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -248,8 +248,8 @@ export default function CatalogPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-              <select className="w-full border border-gray-300 rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
+              <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
+              <select className="w-full border border-border rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
                 <option value="">Todas las marcas</option>
                 {brands.map((brand) => (
                   <option key={brand} value={brand}>{brand}</option>
@@ -261,9 +261,9 @@ export default function CatalogPage() {
 
         {/* --- columna derecha: tabla de productos --- */}
         <div className="w-full md:w-3/4">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-card rounded-lg shadow overflow-hidden">
             {isLoading && (
-              <div className="p-8 text-center text-gray-500">Cargando productos...</div>
+              <div className="p-8 text-center text-muted-foreground">Cargando productos...</div>
             )}
             {error && (
               <div className="p-8 text-center text-red-500">
@@ -280,31 +280,31 @@ export default function CatalogPage() {
             )}
             {!isLoading && !error && (
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marca/Modelo</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoría</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Marca/Modelo</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Descripción</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-border">
                     {filteredProducts.map((product: Product) => (
-                      <tr key={product.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{product.name}</div></td>
+                      <tr key={product.id} className="hover:bg-muted">
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-foreground">{product.name}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{product.category}</span></td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{product.brand}</div>
-                            <div className="text-sm text-gray-500">{product.model}</div>
+                            <div className="text-sm font-medium text-foreground">{product.brand}</div>
+                            <div className="text-sm text-muted-foreground">{product.model}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4"><div className="text-sm text-gray-900 max-w-xs truncate">{product.description}</div></td>
+                        <td className="px-6 py-4"><div className="text-sm text-foreground max-w-xs truncate">{product.description}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-3">
-                            <button onClick={() => openViewModal(product)} title="Ver Detalles" className="p-1 rounded-md text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors">
+                            <button onClick={() => openViewModal(product)} title="Ver Detalles" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors">
                               <IconView className="w-5 h-5" />
                             </button>
                             {can('canEditPrices') && (
@@ -327,30 +327,30 @@ export default function CatalogPage() {
             )}
 
             {/* Paginacion */}
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="flex-1 flex justify-between sm:hidden">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
               </div>
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-foreground">
                     Mostrando <span className="font-medium">{pagination.total > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0}</span> a <span className="font-medium">{Math.min(pagination.page * pagination.pageSize, pagination.total)}</span> de <span className="font-medium">{pagination.total}</span> productos
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-gray-700">Items por pág:</label>
-                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-gray-300 rounded-md px-2 py-1 text-sm">
+                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
                     <option value={20}>20</option>
                     <option value={50}>50</option>
                     <option value={100}>100</option>
                   </select>
                   <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Anterior</button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
+                    <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
                       Pág {pagination.page} de {pagination.totalPages || 1}
                     </span>
-                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || pagination.totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50">Siguiente</button>
+                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || pagination.totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
                   </nav>
                 </div>
               </div>
@@ -364,23 +364,23 @@ export default function CatalogPage() {
       {/* --- modal "nuevo/editar producto" --- */}
       {isProductModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-6">
+            <h2 className="text-2xl font-bold text-foreground">
               {productToEdit ? 'Editar Producto' : 'Crear Nuevo Producto'}
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nombre del Producto</label>
-                <input type="text" name="name" value={newProductData.name} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+                <label className="block text-sm font-medium text-foreground">Nombre del Producto</label>
+                <input type="text" name="name" value={newProductData.name} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Descripción</label>
-                <textarea name="description" value={newProductData.description} onChange={handleProductModalChange} rows={3} className="mt-1 block w-full border border-gray-300 rounded-md p-2" />
+                <label className="block text-sm font-medium text-foreground">Descripción</label>
+                <textarea name="description" value={newProductData.description} onChange={handleProductModalChange} rows={3} className="mt-1 block w-full border border-border rounded-md p-2" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Categoría</label>
-                  <select name="category" value={newProductData.category} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                  <label className="block text-sm font-medium text-foreground">Categoría</label>
+                  <select name="category" value={newProductData.category} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una categoría</option>
                     {categories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -388,8 +388,8 @@ export default function CatalogPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Marca</label>
-                  <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2">
+                  <label className="block text-sm font-medium text-foreground">Marca</label>
+                  <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una marca</option>
                     {brands.map((brand) => (
                       <option key={brand} value={brand}>{brand}</option>
@@ -398,8 +398,8 @@ export default function CatalogPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Modelo(s)</label>
-                <input type="text" name="model" value={newProductData.model} onChange={handleProductModalChange} className="mt-1 block w-full border border-gray-300 rounded-md p-2" placeholder="Ej: iPhone 12/13" />
+                <label className="block text-sm font-medium text-foreground">Modelo(s)</label>
+                <input type="text" name="model" value={newProductData.model} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Ej: iPhone 12/13" />
               </div>
             </div>
             <div className="flex justify-end space-x-4 pt-4">
@@ -415,12 +415,12 @@ export default function CatalogPage() {
       {/* --- modmal "confirmar eliminacion" --- */}
       {isDeleteModalOpen && itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-gray-900">Confirmar Eliminación</h2>
-            <p className="text-gray-600 mt-4">
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Confirmar Eliminación</h2>
+            <p className="text-muted-foreground mt-4">
               ¿Estás seguro de que deseas eliminar el producto: <span className="font-medium">{itemToDelete.name}</span>?
             </p>
-            <p className="text-sm text-gray-500 mt-1">(ID: {itemToDelete.id})</p>
+            <p className="text-sm text-muted-foreground mt-1">(ID: {itemToDelete.id})</p>
             <p className="text-sm font-bold text-red-600 mt-2">Esta acción no se puede deshacer.</p>
             <div className="flex justify-end space-x-4 mt-6">
               <button onClick={closeDeleteModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
@@ -433,16 +433,16 @@ export default function CatalogPage() {
       {/* --- modal "ver detalles" --- */}
       {isViewModalOpen && itemToView && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Detalles del Producto</h2>
+          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
+            <h2 className="text-2xl font-bold text-foreground">Detalles del Producto</h2>
             <div className="space-y-3 pt-4">
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">ID</span><span className="font-medium text-gray-900">{itemToView.id}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">Nombre</span><span className="font-medium text-gray-900">{itemToView.name}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">Categoría</span><span className="font-medium text-gray-900">{itemToView.category}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">Marca</span><span className="font-medium text-gray-900">{itemToView.brand}</span></div>
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">Modelo</span><span className="font-medium text-gray-900">{itemToView.model}</span></div>
-              <div className="border-b pb-2"><span className="font-medium text-gray-500">Descripción</span><p className="font-medium text-gray-900 mt-1 whitespace-pre-wrap">{itemToView.description}</p></div>
-              <div className="flex justify-between border-b pb-2"><span className="font-medium text-gray-500">Creado</span><span className="font-medium text-gray-900">{new Date(itemToView.createdAt).toLocaleDateString()}</span></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">ID</span><span className="font-medium text-foreground">{itemToView.id}</span></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">Nombre</span><span className="font-medium text-foreground">{itemToView.name}</span></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">Categoría</span><span className="font-medium text-foreground">{itemToView.category}</span></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">Marca</span><span className="font-medium text-foreground">{itemToView.brand}</span></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">Modelo</span><span className="font-medium text-foreground">{itemToView.model}</span></div>
+              <div className="border-b pb-2"><span className="font-medium text-muted-foreground">Descripción</span><p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{itemToView.description}</p></div>
+              <div className="flex justify-between border-b pb-2"><span className="font-medium text-muted-foreground">Creado</span><span className="font-medium text-foreground">{new Date(itemToView.createdAt).toLocaleDateString()}</span></div>
             </div>
             <div className="flex justify-end space-x-4 pt-4">
               <button onClick={closeViewModal} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">Cerrar</button>
@@ -454,3 +454,4 @@ export default function CatalogPage() {
     </div>
   )
 }
+
