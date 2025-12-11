@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, type ReactElement } from 'react'
-import { useCashRegisters, useCashCuts, useCreateCashCut, useCashCut, CashCut, CashRegister } from '../../../lib/hooks/useCash'
+import React, { useState, useEffect, type ReactElement } from 'react'
+import { useCashRegisters, useCashCuts, useCreateCashCut, CashCut, CashRegister } from '../../../lib/hooks/useCash'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -35,10 +35,17 @@ export default function CashPage(): ReactElement {
   const selectedRegister = registersArray.length > 0 ? registersArray[0] : undefined
 
   const [cutForm, setCutForm] = useState({
-    cashRegisterId: selectedRegister?.id || 0,
+    cashRegisterId: 0,
     initialAmount: 0,
     notes: '',
   })
+
+  // Actualizar el formulario cuando se carguen los registros
+  useEffect(() => {
+    if (selectedRegister && cutForm.cashRegisterId === 0) {
+      setCutForm(prev => ({ ...prev, cashRegisterId: selectedRegister.id }))
+    }
+  }, [selectedRegister, cutForm.cashRegisterId])
 
   const handleCreateCut = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,7 +70,7 @@ export default function CashPage(): ReactElement {
 
   const getDifferenceColor = (diff: number) => {
     if (diff === 0) return 'text-green-600'
-    if (diff > 0) return 'text-blue-600'
+    if (diff > 0) return 'text-primary'
     return 'text-red-600'
   }
 
@@ -71,8 +78,8 @@ export default function CashPage(): ReactElement {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Caja y Cortes</h1>
-          <p className="text-gray-600">Gestiona los cortes de caja diarios</p>
+          <h1 className="text-2xl font-bold text-foreground">Caja y Cortes</h1>
+          <p className="text-muted-foreground">Gestiona los cortes de caja diarios</p>
         </div>
         <button
           onClick={() => {
@@ -86,14 +93,14 @@ export default function CashPage(): ReactElement {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-card p-4 rounded-lg shadow">
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Caja</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Caja</label>
             <select
               value={cutForm.cashRegisterId}
-              onChange={(e) => setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-border rounded-md"
             >
               {registersArray.map((reg) => (
                 <option key={reg.id} value={reg.id}>
@@ -106,48 +113,48 @@ export default function CashPage(): ReactElement {
       </div>
 
       {/* Tabla de Cortes */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-card rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Caja</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Inicial</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ventas</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Esperado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Final</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diferencia</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Caja</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Inicial</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Ventas</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Esperado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Final</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Diferencia</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Acciones</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {isLoading ? (
               <tr>
-                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">Cargando...</td>
+                <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">Cargando...</td>
               </tr>
             ) : cuts.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-4 text-center text-gray-500">No hay cortes registrados</td>
+                <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">No hay cortes registrados</td>
               </tr>
             ) : (
               cuts.map((cut: CashCut) => (
-                <tr key={cut.id} className="hover:bg-gray-50">
+                <tr key={cut.id} className="hover:bg-muted">
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     {new Date(cut.date).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {cut.cashRegister?.name || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${cut.initialAmount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${cut.totalSales.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${cut.expectedAmount.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${cut.finalAmount.toLocaleString()}
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}>
@@ -156,7 +163,7 @@ export default function CashPage(): ReactElement {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => setViewingCut(cut)}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-primary hover:text-blue-900"
                       title="Ver detalles"
                     >
                       <IconView />
@@ -172,16 +179,16 @@ export default function CashPage(): ReactElement {
       {/* Modal Crear Corte */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Nuevo Corte de Caja</h2>
             <form onSubmit={handleCreateCut} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Caja</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Caja</label>
                 <select
                   required
                   value={cutForm.cashRegisterId}
-                  onChange={(e) => setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 >
                   <option value="">Seleccionar caja...</option>
                   {registersArray.map((reg: CashRegister) => (
@@ -192,31 +199,31 @@ export default function CashPage(): ReactElement {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Monto Inicial</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Monto Inicial</label>
                 <input
                   type="number"
                   required
                   min="0"
                   step="0.01"
                   value={cutForm.initialAmount}
-                  onChange={(e) => setCutForm({ ...cutForm, initialAmount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCutForm({ ...cutForm, initialAmount: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notas</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
                 <textarea
                   value={cutForm.notes}
-                  onChange={(e) => setCutForm({ ...cutForm, notes: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCutForm({ ...cutForm, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-border rounded-md"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancelar
                 </button>
@@ -236,31 +243,31 @@ export default function CashPage(): ReactElement {
       {/* Modal Ver Detalles */}
       {viewingCut && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl my-8">
+          <div className="bg-card rounded-lg p-6 w-full max-w-3xl my-8">
             <h2 className="text-xl font-bold mb-4">Detalles del Corte</h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Fecha</label>
-                  <p className="text-sm text-gray-900">{new Date(viewingCut.date).toLocaleDateString()}</p>
+                  <label className="block text-sm font-medium text-foreground">Fecha</label>
+                  <p className="text-sm text-foreground">{new Date(viewingCut.date).toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Caja</label>
-                  <p className="text-sm text-gray-900">{viewingCut.cashRegister?.name || '-'}</p>
+                  <label className="block text-sm font-medium text-foreground">Caja</label>
+                  <p className="text-sm text-foreground">{viewingCut.cashRegister?.name || '-'}</p>
                 </div>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded space-y-2">
+              <div className="bg-muted p-4 rounded space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-700">Monto Inicial:</span>
+                  <span className="text-sm text-foreground">Monto Inicial:</span>
                   <span className="text-sm font-medium">${viewingCut.initialAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-700">Total Ventas:</span>
+                  <span className="text-sm text-foreground">Total Ventas:</span>
                   <span className="text-sm font-medium">${viewingCut.totalSales.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-700">Total Pagos:</span>
+                  <span className="text-sm text-foreground">Total Pagos:</span>
                   <span className="text-sm font-medium">${viewingCut.totalPayments.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">
@@ -279,9 +286,9 @@ export default function CashPage(): ReactElement {
 
               {viewingCut.salesByMethod && viewingCut.salesByMethod.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ventas por Método de Pago</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Ventas por Método de Pago</label>
                   <div className="space-y-2">
-                    {viewingCut.salesByMethod.map((item, index) => (
+                    {viewingCut.salesByMethod.map((item: { method: string; amount: number }, index: number) => (
                       <div key={index} className="flex justify-between text-sm">
                         <span>{item.method}:</span>
                         <span>${item.amount.toLocaleString()}</span>
@@ -293,8 +300,8 @@ export default function CashPage(): ReactElement {
 
               {viewingCut.notes && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Notas</label>
-                  <p className="text-sm text-gray-900 mt-1">{viewingCut.notes}</p>
+                  <label className="block text-sm font-medium text-foreground">Notas</label>
+                  <p className="text-sm text-foreground mt-1">{viewingCut.notes}</p>
                 </div>
               )}
             </div>
@@ -312,4 +319,5 @@ export default function CashPage(): ReactElement {
     </div>
   )
 }
+
 
