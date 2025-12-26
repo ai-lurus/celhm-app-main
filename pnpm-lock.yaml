@@ -86,6 +86,9 @@ importers:
       next:
         specifier: 15.5.7
         version: 15.5.7(@babel/core@7.28.4)(@playwright/test@1.56.0)(react-dom@19.2.1)(react@19.2.1)
+      next-themes:
+        specifier: ^0.3.0
+        version: 0.3.0(react-dom@19.2.1)(react@19.2.1)
       react:
         specifier: ^19.0.0
         version: 19.2.1
@@ -6462,6 +6465,16 @@ packages:
 
   /natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  /next-themes@0.3.0(react-dom@19.2.1)(react@19.2.1):
+    resolution: {integrity: sha512-/QHIrsYpd6Kfk7xakK4svpDI5mmXP0gfvCoJdGpZQ2TOrQZmsW0QxjaiLn8wbIKjtm4BTSqLoix4lxYYOnLJ/w==}
+    peerDependencies:
+      react: ^16.8 || ^17 || ^18
+      react-dom: ^16.8 || ^17 || ^18
+    dependencies:
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+    dev: false
 
   /next@15.5.7(@babel/core@7.28.4)(@playwright/test@1.56.0)(react-dom@19.2.1)(react@19.2.1):
     resolution: {integrity: sha512-+t2/0jIJ48kUpGKkdlhgkv+zPTEOoXyr60qXe68eB/pl3CMJaLeIGjzp5D6Oqt25hCBiBTt8wEeeAzfJvUKnPQ==}
