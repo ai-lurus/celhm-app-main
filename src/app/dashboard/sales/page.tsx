@@ -75,11 +75,18 @@ export default function SalesPage() {
   }
 
   const calculateSubtotal = () => {
-    return saleForm.lines.reduce((sum, line) => sum + (line.unitPrice * line.qty) - (line.discount || 0), 0)
+    return saleForm.lines.reduce((sum, line) => {
+      const unitPrice = Number(line.unitPrice) || 0
+      const qty = Number(line.qty) || 0
+      const discount = Number(line.discount) || 0
+      return sum + (unitPrice * qty) - discount
+    }, 0)
   }
 
   const calculateTotal = () => {
-    return calculateSubtotal() - saleForm.discount
+    const subtotal = calculateSubtotal()
+    const discount = Number(saleForm.discount) || 0
+    return subtotal - discount
   }
 
   const handleCreateSale = async (e: React.FormEvent) => {
@@ -180,10 +187,10 @@ export default function SalesPage() {
                     {sale.customer?.name || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${sale.total.toLocaleString()}
+                    ${((sale.total || 0)).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${sale.paidAmount.toLocaleString()}
+                    ${((sale.paidAmount || 0)).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(sale.status)}`}>
@@ -353,15 +360,15 @@ export default function SalesPage() {
               <div className="bg-muted p-4 rounded">
                 <div className="flex justify-between text-sm">
                   <span>Subtotal:</span>
-                  <span>${calculateSubtotal().toLocaleString()}</span>
+                  <span>${(calculateSubtotal() || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm mt-1">
                   <span>Descuento:</span>
-                  <span>-${saleForm.discount.toLocaleString()}</span>
+                  <span>-${((saleForm.discount || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between font-bold mt-2 pt-2 border-t">
                   <span>Total:</span>
-                  <span>${calculateTotal().toLocaleString()}</span>
+                  <span>${(calculateTotal() || 0).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -392,8 +399,8 @@ export default function SalesPage() {
           <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar Pago</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Venta: {selectedSale.folio} - Total: ${selectedSale.total.toLocaleString()} - 
-              Pendiente: ${(selectedSale.total - selectedSale.paidAmount).toLocaleString()}
+              Venta: {selectedSale.folio} - Total: ${((selectedSale.total || 0)).toLocaleString()} - 
+              Pendiente: ${((selectedSale.total || 0) - (selectedSale.paidAmount || 0)).toLocaleString()}
             </p>
             <form onSubmit={handleAddPaymentToSale} className="space-y-4">
               <div>
@@ -495,8 +502,8 @@ export default function SalesPage() {
                       <tr key={line.id}>
                         <td className="px-4 py-2 text-sm">{line.description}</td>
                         <td className="px-4 py-2 text-sm">{line.qty}</td>
-                        <td className="px-4 py-2 text-sm">${line.unitPrice.toLocaleString()}</td>
-                        <td className="px-4 py-2 text-sm">${line.subtotal.toLocaleString()}</td>
+                        <td className="px-4 py-2 text-sm">${((line.unitPrice || 0)).toLocaleString()}</td>
+                        <td className="px-4 py-2 text-sm">${((line.subtotal || 0)).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -505,7 +512,7 @@ export default function SalesPage() {
               <div className="bg-muted p-4 rounded">
                 <div className="flex justify-between">
                   <span className="font-bold">Total:</span>
-                  <span className="font-bold">${viewingSale.total.toLocaleString()}</span>
+                  <span className="font-bold">${((viewingSale.total || 0)).toLocaleString()}</span>
                 </div>
               </div>
               {viewingSale.payments.length > 0 && (
@@ -515,7 +522,7 @@ export default function SalesPage() {
                     {viewingSale.payments.map((payment: Payment) => (
                       <div key={payment.id} className="flex justify-between text-sm">
                         <span>{payment.method} - {payment.reference || 'Sin referencia'}</span>
-                        <span>${payment.amount.toLocaleString()}</span>
+                        <span>${((payment.amount || 0)).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>

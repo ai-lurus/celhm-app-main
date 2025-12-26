@@ -242,8 +242,8 @@ export default function TicketsPage() {
 
     // Validación RF-ORD-08: No entregar si no está pagado
     if (statusForm.state === 'ENTREGADO') {
-      const totalPaid = statusTicket.advancePayment || 0
-      const finalCost = statusForm.finalCost || statusTicket.finalCost || statusTicket.estimatedCost || 0
+      const totalPaid = Number(statusTicket.advancePayment) || 0
+      const finalCost = Number(statusForm.finalCost || statusTicket.finalCost || statusTicket.estimatedCost) || 0
       
       if (totalPaid < finalCost) {
         alert(`No se puede marcar como ENTREGADO. El ticket tiene un costo de $${finalCost.toLocaleString()} pero solo se ha pagado $${totalPaid.toLocaleString()}. Falta pagar $${(finalCost - totalPaid).toLocaleString()}.`)

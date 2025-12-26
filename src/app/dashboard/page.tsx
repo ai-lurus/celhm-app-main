@@ -48,7 +48,11 @@ export default function DashboardPage() {
     !['ENTREGADO', 'CANCELADO'].includes(t.state)
   ).length
   const lowStockItems = lowStockAlerts.length
-  const totalStockValue = stockItems.reduce((sum: number, item: any) => sum + (item.price * item.qty), 0)
+  const totalStockValue = stockItems.reduce((sum: number, item: any) => {
+    const price = Number(item.price) || 0
+    const qty = Number(item.qty) || 0
+    return sum + (price * qty)
+  }, 0)
 
   return (
     <div className="space-y-6">
@@ -82,7 +86,7 @@ export default function DashboardPage() {
 
         <div className="bg-card p-6 rounded-lg shadow">
           <h3 className="text-sm font-medium text-muted-foreground">Valor Inventario</h3>
-          <div className="text-2xl font-bold">${totalStockValue.toLocaleString()}</div>
+          <div className="text-2xl font-bold">${(totalStockValue || 0).toLocaleString()}</div>
           <p className="text-xs text-muted-foreground">Valor total del stock</p>
         </div>
       </div>

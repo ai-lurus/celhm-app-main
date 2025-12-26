@@ -22,13 +22,22 @@ export default function DashboardLayout({
 
   useEffect(() => {
     // Check if user is authenticated
-    if (!user || !token) {
+    // Only redirect if we're sure there's no session (after hydration)
+    if (user === null && token === null) {
       router.push('/login')
     }
   }, [user, token, router])
 
-  if (!user || !token) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
+  // Show loading only if we're still checking or if we have a token but no user yet
+  if ((token && !user) || (user === null && token === null)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
   }
 
   const handleLogout = () => {

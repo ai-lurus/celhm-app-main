@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { AuthUser, LoginRequest, LoginResponse } from '@celhm/types'
 import { api } from '../lib/api'
 
@@ -8,9 +8,13 @@ interface AuthState {
   token: string | null
   isLoading: boolean
   error: string | null
+  isHydrated: boolean
+  isCheckingSession: boolean
   login: (credentials: LoginRequest) => Promise<void>
   logout: () => void
   clearError: () => void
+  checkSession: () => Promise<boolean>
+  setHydrated: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -20,6 +24,12 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
       error: null,
+      isHydrated: false,
+      isCheckingSession: false,
+
+      setHydrated: () => {
+        set({ isHydrated: true })
+      },
 
       login: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
@@ -64,6 +74,42 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      checkSession: async () => {
+        const { token } = get()
+        
+        // If no token, no session to check
+        if (!token) {
+          set({ user: null, token: null, isCheckingSession: false })
+          return false
+        }
+
+        set({ isCheckingSession: true })
+        
+        try {
+          // Verify token by calling /auth/me
+          const response = await api.get<AuthUser>('/auth/me')
+          const user = response.data
+          
+          // Update user data in case it changed
+          set({ 
+            user, 
+            isCheckingSession: false 
+          })
+          
+          return true
+        } catch (error: any) {
+          // Token is invalid or expired
+          console.log('Session check failed, clearing auth state')
+          set({ 
+            user: null, 
+            token: null, 
+            error: null,
+            isCheckingSession: false 
+          })
+          return false
+        }
+      },
+
       logout: () => {
         set({ user: null, token: null, error: null })
       },
@@ -74,10 +120,17 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ 
         user: state.user, 
         token: state.token 
       }),
+      onRehydrateStorage: () => (state) => {
+        // Mark as hydrated after rehydration
+        if (state) {
+          state.setHydrated()
+        }
+      },
     }
   )
 )
