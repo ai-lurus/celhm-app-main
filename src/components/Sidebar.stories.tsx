@@ -1,12 +1,19 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import React from 'react'
 import { Sidebar } from './Sidebar'
 import { useAuthStore } from '../stores/auth'
+import { Role } from '@celhm/types'
 
 const meta = {
   title: 'Components/Sidebar',
   component: Sidebar,
   parameters: {
     layout: 'fullscreen',
+    nextjs: {
+      router: {
+        pathname: '/dashboard',
+      },
+    },
   },
   tags: ['autodocs'],
   decorators: [
@@ -17,7 +24,7 @@ const meta = {
           id: 1,
           name: 'Admin User',
           email: 'admin@example.com',
-          role: 'Admin',
+          role: 'ADMINISTRADOR' as Role,
           branchId: 1,
           organizationId: 1,
         },

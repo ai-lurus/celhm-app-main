@@ -75,6 +75,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "@storybook/nextjs": "8.3.0",
+    "@storybook/react": "8.3.0",
     "@storybook/addon-essentials": "8.3.0",
     "@storybook/addon-interactions": "8.3.0",
     "@storybook/addon-links": "8.3.0",

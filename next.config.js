@@ -12,6 +12,16 @@ const nextConfig = {
     // Don't fail build on TypeScript errors (we'll catch them in CI)
     ignoreBuildErrors: false,
   },
+  webpack: (config) => {
+    // Exclude Storybook files from production build
+    config.module.rules.push({
+      test: /\.stories\.(tsx|ts|jsx|js)$/,
+      use: {
+        loader: require.resolve('./webpack-ignore-loader.js'),
+      },
+    });
+    return config;
+  },
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     return [

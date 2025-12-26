@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuthStore } from '../stores/auth'
 import { usePermissions } from '../lib/hooks/usePermissions'
+import { PermissionKey } from '../lib/permissions'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
@@ -40,7 +41,7 @@ interface NavItem {
   label: string
   href: string
   icon?: React.ReactNode
-  permission?: string
+  permission?: PermissionKey
 }
 
 interface NavSection {
@@ -49,7 +50,7 @@ interface NavSection {
 }
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
   const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
 
@@ -69,6 +70,7 @@ export function Sidebar() {
   ]
 
   const isActive = (href: string) => {
+    if (!pathname || pathname === '') return false
     if (href === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/dashboard/'
     }
