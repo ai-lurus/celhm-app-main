@@ -230,6 +230,31 @@ export default function SalesPage() {
         </table>
       </div>
 
+      {/* Paginación */}
+      {salesData && (salesData as any).pagination && (
+        <div className="flex items-center justify-between px-4 py-3 bg-card border-t border-border">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {((page - 1) * 20) + 1} a {Math.min(page * 20, (salesData as any).pagination.total)} de {(salesData as any).pagination.total} ventas
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page >= (salesData as any).pagination.totalPages}
+              className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal Crear Venta */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">

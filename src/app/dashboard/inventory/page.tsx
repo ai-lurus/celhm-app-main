@@ -600,7 +600,6 @@ export default function InventoryPage() {
                         <div className="text-sm font-medium text-foreground">{item.qty}</div>
                         <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
                       </td>
-<<<<<<< Updated upstream
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${((item.price || 0)).toLocaleString()}</td>
