@@ -602,7 +602,11 @@ export default function InventoryPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
+<<<<<<< HEAD
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
+=======
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${((item.price || 0)).toLocaleString()}</td>
+>>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                           {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}

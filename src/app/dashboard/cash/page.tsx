@@ -146,6 +146,7 @@ export default function CashPage(): ReactElement {
                     {cut.cashRegister?.name || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+<<<<<<< HEAD
                     ${cut.initialAmount.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
@@ -156,9 +157,21 @@ export default function CashPage(): ReactElement {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${cut.finalAmount.toLocaleString()}
+=======
+                    ${((cut.initialAmount || 0)).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    ${((cut.totalSales || 0)).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    ${((cut.expectedAmount || 0)).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    ${((cut.finalAmount || 0)).toLocaleString()}
+>>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                   </td>
                   <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}>
-                    ${cut.difference.toLocaleString()}
+                    ${((cut.difference || 0)).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
@@ -260,6 +273,7 @@ export default function CashPage(): ReactElement {
               <div className="bg-muted p-4 rounded space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-foreground">Monto Inicial:</span>
+<<<<<<< HEAD
                   <span className="text-sm font-medium">${viewingCut.initialAmount.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
@@ -269,18 +283,29 @@ export default function CashPage(): ReactElement {
                 <div className="flex justify-between">
                   <span className="text-sm text-foreground">Total Pagos:</span>
                   <span className="text-sm font-medium">${viewingCut.totalPayments.toLocaleString()}</span>
+=======
+                  <span className="text-sm font-medium">${((viewingCut.initialAmount || 0)).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">Total Ventas:</span>
+                  <span className="text-sm font-medium">${((viewingCut.totalSales || 0)).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">Total Pagos:</span>
+                  <span className="text-sm font-medium">${((viewingCut.totalPayments || 0)).toLocaleString()}</span>
+>>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                 </div>
                 <div className="flex justify-between pt-2 border-t">
                   <span className="text-sm font-medium">Monto Esperado:</span>
-                  <span className="text-sm font-medium">${viewingCut.expectedAmount.toLocaleString()}</span>
+                  <span className="text-sm font-medium">${((viewingCut.expectedAmount || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Monto Final:</span>
-                  <span className="text-sm font-medium">${viewingCut.finalAmount.toLocaleString()}</span>
+                  <span className="text-sm font-medium">${((viewingCut.finalAmount || 0)).toLocaleString()}</span>
                 </div>
                 <div className={`flex justify-between pt-2 border-t ${getDifferenceColor(viewingCut.difference)}`}>
                   <span className="text-sm font-bold">Diferencia:</span>
-                  <span className="text-sm font-bold">${viewingCut.difference.toLocaleString()}</span>
+                  <span className="text-sm font-bold">${((viewingCut.difference || 0)).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -291,7 +316,7 @@ export default function CashPage(): ReactElement {
                     {viewingCut.salesByMethod.map((item: { method: string; amount: number }, index: number) => (
                       <div key={index} className="flex justify-between text-sm">
                         <span>{item.method}:</span>
-                        <span>${item.amount.toLocaleString()}</span>
+                        <span>${((item.amount || 0)).toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
