@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@celhm/ui', '@celhm/types'],
+  transpilePackages: ['@celhm/ui', '@celhm/types', '@react-pdf/renderer'],
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
   },
