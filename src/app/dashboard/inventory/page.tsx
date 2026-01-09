@@ -90,7 +90,7 @@ const CSV_TEMPLATE_HEADERS = "sku,name,brand,model,qty,min,max,price,status,cate
 export default function InventoryPage() {
   const user = useAuthStore((state) => state.user);
   const { can } = usePermissions();
-  
+
   // --- estados de filtros y paginacion ---
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [modelSearch, setModelSearch] = useState<string>('');
@@ -142,7 +142,7 @@ export default function InventoryPage() {
   // Get inventory items from API
   const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
   const pagination = (stockData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
-  
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedBrand, modelSearch, selectedStatus, filterCategory, itemsPerPage]);
@@ -191,9 +191,9 @@ export default function InventoryPage() {
     return (
       <div>
         <label className="block text-sm font-medium text-foreground">Categoría</label>
-        <select 
-          onChange={(e) => setSelectedCategory(e.target.value)} 
-          value={selectedCategory} 
+        <select
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          value={selectedCategory}
           className="mt-1 block w-full border border-border rounded-md p-2"
         >
           <option value="">Selecciona una categoría</option>
@@ -210,7 +210,7 @@ export default function InventoryPage() {
       alert('Por favor, completa el nombre.');
       return;
     }
-    
+
     try {
       if (itemToEdit) {
         await updateItem.mutateAsync({
@@ -253,12 +253,12 @@ export default function InventoryPage() {
 
   const renderPageFilterSelectors = () => {
     return (
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-1">Categoría</label>
-        <select 
-          onChange={(e) => setFilterCategory(e.target.value)} 
-          value={filterCategory} 
-          className="mt-1 block w-full border border-border rounded-md px-3 py-2"
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-foreground whitespace-nowrap">Categoría:</label>
+        <select
+          onChange={(e) => setFilterCategory(e.target.value)}
+          value={filterCategory}
+          className="block w-full border border-border rounded-md px-3 py-2"
         >
           <option value="">Todas las categorías</option>
           {categories.map((cat) => (
@@ -332,8 +332,8 @@ export default function InventoryPage() {
   // --- exportar csv ---
   const handleExportCSV = () => {
     const headers = ["id", "sku", "name", "brand", "model", "qty", "min", "max", "reserved", "price", "status", "categoryId"];
-    const data = inventoryItems.map((item:InventoryItem) => [
-      item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`, 
+    const data = inventoryItems.map((item: InventoryItem) => [
+      item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`,
       item.brand, item.model, item.qty, item.min, item.max, item.reserved, item.price, item.status, item.categoryId
     ].join(','));
     const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + data.join('\n');
@@ -382,21 +382,21 @@ export default function InventoryPage() {
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim() !== ''); 
+        const lines = text.split('\n').filter(line => line.trim() !== '');
         if (lines.length <= 1) throw new Error("El archivo está vacío o no tiene datos.");
         const headers = lines[0].split(',').map(h => h.trim());
         const requiredHeaders = CSV_TEMPLATE_HEADERS.split(',');
-        for(const header of requiredHeaders) {
+        for (const header of requiredHeaders) {
           if (!headers.includes(header)) throw new Error(`Error: Falta columna "${header}".`);
         }
-        
+
         const newItems: InventoryItem[] = [];
-        let maxId = Math.max(0, ...inventoryItems.map((i:InventoryItem) => i.id));
+        let maxId = Math.max(0, ...inventoryItems.map((i: InventoryItem) => i.id));
 
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(',');
           if (values.length !== headers.length) continue;
-          
+
           const obj: any = {};
           headers.forEach((header, index) => {
             obj[header] = values[index].trim().replace(/"/g, '');
@@ -421,7 +421,7 @@ export default function InventoryPage() {
           };
           if (newItem.name && newItem.categoryId) newItems.push(newItem);
         }
-        
+
         // Create items via API
         let successCount = 0;
         for (const item of newItems) {
@@ -441,10 +441,10 @@ export default function InventoryPage() {
             console.error('Error creating item:', err);
           }
         }
-        
+
         // Refetch inventory to show new items
         await refetch();
-        
+
         setImportStatus(`¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`);
         setCsvFile(null);
         setIsImportModalOpen(false);
@@ -454,7 +454,7 @@ export default function InventoryPage() {
     };
     reader.readAsText(csvFile);
   };
-  
+
   // Filtering and pagination now handled by backend API
   const paginatedInventory = inventoryItems;
   const totalItems = pagination.total;
@@ -464,18 +464,18 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      
+
       {/* --- encabezado con menu --- */}
       <div className="flex justify-between items-center flex-wrap gap-2">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Inventario</h1>
           <p className="text-muted-foreground">Gestión de stock por sucursal</p>
         </div>
-        
+
         {/* boton de acciones con menu */}
         <div className="relative">
           {/* boton principal */}
-          <button 
+          <button
             onClick={() => setShowActionsDropdown(!showActionsDropdown)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
           >
@@ -487,11 +487,11 @@ export default function InventoryPage() {
           {showActionsDropdown && (
             <>
               {/* backdrop invisible para cerrar al hacer clic fuera */}
-              <div 
-                className="fixed inset-0 z-10 cursor-default" 
+              <div
+                className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setShowActionsDropdown(false)}
               ></div>
-              
+
               {/* opciones */}
               <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
                 <button
@@ -521,57 +521,55 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* --- layout de 2 columnas --- */}
-      <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-        
-        {/* --- sidebar filtros --- */}
-        <div className="w-full md:w-1/4">
-          <div className="bg-card p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
-            <div className="space-y-2">{renderPageFilterSelectors()}</div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
-              <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-border rounded-md px-3 py-2">
-                <option value="">Todas las marcas</option>
-                {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
-              <input value={modelSearch} onChange={(e) => setModelSearch(e.target.value)} type="text" placeholder="Buscar modelo..." className="w-full border border-border rounded-md px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-border rounded-md px-3 py-2">
-                <option value="">Todos los estados</option>
-                <option value="normal">Normal</option>
-                <option value="low">Bajo</option>
-                <option value="critical">Crítico</option>
-              </select>
-            </div>
+      {/* --- Filtros --- */}
+      <div className="bg-card p-4 rounded-lg shadow">
+        <div className="flex flex-col md:flex-row gap-4 items-center flex-wrap justify-around">
+          <div className="w-full md:w-auto md:min-w-[200px]">
+            {renderPageFilterSelectors()}
+          </div>
+          <div className="w-full md:w-auto md:min-w-[200px] flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground whitespace-nowrap">Marca:</label>
+            <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-border rounded-md px-3 py-2">
+              <option value="">Todas las marcas</option>
+              {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+            </select>
+          </div>
+          <div className="w-full md:w-auto md:min-w-[200px] flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground whitespace-nowrap">Modelo:</label>
+            <input value={modelSearch} onChange={(e) => setModelSearch(e.target.value)} type="text" placeholder="Buscar..." className="w-full border border-border rounded-md px-3 py-2" />
+          </div>
+          <div className="w-full md:w-auto md:min-w-[200px] flex items-center gap-2">
+            <label className="text-sm font-medium text-foreground whitespace-nowrap">Estado:</label>
+            <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-border rounded-md px-3 py-2">
+              <option value="">Todos los estados</option>
+              <option value="normal">Normal</option>
+              <option value="low">Bajo</option>
+              <option value="critical">Crítico</option>
+            </select>
           </div>
         </div>
+      </div>
 
-        {/* --- tabla --- */}
-        <div className="w-full md:w-3/4">
-          <div className="bg-card rounded-lg shadow overflow-hidden">
-            {isLoading && (
-              <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>
-            )}
-            {error && (
-              <div className="p-8 text-center text-red-500">
-                Error al cargar inventario: {
-                  error instanceof Error 
-                    ? error.message 
-                    : (error as any)?.response?.data?.message 
+      {/* --- tabla --- */}
+      <div className="w-full">
+        <div className="bg-card rounded-lg shadow overflow-hidden">
+          {isLoading && (
+            <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>
+          )}
+          {error && (
+            <div className="p-8 text-center text-red-500">
+              Error al cargar inventario: {
+                error instanceof Error
+                  ? error.message
+                  : (error as any)?.response?.data?.message
                     ? (error as any).response.data.message
-                    : (error as any)?.message 
-                    ? (error as any).message
-                    : 'Error desconocido'
-                }
-              </div>
-            )}
-            {!isLoading && !error && (
+                    : (error as any)?.message
+                      ? (error as any).message
+                      : 'Error desconocido'
+              }
+            </div>
+          )}
+          {!isLoading && !error && (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
@@ -587,7 +585,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
-                  {paginatedInventory.map((item:InventoryItem) => (
+                  {paginatedInventory.map((item: InventoryItem) => (
                     <tr key={item.id} className="hover:bg-muted">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -624,42 +622,41 @@ export default function InventoryPage() {
                 </tbody>
               </table>
             </div>
-            )}
-            
-            {/* --- paginacion --- */}
-            <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
+          )}
+
+          {/* --- paginacion --- */}
+          <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
+              <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-foreground">
+                  Mostrando <span className="font-medium">{totalItems > 0 ? startIndex + 1 : 0}</span> a <span className="font-medium">{Math.min(endIndex, totalItems)}</span> de <span className="font-medium">{totalItems}</span> resultados
+                </p>
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-foreground">
-                    Mostrando <span className="font-medium">{totalItems > 0 ? startIndex + 1 : 0}</span> a <span className="font-medium">{Math.min(endIndex, totalItems)}</span> de <span className="font-medium">{totalItems}</span> resultados
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
-                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                  </select>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
-                      Pág {pagination.page} de {totalPages || 1}
-                    </span>
-                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
-                  </nav>
-                </div>
+              <div className="flex items-center space-x-2">
+                <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
+                  <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
+                    Pág {pagination.page} de {totalPages || 1}
+                  </span>
+                  <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
+                </nav>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       {/* --- Modales --- */}
-      
+
       {/* agregar/editar */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
@@ -677,12 +674,12 @@ export default function InventoryPage() {
                 </div>
                 <div><label className="block text-sm font-medium text-foreground">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 <div><label className="block text-sm font-medium text-foreground">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Costo de adquisición" /></div>
-                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
+                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({ ...newProduct, barcode: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-sm font-medium text-foreground">Stock {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                   <div><label className="block text-sm font-medium text-foreground">Stock Mínimo</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 </div>
-                 <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({ ...newProduct, sku: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
               </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-foreground border-b pb-2">Clasificación</h3>
@@ -737,7 +734,7 @@ export default function InventoryPage() {
             <div className="mt-6 space-y-4">
               <p className="text-sm text-muted-foreground">Sube un archivo CSV. Columnas requeridas:</p>
               <code className="block text-xs bg-gray-100 p-2 rounded">{CSV_TEMPLATE_HEADERS}</code>
-              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4"/><span>Descargar plantilla</span></button>
+              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4" /><span>Descargar plantilla</span></button>
               <div><label className="block text-sm font-medium text-foreground">Archivo</label><input type="file" accept=".csv" onChange={handleFileSelect} className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-blue-700 hover:file:bg-blue-100" /></div>
               {importStatus && <p className={`text-sm ${importStatus.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{importStatus}</p>}
             </div>
