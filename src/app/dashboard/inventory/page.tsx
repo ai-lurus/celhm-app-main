@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useStock, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem, InventoryItem } from '../../../lib/hooks/useStock'
 import { useCreateMovement } from '../../../lib/hooks/useMovements'
-import { useCategories, useBrands } from '../../../lib/hooks/useCatalog'
+import { useCategories, useBrands, useCreateCategory, useUpdateCategory, useDeleteCategory, useCreateBrand, useUpdateBrand, useDeleteBrand, Category, Brand } from '../../../lib/hooks/useCatalog'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
 
@@ -49,15 +49,6 @@ const IconChevronDown = ({ className }: { className?: string }) => (
 //-----------------
 // TIPOS DE DATOS
 //-----------------
-interface Category {
-  id: number;
-  name: string;
-  children?: Category[];
-}
-interface Brand {
-  label: string;
-  value: string;
-}
 // InventoryItem is now imported from useStock hook
 interface NewProductForm {
   name: string;
@@ -91,6 +82,9 @@ export default function InventoryPage() {
   const user = useAuthStore((state) => state.user);
   const { can } = usePermissions();
   
+  // --- estado de tab activo ---
+  const [activeTab, setActiveTab] = useState<'inventory' | 'categories' | 'brands'>('inventory');
+  
   // --- estados de filtros y paginacion ---
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [modelSearch, setModelSearch] = useState<string>('');
@@ -98,6 +92,24 @@ export default function InventoryPage() {
   const [filterCategory, setFilterCategory] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
+  
+  // --- estados para categorías ---
+  const [categorySearch, setCategorySearch] = useState<string>('');
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
+  const [selectedParentCategory, setSelectedParentCategory] = useState<string>('');
+  const [isSubcategory, setIsSubcategory] = useState<boolean>(false);
+  const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState<boolean>(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  
+  // --- estados para marcas ---
+  const [brandSearch, setBrandSearch] = useState<string>('');
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState<boolean>(false);
+  const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);
+  const [newBrandName, setNewBrandName] = useState<string>('');
+  const [isDeleteBrandModalOpen, setIsDeleteBrandModalOpen] = useState<boolean>(false);
+  const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null);
 
   // API hooks
   const { data: stockData, isLoading, error, refetch } = useStock({
@@ -117,6 +129,68 @@ export default function InventoryPage() {
   // Get categories and brands from API
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
+  
+  // Category CRUD hooks
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+  
+  // Brand CRUD hooks
+  const createBrand = useCreateBrand();
+  const updateBrand = useUpdateBrand();
+  const deleteBrand = useDeleteBrand();
+  
+  // Organizar categorías en jerarquía (padres e hijos)
+  const organizeCategories = (cats: Category[]): Category[] => {
+    const categoryMap = new Map<number, Category>();
+    const rootCategories: Category[] = [];
+    
+    // Primero, crear un mapa de todas las categorías
+    cats.forEach(cat => {
+      categoryMap.set(cat.id, { ...cat, children: [] });
+    });
+    
+    // Luego, organizar en jerarquía
+    cats.forEach(cat => {
+      const category = categoryMap.get(cat.id)!;
+      if (cat.parentId && categoryMap.has(cat.parentId)) {
+        const parent = categoryMap.get(cat.parentId)!;
+        if (!parent.children) parent.children = [];
+        parent.children.push(category);
+      } else {
+        rootCategories.push(category);
+      }
+    });
+    
+    return rootCategories;
+  };
+  
+  // Función para aplanar categorías recursivamente para búsqueda
+  const flattenCategories = (cats: Category[]): Category[] => {
+    const result: Category[] = [];
+    cats.forEach(cat => {
+      result.push(cat);
+      if (cat.children && cat.children.length > 0) {
+        result.push(...flattenCategories(cat.children));
+      }
+    });
+    return result;
+  };
+  
+  // Organizar categorías en jerarquía
+  const organizedCategories = organizeCategories(categories);
+  
+  // Filter categories and brands by search
+  const allCategoriesFlat = flattenCategories(organizedCategories);
+  const filteredCategories = allCategoriesFlat.filter((cat) => {
+    return cat.name.toLowerCase().includes(categorySearch.toLowerCase());
+  });
+  const filteredBrands = brands.filter((brand) => {
+    return brand.name.toLowerCase().includes(brandSearch.toLowerCase());
+  });
+  
+  // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
+  const flatCategories = categories.filter(cat => !cat.parentId);
 
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -198,7 +272,7 @@ export default function InventoryPage() {
         >
           <option value="">Selecciona una categoría</option>
           {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
           ))}
         </select>
       </div>
@@ -262,7 +336,7 @@ export default function InventoryPage() {
         >
           <option value="">Todas las categorías</option>
           {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
           ))}
         </select>
       </div>
@@ -461,6 +535,154 @@ export default function InventoryPage() {
   const totalPages = pagination.totalPages;
   const startIndex = (pagination.page - 1) * pagination.pageSize;
   const endIndex = Math.min(startIndex + pagination.pageSize, totalItems);
+  
+  //-------------------
+  // GESTIÓN DE CATEGORÍAS
+  //-------------------
+  const openAddCategoryModal = () => {
+    setCategoryToEdit(null);
+    setNewCategoryName('');
+    setSelectedParentCategory('');
+    setIsSubcategory(false);
+    setIsCategoryModalOpen(true);
+  };
+  
+  const openEditCategoryModal = (category: Category) => {
+    setCategoryToEdit(category);
+    setNewCategoryName(category.name);
+    setSelectedParentCategory(category.parentId?.toString() || '');
+    setIsSubcategory(!!category.parentId);
+    setIsCategoryModalOpen(true);
+  };
+  
+  const closeCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setCategoryToEdit(null);
+    setNewCategoryName('');
+    setSelectedParentCategory('');
+    setIsSubcategory(false);
+  };
+  
+  const handleSaveCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert('Por favor, ingresa un nombre para la categoría.');
+      return;
+    }
+    
+    if (isSubcategory && !selectedParentCategory) {
+      alert('Por favor, selecciona una categoría principal para la subcategoría.');
+      return;
+    }
+    
+    try {
+      if (categoryToEdit) {
+        await updateCategory.mutateAsync({
+          id: categoryToEdit.id,
+          data: { 
+            name: newCategoryName.trim(),
+            parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
+          }
+        });
+      } else {
+        await createCategory.mutateAsync({ 
+          name: newCategoryName.trim(),
+          parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
+        });
+      }
+      closeCategoryModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar categoría'}`);
+    }
+  };
+  
+  const openDeleteCategoryModal = (category: Category) => {
+    setCategoryToDelete(category);
+    setIsDeleteCategoryModalOpen(true);
+  };
+  
+  const closeDeleteCategoryModal = () => {
+    setIsDeleteCategoryModalOpen(false);
+    setCategoryToDelete(null);
+  };
+  
+  const handleConfirmDeleteCategory = async () => {
+    if (categoryToDelete) {
+      try {
+        await deleteCategory.mutateAsync(categoryToDelete.id);
+        closeDeleteCategoryModal();
+      } catch (error: any) {
+        const errorMessage = error.response?.data?.message || error.message || 'Error al eliminar';
+        if (errorMessage.includes('items') || errorMessage.includes('productos') || errorMessage.includes('asignados')) {
+          alert('No se puede eliminar la categoría porque tiene productos asignados.');
+        } else {
+          alert(`Error: ${errorMessage}`);
+        }
+      }
+    }
+  };
+  
+  //-------------------
+  // GESTIÓN DE MARCAS
+  //-------------------
+  const openAddBrandModal = () => {
+    setBrandToEdit(null);
+    setNewBrandName('');
+    setIsBrandModalOpen(true);
+  };
+  
+  const openEditBrandModal = (brand: Brand) => {
+    setBrandToEdit(brand);
+    setNewBrandName(brand.name);
+    setIsBrandModalOpen(true);
+  };
+  
+  const closeBrandModal = () => {
+    setIsBrandModalOpen(false);
+    setBrandToEdit(null);
+    setNewBrandName('');
+  };
+  
+  const handleSaveBrand = async () => {
+    if (!newBrandName.trim()) {
+      alert('Por favor, ingresa un nombre para la marca.');
+      return;
+    }
+    
+    try {
+      if (brandToEdit) {
+        await updateBrand.mutateAsync({
+          id: brandToEdit.id,
+          data: { name: newBrandName.trim() }
+        });
+      } else {
+        await createBrand.mutateAsync({ name: newBrandName.trim() });
+      }
+      closeBrandModal();
+    } catch (error: any) {
+      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar marca'}`);
+    }
+  };
+  
+  const openDeleteBrandModal = (brand: Brand) => {
+    setBrandToDelete(brand);
+    setIsDeleteBrandModalOpen(true);
+  };
+  
+  const closeDeleteBrandModal = () => {
+    setIsDeleteBrandModalOpen(false);
+    setBrandToDelete(null);
+  };
+  
+  const handleConfirmDeleteBrand = async () => {
+    if (brandToDelete) {
+      try {
+        await deleteBrand.mutateAsync(brandToDelete.id);
+        closeDeleteBrandModal();
+      } catch (error: any) {
+        alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar marca'}`);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -472,16 +694,17 @@ export default function InventoryPage() {
           <p className="text-muted-foreground">Gestión de stock por sucursal</p>
         </div>
         
-        {/* boton de acciones con menu */}
-        <div className="relative">
-          {/* boton principal */}
-          <button 
-            onClick={() => setShowActionsDropdown(!showActionsDropdown)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
-          >
-            <span>Agregar Producto</span>
-            <IconChevronDown className="w-4 h-4" />
-          </button>
+        {/* boton de acciones con menu - solo mostrar en tab de inventario */}
+        {activeTab === 'inventory' && (
+          <div className="relative">
+            {/* boton principal */}
+            <button 
+              onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
+            >
+              <span>Agregar Producto</span>
+              <IconChevronDown className="w-4 h-4" />
+            </button>
 
           {/* menu desplegable */}
           {showActionsDropdown && (
@@ -518,42 +741,107 @@ export default function InventoryPage() {
               </div>
             </>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* --- layout de 2 columnas --- */}
-      <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-        
-        {/* --- sidebar filtros --- */}
-        <div className="w-full md:w-1/4">
-          <div className="bg-card p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
-            <div className="space-y-2">{renderPageFilterSelectors()}</div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
-              <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)} className="w-full border border-border rounded-md px-3 py-2">
-                <option value="">Todas las marcas</option>
-                {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
-              <input value={modelSearch} onChange={(e) => setModelSearch(e.target.value)} type="text" placeholder="Buscar modelo..." className="w-full border border-border rounded-md px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
-              <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} className="w-full border border-border rounded-md px-3 py-2">
-                <option value="">Todos los estados</option>
-                <option value="normal">Normal</option>
-                <option value="low">Bajo</option>
-                <option value="critical">Crítico</option>
-              </select>
+      {/* --- Tabs --- */}
+      <div className="border-b border-border">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'inventory'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
+          >
+            Inventario
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'categories'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
+          >
+            Categorías
+          </button>
+          <button
+            onClick={() => setActiveTab('brands')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'brands'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+            }`}
+          >
+            Marcas
+          </button>
+        </nav>
+      </div>
+
+      {/* --- Contenido según tab activo --- */}
+      {activeTab === 'inventory' && (
+        <>
+          {/* --- Filtros en la parte superior --- */}
+          <div className="bg-card p-4 rounded-lg shadow">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Filtros</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-foreground">Categoría</label>
+                <select 
+                  onChange={(e) => setFilterCategory(e.target.value)} 
+                  value={filterCategory} 
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="">Todas las categorías</option>
+                  {flatCategories.map((cat) => (
+                    <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-foreground">Marca</label>
+                <select 
+                  value={selectedBrand} 
+                  onChange={(e) => setSelectedBrand(e.target.value)} 
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="">Todas las marcas</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.name}>{brand.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-foreground">Modelo</label>
+                <input 
+                  value={modelSearch} 
+                  onChange={(e) => setModelSearch(e.target.value)} 
+                  type="text" 
+                  placeholder="Buscar modelo..." 
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm" 
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-foreground">Estado</label>
+                <select 
+                  value={selectedStatus} 
+                  onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} 
+                  className="w-full border border-border rounded-md px-3 py-2 text-sm"
+                >
+                  <option value="">Todos los estados</option>
+                  <option value="normal">Normal</option>
+                  <option value="low">Bajo</option>
+                  <option value="critical">Crítico</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* --- tabla --- */}
-        <div className="w-full md:w-3/4">
+        <div className="w-full">
           <div className="bg-card rounded-lg shadow overflow-hidden">
             {isLoading && (
               <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>
@@ -656,7 +944,182 @@ export default function InventoryPage() {
             </div>
           </div>
         </div>
-      </div>
+        </>
+      )}
+
+      {/* --- Tab de Categorías --- */}
+      {activeTab === 'categories' && (
+        <div className="bg-card rounded-lg shadow">
+          <div className="p-4 border-b border-border flex justify-between items-center">
+            <h2 className="text-xl font-bold text-foreground">Categorías</h2>
+            <button
+              onClick={openAddCategoryModal}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2"
+            >
+              <IconPlus className="w-4 h-4" />
+              <span>Agregar Categoría</span>
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Buscar categoría..."
+                value={categorySearch}
+                onChange={(e) => setCategorySearch(e.target.value)}
+                className="w-full border border-border rounded-md px-4 py-2"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Nombre</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Tipo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {filteredCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-4 text-center text-muted-foreground">
+                        No hay categorías disponibles
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredCategories.map((category) => {
+                      const isSubcat = !!category.parentId;
+                      const parentCategory = categories.find(c => c.id === category.parentId);
+                      return (
+                        <tr key={category.id} className="hover:bg-muted">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{category.id}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                            {isSubcat && <span className="text-muted-foreground mr-2">└─</span>}
+                            {category.name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                            {isSubcat ? (
+                              <span className="text-xs">Subcategoría de: {parentCategory?.name || 'N/A'}</span>
+                            ) : (
+                              <span className="text-xs">Categoría principal</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex items-center space-x-3">
+                              {!isSubcat && (
+                                <button
+                                  onClick={() => {
+                                    setSelectedParentCategory(category.id.toString());
+                                    setIsSubcategory(true);
+                                    setNewCategoryName('');
+                                    setCategoryToEdit(null);
+                                    setIsCategoryModalOpen(true);
+                                  }}
+                                  title="Agregar subcategoría"
+                                  className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                                >
+                                  <IconPlus className="w-5 h-5" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => openEditCategoryModal(category)}
+                                title="Editar"
+                                className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                              >
+                                <IconEdit className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => openDeleteCategoryModal(category)}
+                                title="Eliminar"
+                                className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"
+                              >
+                                <IconDelete className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Tab de Marcas --- */}
+      {activeTab === 'brands' && (
+        <div className="bg-card rounded-lg shadow">
+          <div className="p-4 border-b border-border flex justify-between items-center">
+            <h2 className="text-xl font-bold text-foreground">Marcas</h2>
+            <button
+              onClick={openAddBrandModal}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2"
+            >
+              <IconPlus className="w-4 h-4" />
+              <span>Agregar Marca</span>
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Buscar marca..."
+                value={brandSearch}
+                onChange={(e) => setBrandSearch(e.target.value)}
+                className="w-full border border-border rounded-md px-4 py-2"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Nombre</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {filteredBrands.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-4 text-center text-muted-foreground">
+                        No hay marcas disponibles
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredBrands.map((brand) => (
+                      <tr key={brand.id} className="hover:bg-muted">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{brand.id}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{brand.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-3">
+                            <button
+                              onClick={() => openEditBrandModal(brand)}
+                              title="Editar"
+                              className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                            >
+                              <IconEdit className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => openDeleteBrandModal(brand)}
+                              title="Eliminar"
+                              className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"
+                            >
+                              <IconDelete className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* --- Modales --- */}
       
@@ -672,7 +1135,9 @@ export default function InventoryPage() {
                   <label className="block text-sm font-medium text-foreground">Marca</label>
                   <select value={newProduct.brand} onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una marca</option>
-                    {brands.map(brand => <option key={brand} value={brand}>{brand}</option>)}
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-foreground">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
@@ -749,7 +1214,199 @@ export default function InventoryPage() {
         </div>
       )}
 
+      {/* Modal de Categoría */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">
+              {categoryToEdit 
+                ? 'Editar Categoría' 
+                : isSubcategory 
+                  ? 'Agregar Subcategoría' 
+                  : 'Agregar Categoría'}
+            </h2>
+            <div className="mt-4 space-y-4">
+              {categoryToEdit && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">ID</label>
+                  <input
+                    type="text"
+                    value={categoryToEdit.id}
+                    disabled
+                    className="w-full border border-border rounded-md px-3 py-2 bg-gray-100 text-muted-foreground"
+                  />
+                </div>
+              )}
+              {!categoryToEdit && (
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={isSubcategory}
+                      onChange={(e) => {
+                        setIsSubcategory(e.target.checked);
+                        if (!e.target.checked) {
+                          setSelectedParentCategory('');
+                        }
+                      }}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm font-medium text-foreground">Crear como subcategoría</span>
+                  </label>
+                </div>
+              )}
+              {isSubcategory && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Categoría Principal</label>
+                  <select
+                    value={selectedParentCategory}
+                    onChange={(e) => setSelectedParentCategory(e.target.value)}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                    disabled={!!categoryToEdit}
+                  >
+                    <option value="">Selecciona una categoría principal</option>
+                    {flatCategories
+                      .filter(cat => !categoryToEdit || cat.id !== categoryToEdit.id)
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
+                      ))}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Nombre</label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder={isSubcategory ? "Nombre de la subcategoría" : "Nombre de la categoría"}
+                  className="w-full border border-border rounded-md px-3 py-2"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={closeCategoryModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveCategory}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+              >
+                {categoryToEdit ? 'Actualizar' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Eliminar Categoría */}
+      {isDeleteCategoryModalOpen && categoryToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Confirmar Eliminación</h2>
+            <p className="text-muted-foreground mt-4">
+              ¿Estás seguro de que deseas eliminar la categoría: <span className="font-medium">{categoryToDelete.name}</span>?
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Solo se puede eliminar si no tiene productos asignados.
+            </p>
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={closeDeleteCategoryModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDeleteCategory}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Marca */}
+      {isBrandModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">
+              {brandToEdit ? 'Editar Marca' : 'Agregar Marca'}
+            </h2>
+            <div className="mt-4 space-y-4">
+              {brandToEdit && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">ID</label>
+                  <input
+                    type="text"
+                    value={brandToEdit.id}
+                    disabled
+                    className="w-full border border-border rounded-md px-3 py-2 bg-gray-100 text-muted-foreground"
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Nombre</label>
+                <input
+                  type="text"
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  placeholder="Nombre de la marca"
+                  className="w-full border border-border rounded-md px-3 py-2"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={closeBrandModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveBrand}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+              >
+                {brandToEdit ? 'Actualizar' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Eliminar Marca */}
+      {isDeleteBrandModalOpen && brandToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-xl font-bold text-foreground">Confirmar Eliminación</h2>
+            <p className="text-muted-foreground mt-4">
+              ¿Estás seguro de que deseas eliminar la marca: <span className="font-medium">{brandToDelete.name}</span>?
+            </p>
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                onClick={closeDeleteBrandModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDeleteBrand}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
-

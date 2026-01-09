@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '../../stores/auth'
 import { usePermissions } from '../../lib/hooks/usePermissions'
-// Removed @celhm/ui import for now
 import Link from 'next/link'
 import { ThemeToggle } from '../../components/theme-toggle'
 
@@ -17,23 +16,32 @@ export default function DashboardLayout({
   const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
-  const logout = useAuthStore((state) => state.logout)
   const { can } = usePermissions()
+  const logout = useAuthStore((state) => state.logout)
+  
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   useEffect(() => {
     // Check if user is authenticated
-    if (!user || !token) {
+    // Only redirect if we're sure there's no session (after hydration)
+    if (user === null && token === null) {
       router.push('/login')
     }
   }, [user, token, router])
 
-  if (!user || !token) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>
-  }
-
-  const handleLogout = () => {
-    logout()
-    router.push('/login')
+  // Show loading only if we're still checking or if we have a token but no user yet
+  if ((token && !user) || (user === null && token === null)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
   }
 
   const baseNavLink = 'px-3 py-2 rounded-md text-sm font-medium transition-colors'
@@ -160,9 +168,11 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <span className="text-sm text-foreground">
-                {user.name} ({user.role})
-              </span>
+              {user && (
+                <span className="text-sm text-foreground">
+                  {user.name} ({user.role})
+                </span>
+              )}
               <button 
                 className="bg-background hover:bg-muted text-foreground font-medium py-2 px-4 rounded-md border border-border text-sm"
                 onClick={handleLogout}
@@ -173,8 +183,10 @@ export default function DashboardLayout({
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {children}
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          {children}
+        </div>
       </main>
     </div>
   )

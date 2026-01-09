@@ -1,16 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../../stores/auth'
 
 export default function LoginPage() {
   const router = useRouter()
   const login = useAuthStore((state) => state.login)
+  const user = useAuthStore((state) => state.user)
+  const token = useAuthStore((state) => state.token)
+  const isHydrated = useAuthStore((state) => state.isHydrated)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (isHydrated && user && token) {
+      router.push('/dashboard')
+    }
+  }, [isHydrated, user, token, router])
+
+  // Show loading while checking session
+  if (!isHydrated || (user && token)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
