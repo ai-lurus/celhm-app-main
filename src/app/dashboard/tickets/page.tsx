@@ -383,35 +383,19 @@ export default function TicketsPage() {
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveView('kanban')}
-<<<<<<< HEAD
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'kanban'
-                    ? 'border-blue-500 text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
-=======
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'kanban'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   }`}
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
               >
                 Vista Kanban
               </button>
               <button
                 onClick={() => setActiveView('table')}
-<<<<<<< HEAD
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeView === 'table'
-                    ? 'border-blue-500 text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
-=======
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'table'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   }`}
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
               >
                 Lista
               </button>
@@ -500,15 +484,9 @@ export default function TicketsPage() {
             </div>
           ) : (
             <div className="bg-card rounded-lg shadow overflow-hidden">
-<<<<<<< HEAD
-                <table className="min-w-full divide-y divide-border">
-                  <thead className="bg-muted">
-                    <tr>
-=======
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
@@ -516,38 +494,6 @@ export default function TicketsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
-<<<<<<< HEAD
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-border">
-                  {tickets.map((ticket: Ticket) => (
-                      <tr key={ticket.id} className="hover:bg-muted">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        {ticket.folio}
-                      </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
-                          <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-foreground">{ticket.device}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
-                          </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
-                          {formatState(ticket.state)}
-                          </span>
-                        </td>
-=======
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
@@ -578,7 +524,6 @@ export default function TicketsPage() {
                           {formatState(ticket.state)}
                         </span>
                       </td>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         ${(ticket.estimatedCost || 0).toLocaleString()}
                       </td>
@@ -586,21 +531,12 @@ export default function TicketsPage() {
                         <div className="flex items-center space-x-3">
                           <button
                             onClick={() => handleOpenView(ticket)}
-<<<<<<< HEAD
-                                title="Ver"
-                                className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
-                              >
-                                <IconView className="w-5 h-5" />
-                              </button>
-                              <button 
-=======
                             title="Ver"
                             className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
                           >
                             <IconView className="w-5 h-5" />
                           </button>
                           <button
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                             onClick={() => handleOpenEdit(ticket)}
                             title="Editar"
                             className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
@@ -633,15 +569,9 @@ export default function TicketsPage() {
               {editingTicket ? 'Editar Ticket' : 'Crear Nuevo Ticket'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
-<<<<<<< HEAD
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-=======
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">
                       Nombre del Cliente *
                     </label>
@@ -670,13 +600,8 @@ export default function TicketsPage() {
                       onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
                       className="w-full border border-border rounded-md px-3 py-2"
                     />
-<<<<<<< HEAD
-                </div>
-                <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Dispositivo *</label>
                     <input
                       type="text"
@@ -686,13 +611,8 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: iPhone 12"
                     />
-<<<<<<< HEAD
-                </div>
-                <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
                     <input
                       type="text"
@@ -701,13 +621,8 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: Apple"
                     />
-<<<<<<< HEAD
-                </div>
-                <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
                     <input
                       type="text"
@@ -716,13 +631,8 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: A2403"
                     />
-<<<<<<< HEAD
-                </div>
-                 <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Número de Serie / IMEI</label>
                     <input
                       type="text"
@@ -731,11 +641,6 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                     />
                   </div>
-<<<<<<< HEAD
-              </div>
-              <div className="space-y-4">
-                <div>
-=======
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Estado / Condición</label>
                     <input
@@ -779,7 +684,6 @@ export default function TicketsPage() {
                 </div>
                 <div className="space-y-4">
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Problema Reportado *</label>
                     <textarea
                       required
@@ -789,13 +693,8 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Ej: Pantalla rota, no enciende..."
                     />
-<<<<<<< HEAD
-                </div>
-                 <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
                     <textarea
                       rows={3}
@@ -804,13 +703,8 @@ export default function TicketsPage() {
                       className="w-full border border-border rounded-md px-3 py-2"
                       placeholder="Diagnóstico técnico..."
                     />
-<<<<<<< HEAD
-                </div>
-                <div>
-=======
                   </div>
                   <div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                     <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
                     <input
                       type="number"
@@ -906,11 +800,7 @@ export default function TicketsPage() {
             <form onSubmit={handleUpdateStatus} className="space-y-4 mt-6">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Nuevo Estado</label>
-<<<<<<< HEAD
-                <select 
-=======
                 <select
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                   value={statusForm.state}
                   onChange={(e) => setStatusForm({ ...statusForm, state: e.target.value as TicketState })}
                   className="w-full border border-border rounded-md px-3 py-2"
@@ -997,11 +887,7 @@ export default function TicketsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
             <h2 className="text-2xl font-bold text-foreground">Detalles del Ticket</h2>
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
             <div className="space-y-3 pt-4">
               <div className="flex justify-between border-b pb-2">
                 <span className="font-medium text-muted-foreground">Folio</span>
@@ -1018,13 +904,8 @@ export default function TicketsPage() {
                 <span className="font-medium text-foreground">{viewingTicket.customerName}</span>
               </div>
               {viewingTicket.customerPhone && (
-<<<<<<< HEAD
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Teléfono</span>
-=======
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium text-muted-foreground">Teléfono</span>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                   <span className="font-medium text-foreground">{viewingTicket.customerPhone}</span>
                 </div>
               )}
@@ -1032,11 +913,7 @@ export default function TicketsPage() {
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium text-muted-foreground">Email</span>
                   <span className="font-medium text-foreground">{viewingTicket.customerEmail}</span>
-<<<<<<< HEAD
-              </div>
-=======
                 </div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
               )}
               <div className="flex justify-between border-b pb-2">
                 <span className="font-medium text-muted-foreground">Dispositivo</span>

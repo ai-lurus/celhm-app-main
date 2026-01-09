@@ -141,7 +141,6 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-<<<<<<< HEAD
           <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
           <p className="text-muted-foreground">Administrar usuarios de la organización</p>
         </div>
@@ -149,10 +148,6 @@ export default function UsersPage() {
           <p className="text-sm text-yellow-800">
             <strong>Nota:</strong> Los endpoints para crear/editar usuarios aún no están implementados en el backend.
           </p>
-=======
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Users</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage organization members and permissions</p>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
         </div>
         <button
           onClick={handleOpenCreate}
@@ -172,7 +167,6 @@ export default function UsersPage() {
         </button>
       </div>
 
-<<<<<<< HEAD
       <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
         {/* Filtros izquierda */}
         <div className="w-full md:w-1/4">
@@ -202,39 +196,9 @@ export default function UsersPage() {
                 ))}
               </select>
             </div>
-=======
-      {/* Filtros */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
-            <input
-              type="text"
-              placeholder="Name or email..."
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value as Role | '')}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All roles</option>
-              {allRoles.map((role: Role) => (
-                <option key={role} value={role}>
-                  {formatRole(role)}
-                </option>
-              ))}
-            </select>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
           </div>
         </div>
 
-<<<<<<< HEAD
         {/* Tabla derecha */}
         <div className="w-full md:w-3/4">
           <div className="bg-card rounded-lg shadow overflow-hidden">
@@ -314,97 +278,12 @@ export default function UsersPage() {
                 </table>
               </div>
             )}
-=======
-      {/* Tabla */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading users...</div>
-        ) : filteredMembers.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 dark:text-gray-400">No users found</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Branch
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Registered
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredMembers.map((member: OrgMember) => (
-                  <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                          {member.user.name?.charAt(0).toUpperCase() || 'U'}
-                        </div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {member.user.name || 'No name'}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 dark:text-gray-300">{member.user.email || '-'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(member.role)}`}>
-                        {formatRole(member.role)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 dark:text-gray-300">
-                        {member.user.branch ? `${member.user.branch.name} (${member.user.branch.code})` : '-'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(member.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => handleOpenView(member)}
-                          title="View Details"
-                          className="p-2 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                        >
-                          <IconView className="w-5 h-5" />
-                        </button>
-                        <button
-                          disabled
-                          title="Edit (Endpoint not available)"
-                          className="p-2 rounded-md text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                        >
-                          <IconEdit className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
           </div>
         </div>
       </div>
 
       {/* Modal Ver Detalles */}
       {isViewModalOpen && viewingMember && (
-<<<<<<< HEAD
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
             <h2 className="text-2xl font-bold text-foreground">Detalles del Usuario</h2>
@@ -439,48 +318,6 @@ export default function UsersPage() {
                 <span className="font-medium text-foreground">
                   {new Date(viewingMember.createdAt).toLocaleString()}
                 </span>
-=======
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">User Details</h2>
-
-            <div className="space-y-4 pt-4">
-              <div className="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
-                  {viewingMember.user.name?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {viewingMember.user.name || 'No name'}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{viewingMember.user.email || '-'}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">ID</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{viewingMember.user.id}</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">Role</span>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(viewingMember.role)}`}>
-                    {formatRole(viewingMember.role)}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">Branch</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {viewingMember.user.branch ? `${viewingMember.user.branch.name} (${viewingMember.user.branch.code})` : '-'}
-                  </span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">Registered</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {new Date(viewingMember.createdAt).toLocaleString()}
-                  </span>
-                </div>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
               </div>
             </div>
 

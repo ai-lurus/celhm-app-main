@@ -165,46 +165,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-<<<<<<< HEAD
         <h1 className="text-2xl font-bold text-foreground">
           Dashboard
         </h1>
         <p className="text-muted-foreground">
           Bienvenido, {user?.name}
         </p>
-=======
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400">Overview of your business performance</p>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-<<<<<<< HEAD
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-muted-foreground">Total Tickets</h3>
-          <div className="text-2xl font-bold">{totalTickets}</div>
-          <p className="text-xs text-muted-foreground">Todos los tickets registrados</p>
-        </div>
-
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-muted-foreground">Tickets Activos</h3>
-          <div className="text-2xl font-bold">{activeTickets}</div>
-          <p className="text-xs text-muted-foreground">En proceso o pendientes</p>
-        </div>
-
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-muted-foreground">Stock Bajo</h3>
-          <div className="text-2xl font-bold text-red-600">{lowStockItems}</div>
-          <p className="text-xs text-muted-foreground">Productos bajo mínimo</p>
-        </div>
-
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-sm font-medium text-muted-foreground">Valor Inventario</h3>
-          <div className="text-2xl font-bold">${totalStockValue.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">Valor total del stock</p>
-        </div>
-=======
         <MetricCard
           title="Total Revenue"
           value={`$${totalRevenue.toLocaleString()}`}
@@ -284,60 +254,10 @@ export default function DashboardPage() {
           }
           trend={{ value: '-2.4%', isPositive: false }}
         />
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<<<<<<< HEAD
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-foreground mb-4">Tickets Recientes</h3>
-          <div className="space-y-4">
-            {tickets.slice(0, 5).map((ticket: Ticket) => (
-              <div key={ticket.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{ticket.folio}</p>
-                  <p className="text-xs text-muted-foreground">{ticket.customerName}</p>
-                </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${ticket.state === 'RECIBIDO' ? 'bg-blue-100 text-blue-800' :
-                  ticket.state === 'EN_REPARACION' ? 'bg-yellow-100 text-yellow-800' :
-                    ticket.state === 'REPARADO' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                  }`}>
-                  {ticket.state}
-                </span>
-              </div>
-            ))}
-            {tickets.length === 0 && (
-              <p className="text-sm text-muted-foreground">No hay tickets recientes</p>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-card p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-foreground mb-4">Alertas de Stock</h3>
-          <div className="space-y-4">
-            {lowStockAlerts.slice(0, 5).map((alert: any) => (
-              <div key={alert.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">
-                    {alert.variant?.name || alert.variant?.product?.name || 'Producto desconocido'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Stock: {alert.qty} / Mín: {alert.min} - {alert.branch?.name || ''}
-                  </p>
-                </div>
-                <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
-                  {alert.qty <= 0 ? 'Crítico' : 'Bajo'}
-                </span>
-              </div>
-            ))}
-            {lowStockAlerts.length === 0 && (
-              <p className="text-sm text-muted-foreground">No hay alertas de stock</p>
-            )}
-          </div>
-        </div>
-=======
         <SalesChart data={salesChartData} />
         <TopProducts products={topProducts} />
       </div>
@@ -345,7 +265,6 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <RecentActivity activities={recentActivity} />
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
       </div>
     </div>
   )

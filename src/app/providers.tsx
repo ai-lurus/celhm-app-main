@@ -26,13 +26,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
-<<<<<<< HEAD
         {children}
-=======
         <SessionProvider>
           {children}
         </SessionProvider>
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
       </QueryClientProvider>
     </ThemeProvider>
   )

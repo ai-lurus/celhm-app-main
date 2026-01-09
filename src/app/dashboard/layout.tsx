@@ -1,16 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '../../stores/auth'
-<<<<<<< HEAD
 import { usePermissions } from '../../lib/hooks/usePermissions'
-// Removed @celhm/ui import for now
 import Link from 'next/link'
 import { ThemeToggle } from '../../components/theme-toggle'
-=======
-import { Sidebar } from '../../components/Sidebar'
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
 
 export default function DashboardLayout({
   children,
@@ -18,8 +13,16 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
+  const { can } = usePermissions()
+  const logout = useAuthStore((state) => state.logout)
+  
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   useEffect(() => {
     // Check if user is authenticated
@@ -46,7 +49,6 @@ export default function DashboardLayout({
   const inactiveNavLink = 'text-muted-foreground hover:text-foreground hover:bg-muted'
 
   return (
-<<<<<<< HEAD
     <div className="min-h-screen bg-background text-foreground">
       <nav className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -166,9 +168,11 @@ export default function DashboardLayout({
             </div>
             <div className="flex items-center space-x-4">
               <ThemeToggle />
-              <span className="text-sm text-foreground">
-                {user.name} ({user.role})
-              </span>
+              {user && (
+                <span className="text-sm text-foreground">
+                  {user.name} ({user.role})
+                </span>
+              )}
               <button 
                 className="bg-background hover:bg-muted text-foreground font-medium py-2 px-4 rounded-md border border-border text-sm"
                 onClick={handleLogout}
@@ -177,13 +181,11 @@ export default function DashboardLayout({
               </button>
             </div>
           </div>
-=======
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex">
-      <Sidebar />
+        </div>
+      </nav>
       <main className="flex-1 overflow-y-auto">
         <div className="p-6">
           {children}
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
         </div>
       </main>
     </div>

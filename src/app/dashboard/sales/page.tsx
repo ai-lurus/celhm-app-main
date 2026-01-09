@@ -187,17 +187,10 @@ export default function SalesPage() {
                     {sale.customer?.name || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-<<<<<<< HEAD
-                    ${sale.total.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${sale.paidAmount.toLocaleString()}
-=======
                     ${((sale.total || 0)).toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                     ${((sale.paidAmount || 0)).toLocaleString()}
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(sale.status)}`}>
@@ -431,13 +424,8 @@ export default function SalesPage() {
           <div className="bg-card rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">Agregar Pago</h2>
             <p className="text-sm text-muted-foreground mb-4">
-<<<<<<< HEAD
-              Venta: {selectedSale.folio} - Total: ${selectedSale.total.toLocaleString()} - 
-              Pendiente: ${(selectedSale.total - selectedSale.paidAmount).toLocaleString()}
-=======
               Venta: {selectedSale.folio} - Total: ${((selectedSale.total || 0)).toLocaleString()} - 
               Pendiente: ${((selectedSale.total || 0) - (selectedSale.paidAmount || 0)).toLocaleString()}
->>>>>>> e20c642b9d44dc10eae7eac8fbb7a8e447d37ac1
             </p>
             <form onSubmit={handleAddPaymentToSale} className="space-y-4">
               <div>
