@@ -113,22 +113,156 @@ export function useDeleteProduct() {
   })
 }
 
+export interface Category {
+  id: number
+  name: string
+  parentId?: number | null
+  children?: Category[]
+}
+
+export interface Brand {
+  id: number
+  name: string
+}
+
 export function useCategories() {
-  return useQuery({
+  return useQuery<Category[]>({
     queryKey: ['catalog', 'categories'],
-    queryFn: async () => {
-      const response = await api.get<string[]>('/catalog/categories')
-      return response.data
+    queryFn: async (): Promise<Category[]> => {
+      try {
+        // Try to get as objects with id and name
+        const response = await api.get<Category[] | string[]>('/catalog/categories')
+        // If response is array of objects, return as is
+        if (Array.isArray(response.data) && response.data.length > 0 && typeof response.data[0] === 'object' && 'id' in response.data[0]) {
+          return response.data as Category[]
+        }
+        // If response is array of strings, convert to objects
+        if (Array.isArray(response.data) && typeof response.data[0] === 'string') {
+          return (response.data as string[]).map((name, index) => ({ id: index + 1, name }))
+        }
+        return response.data as Category[]
+      } catch (error) {
+        // Fallback: try string array endpoint
+        const response = await api.get<string[]>('/catalog/categories')
+        return (response.data as string[]).map((name, index) => ({ id: index + 1, name }))
+      }
     },
   })
 }
 
 export function useBrands() {
-  return useQuery({
+  return useQuery<Brand[]>({
     queryKey: ['catalog', 'brands'],
-    queryFn: async () => {
-      const response = await api.get<string[]>('/catalog/brands')
+    queryFn: async (): Promise<Brand[]> => {
+      try {
+        // Try to get as objects with id and name
+        const response = await api.get<Brand[] | string[]>('/catalog/brands')
+        // If response is array of objects, return as is
+        if (Array.isArray(response.data) && response.data.length > 0 && typeof response.data[0] === 'object' && 'id' in response.data[0]) {
+          return response.data as Brand[]
+        }
+        // If response is array of strings, convert to objects
+        if (Array.isArray(response.data) && typeof response.data[0] === 'string') {
+          return (response.data as string[]).map((name, index) => ({ id: index + 1, name }))
+        }
+        return response.data as Brand[]
+      } catch (error) {
+        // Fallback: try string array endpoint
+        const response = await api.get<string[]>('/catalog/brands')
+        return (response.data as string[]).map((name, index) => ({ id: index + 1, name }))
+      }
+    },
+  })
+}
+
+// Category CRUD hooks
+export function useCreateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: { name: string; parentId?: number | null }) => {
+      const response = await api.post<Category>('/catalog/categories', data)
       return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'categories'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    },
+  })
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name: string; parentId?: number | null } }) => {
+      const response = await api.patch<Category>(`/catalog/categories/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'categories'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    },
+  })
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await api.delete(`/catalog/categories/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'categories'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    },
+  })
+}
+
+// Brand CRUD hooks
+export function useCreateBrand() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: { name: string }) => {
+      const response = await api.post<Brand>('/catalog/brands', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'brands'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    },
+  })
+}
+
+export function useUpdateBrand() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name: string } }) => {
+      const response = await api.patch<Brand>(`/catalog/brands/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'brands'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
+    },
+  })
+}
+
+export function useDeleteBrand() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await api.delete(`/catalog/brands/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'brands'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'products'] })
     },
   })
 }
