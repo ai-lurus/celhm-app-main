@@ -38,13 +38,13 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-    
+
     try {
       await login({ email, password })
       router.push('/dashboard')
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.message 
-        || err?.message 
+      const errorMessage = err?.response?.data?.message
+        || err?.message
         || (typeof err === 'string' ? err : 'Error al iniciar sesión')
       setError(errorMessage)
     } finally {
@@ -60,7 +60,7 @@ export default function LoginPage() {
             Iniciar Sesión
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Accede a tu cuenta de CELHM
+            CELHM - Sistema de Gestión de Reparaciones
           </p>
         </div>
 
