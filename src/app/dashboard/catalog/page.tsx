@@ -242,7 +242,7 @@ export default function CatalogPage() {
               <select className="w-full border border-border rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
             </div>
@@ -252,7 +252,7 @@ export default function CatalogPage() {
               <select className="w-full border border-border rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
                 <option value="">Todas las marcas</option>
                 {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>{brand.name}</option>
+                  <option key={brand} value={brand}>{brand}</option>
                 ))}
               </select>
             </div>
@@ -383,7 +383,7 @@ export default function CatalogPage() {
                   <select name="category" value={newProductData.category} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una categoría</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                 </div>
@@ -392,7 +392,7 @@ export default function CatalogPage() {
                   <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una marca</option>
                     {brands.map((brand) => (
-                      <option key={brand.id} value={brand.id}>{brand.name}</option>
+                      <option key={brand} value={brand}>{brand}</option>
                     ))}
                   </select>
                 </div>
