@@ -26,6 +26,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <QueryClientProvider client={queryClient}>
+        {children}
         <SessionProvider>
           {children}
         </SessionProvider>
