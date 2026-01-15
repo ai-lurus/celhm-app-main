@@ -127,7 +127,7 @@ export default function UsersPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement when endpoint is available
+    // TODO: Implementar cuando el endpoint esté disponible
     alert('El endpoint de creación de usuarios no ha sido implementado en el backend aún')
     // try {
     //   await createUser.mutateAsync(newUserForm)

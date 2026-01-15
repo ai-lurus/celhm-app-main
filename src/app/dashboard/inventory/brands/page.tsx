@@ -17,15 +17,15 @@ export default function BrandsPage() {
   const [isDeleteBrandModalOpen, setIsDeleteBrandModalOpen] = useState<boolean>(false)
   const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null)
 
-  // Get brands from API
+  // Obtener marcas desde la API
   const { data: brands = [] } = useBrands()
   
-  // Brand CRUD hooks
+  // Hooks CRUD de marca
   const createBrand = useCreateBrand()
   const updateBrand = useUpdateBrand()
   const deleteBrand = useDeleteBrand()
   
-  // Filter brands by search
+  // Filtrar marcas por búsqueda
   const filteredBrands = brands.filter((brand) => {
     return brand.name.toLowerCase().includes(brandSearch.toLowerCase())
   })
@@ -96,35 +96,45 @@ export default function BrandsPage() {
   return (
     <div className="space-y-6">
       {/* --- encabezado --- */}
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Marcas</h1>
-          <p className="text-muted-foreground">Gestión de marcas de productos</p>
-        </div>
-        
-        {/* Navegación a secciones relacionadas */}
-        <div className="flex items-center space-x-2">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Catálogo</h1>
+        <p className="text-muted-foreground">Gestión de existencias por sucursal</p>
+      </div>
+
+      {/* --- tabs de navegación --- */}
+      <div className="border-b border-border">
+        <nav className="-mb-px flex space-x-8">
           <Link
             href="/dashboard/inventory"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               pathname === '/dashboard/inventory'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
-            Inventario
+            Catálogo
           </Link>
           <Link
             href="/dashboard/inventory/categories"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               pathname === '/dashboard/inventory/categories'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
             Categorías
           </Link>
-        </div>
+          <Link
+            href="/dashboard/inventory/brands"
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              pathname === '/dashboard/inventory/brands'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            Marcas
+          </Link>
+        </nav>
       </div>
 
       {/* --- Tab de Marcas --- */}

@@ -17,15 +17,15 @@ export default function CategoriesPage() {
   const [isDeleteCategoryModalOpen, setIsDeleteCategoryModalOpen] = useState<boolean>(false)
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null)
 
-  // Get categories from API
+  // Obtener categorías desde la API
   const { data: categories = [] } = useCategories()
   
-  // Category CRUD hooks
+  // Hooks CRUD de categoría
   const createCategory = useCreateCategory()
   const updateCategory = useUpdateCategory()
   const deleteCategory = useDeleteCategory()
   
-  // Get current pathname
+  // Obtener nombre actual de la ruta
   const pathname = usePathname()
   
   // Organizar categorías en jerarquía (padres e hijos)
@@ -68,7 +68,7 @@ export default function CategoriesPage() {
   // Organizar categorías en jerarquía
   const organizedCategories = organizeCategories(categories)
   
-  // Filter categories by search
+  // Filtrar categorías por búsqueda
   const allCategoriesFlat = flattenCategories(organizedCategories)
   const filteredCategories = allCategoriesFlat.filter((cat) => {
     return cat.name.toLowerCase().includes(categorySearch.toLowerCase())
@@ -165,35 +165,45 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       {/* --- encabezado --- */}
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Categorías</h1>
-          <p className="text-muted-foreground">Gestión de categorías de productos</p>
-        </div>
-        
-        {/* Navegación a secciones relacionadas */}
-        <div className="flex items-center space-x-2">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Catálogo</h1>
+        <p className="text-muted-foreground">Gestión de existencias por sucursal</p>
+      </div>
+
+      {/* --- tabs de navegación --- */}
+      <div className="border-b border-border">
+        <nav className="-mb-px flex space-x-8">
           <Link
             href="/dashboard/inventory"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               pathname === '/dashboard/inventory'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
-            Inventario
+            Catálogo
+          </Link>
+          <Link
+            href="/dashboard/inventory/categories"
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              pathname === '/dashboard/inventory/categories'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            Categorías
           </Link>
           <Link
             href="/dashboard/inventory/brands"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
               pathname === '/dashboard/inventory/brands'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
             Marcas
           </Link>
-        </div>
+        </nav>
       </div>
 
       {/* --- Tab de Categorías --- */}

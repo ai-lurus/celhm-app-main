@@ -24,7 +24,7 @@ const IconDelete = ({ className }: { className?: string }) => (
 );
 // --- Fin iconos ---
 
-// Product type is now imported from useCatalog hook
+// El tipo de producto ahora se importa desde el hook useCatalog
 
 interface NewProductForm {
   name: string;
@@ -45,7 +45,7 @@ interface Brand {
   value: string;
 }
 
-// Removed initialProducts and filtersData - now using API (useCategories and useBrands hooks)
+// Se eliminaron initialProducts y filtersData; ahora se utiliza la API (hooks useCategories y useBrands)
 
 // --- Estados para formularios ---
 const newProductInitialState: NewProductForm = {
@@ -83,7 +83,7 @@ export default function CatalogPage() {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
-  // Get products from API
+  // Obtener productos de la API
   const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
   const pagination = (productsData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 }
 
@@ -200,9 +200,7 @@ export default function CatalogPage() {
     setItemToView(null);
   };
 
-  // Filtering now handled by backend API
-
-  // Filtering now handled by backend API
+  // Filtrado ahora gestionado por la API del backend
   const filteredProducts = products;
 
   return (
@@ -210,7 +208,7 @@ export default function CatalogPage() {
       {/* --- encabezado --- */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Catálogo de Productos</h1>
+          <h1 className="text-2xl font-bold text-foreground">Definición de Productos</h1>
           <p className="text-muted-foreground">Gestión centralizada de productos</p>
         </div>
         <button
@@ -339,7 +337,7 @@ export default function CatalogPage() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
                   <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
                     <option value={20}>20</option>
                     <option value={50}>50</option>

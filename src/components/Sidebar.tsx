@@ -57,16 +57,16 @@ export function Sidebar() {
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', permission: undefined },
     { label: 'Tickets', href: '/dashboard/tickets', permission: 'canManageTickets' },
-    { label: 'Clients', href: '/dashboard/customers', permission: 'canManageCustomers' },
-    { label: 'Sales', href: '/dashboard/sales', permission: 'canManageSales' },
-    { label: 'Inventory', href: '/dashboard/inventory', permission: 'canManageInventory' },
-    { label: 'Point of Sales', href: '/dashboard/cash', permission: 'canManageCash' },
-    { label: 'Reports', href: '/dashboard/reports', permission: 'canViewFinancialReports' },
+    { label: 'Clientes', href: '/dashboard/customers', permission: 'canManageCustomers' },
+    { label: 'Ventas', href: '/dashboard/sales', permission: 'canManageSales' },
+    { label: 'Catálogo', href: '/dashboard/inventory', permission: 'canManageInventory' },
+    { label: 'Punto de Venta', href: '/dashboard/cash', permission: 'canManageCash' },
+    { label: 'Reportes', href: '/dashboard/reports', permission: 'canViewFinancialReports' },
   ]
 
   const adminNavItems: NavItem[] = [
-    { label: 'Users', href: '/dashboard/users', permission: 'canViewAllBranches' },
-    { label: 'Company Settings', href: '/dashboard/settings', permission: undefined },
+    { label: 'Usuarios', href: '/dashboard/users', permission: 'canViewAllBranches' },
+    { label: 'Configuración de la Empresa', href: '/dashboard/settings', permission: undefined },
   ]
 
   const isActive = (href: string) => {
@@ -86,8 +86,8 @@ export function Sidebar() {
   )
 
   return (
-    <div className="w-64 bg-[#1e3a8a] min-h-screen flex flex-col text-white">
-      {/* Logo and Company Name */}
+    <div className="w-64 bg-[#1e3a8a] h-full flex flex-col text-white">
+      {/* Logo y Nombre de la Empresa */}
       <div className="p-6 border-b border-blue-700">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -112,7 +112,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Main Navigation */}
+      {/* Navegación Principal */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {filteredMainItems.map((item) => (
           <Link
@@ -128,12 +128,12 @@ export function Sidebar() {
           </Link>
         ))}
 
-        {/* Administration Section */}
+        {/* Sección de Administración */}
         {filteredAdminItems.length > 0 && (
           <>
             <div className="pt-6 pb-2">
               <h2 className="px-4 text-xs font-semibold text-blue-300 uppercase tracking-wider">
-                ADMINISTRATION
+                ADMINISTRACIÓN
               </h2>
             </div>
             {filteredAdminItems.map((item) => (

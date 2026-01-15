@@ -332,7 +332,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div className="bg-green-50 p-4 rounded">
-                    <div className="text-sm text-muted-foreground">Total de Items</div>
+                    <div className="text-sm text-muted-foreground">Total de Artículos</div>
                     <div className="text-2xl font-bold text-green-600">{inventoryReport.totalItems}</div>
                   </div>
                 </div>
@@ -340,14 +340,14 @@ export default function ReportsPage() {
 
               {inventoryReport.lowStockItems && Array.isArray(inventoryReport.lowStockItems) && inventoryReport.lowStockItems.length > 0 ? (
                 <div className="bg-card p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium mb-4">Productos Bajo Stock Mínimo</h3>
+                  <h3 className="text-lg font-medium mb-4">Productos Bajo Existencias Mínimas</h3>
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-muted">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Producto</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">SKU</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Sucursal</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Stock</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Existencias</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Mínimo</th>
                       </tr>
                     </thead>
@@ -376,7 +376,7 @@ export default function ReportsPage() {
                 </div>
               ) : (
                 <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
-                  No hay productos bajo stock mínimo
+                  No hay productos bajo existencias mínimas
                 </div>
               )}
             </div>

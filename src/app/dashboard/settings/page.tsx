@@ -45,14 +45,14 @@ export default function CompanySettingsPage() {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Create preview
+      // Crear vista previa
       const reader = new FileReader()
       reader.onloadend = () => {
         setLogoPreview(reader.result as string)
       }
       reader.readAsDataURL(file)
       setIsSaved(false)
-      // TODO: Upload to server and get URL
+      // TODO: Subir a servidor y obtener URL
     }
   }
 
@@ -65,7 +65,7 @@ export default function CompanySettingsPage() {
       })
       setIsSaved(true)
     } catch (error) {
-      console.error('Error updating organization:', error)
+      console.error('Error actualizando la organización:', error)
     }
   }
 
@@ -83,14 +83,14 @@ export default function CompanySettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Company Settings</h1>
-        <p className="text-gray-600">Manage your company information</p>
+        <h1 className="text-2xl font-bold text-gray-900">Configuración de la Empresa</h1>
+        <p className="text-gray-600">Gestiona la información de tu empresa</p>
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
-        {/* Company Logo Section */}
+        {/* Sección de Logo de la Empresa */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Company Logo</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Logo de la Empresa</label>
           <div className="flex items-start space-x-4">
             <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-300">
               {logoPreview ? (
@@ -128,7 +128,7 @@ export default function CompanySettingsPage() {
                     d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
                   />
                 </svg>
-                Upload Logo
+                Subir Logo
                 <input
                   type="file"
                   accept="image/*"
@@ -137,16 +137,16 @@ export default function CompanySettingsPage() {
                 />
               </label>
               <p className="mt-2 text-xs text-gray-500">
-                Recommended: Square image, at least 200x200px
+                Recomendado: Imagen cuadrada, al menos 200x200px
               </p>
             </div>
           </div>
         </div>
 
-        {/* Form Fields */}
+        {/* Campos del formulario */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa</label>
             <input
               type="text"
               value={formData.name}
@@ -157,7 +157,7 @@ export default function CompanySettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Número de Teléfono</label>
             <input
               type="text"
               value={formData.phone}
@@ -167,18 +167,18 @@ export default function CompanySettingsPage() {
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Business Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de la Empresa</label>
             <textarea
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter business address"
+              placeholder="Ingrese la dirección de la empresa"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
             <input
               type="email"
               value={formData.email}
@@ -188,7 +188,7 @@ export default function CompanySettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tax ID / Business Number</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">RUC / Número de Negocio</label>
             <input
               type="text"
               value={formData.taxId}
@@ -198,7 +198,7 @@ export default function CompanySettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sitio Web</label>
             <input
               type="url"
               value={formData.website}
@@ -209,29 +209,29 @@ export default function CompanySettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Moneda</label>
             <input
               type="text"
               value={formData.currency}
               onChange={(e) => handleInputChange('currency', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="USD"
+              placeholder="MXN"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Timezone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Zona Horaria</label>
             <input
               type="text"
               value={formData.timezone}
               onChange={(e) => handleInputChange('timezone', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="America/New_York"
+              placeholder="Mexico/Mexico_City"
             />
           </div>
         </div>
 
-        {/* Status and Save Button */}
+        {/* Estado y botón Guardar */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200">
           <p className="text-sm text-gray-500">
             {isSaved ? 'All changes saved' : 'Unsaved changes'}
@@ -260,11 +260,11 @@ export default function CompanySettingsPage() {
         </div>
       </form>
 
-      {/* About Company Settings Section */}
+      {/* Sección de Configuración de la Empresa */}
       <div className="bg-blue-50 rounded-lg border border-blue-100 p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">About Company Settings</h3>
+        <h3 className="text-lg font-semibold text-blue-900 mb-2">Acerca de la Configuración de la Empresa</h3>
         <p className="text-sm text-blue-800">
-          These settings affect how your company information appears throughout the system, including on invoices, receipts, and customer communications.
+          Estas configuraciones afectan cómo se muestra la información de tu empresa en todo el sistema, incluyendo en facturas, recibos y comunicaciones con clientes.
         </p>
       </div>
     </div>

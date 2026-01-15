@@ -65,7 +65,7 @@ export default function InventoryPage() {
   const deleteItem = useDeleteInventoryItem();
   const createMovement = useCreateMovement();
 
-  // Get categories and brands from API
+  // Obtener categorías y marcas desde la API
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
   
@@ -93,7 +93,7 @@ export default function InventoryPage() {
   // --- estado para el Dropdown del boton "acciones" ---
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
-  // Get inventory items from API
+  // Obtener items de inventario desde la API
   const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
   const pagination = (stockData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
   
@@ -351,7 +351,7 @@ export default function InventoryPage() {
           if (newItem.name && newItem.categoryId) newItems.push(newItem);
         }
         
-        // Create items via API
+        // Crear elementos vía API
         let successCount = 0;
         for (const item of newItems) {
           try {
@@ -371,7 +371,7 @@ export default function InventoryPage() {
           }
         }
         
-        // Refetch inventory to show new items
+        // Refrescar inventario para mostrar nuevos items
         await refetch();
         
         setImportStatus(`¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`);
@@ -384,7 +384,7 @@ export default function InventoryPage() {
     reader.readAsText(csvFile);
   };
   
-  // Filtering and pagination now handled by backend API
+  // Filtrado y paginación ahora manejados por la API de backend
   const paginatedInventory = inventoryItems;
   const totalItems = pagination.total;
   const totalPages = pagination.totalPages;
@@ -394,83 +394,95 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       
-      {/* --- encabezado con menu --- */}
-      <div className="flex justify-between items-center flex-wrap gap-2">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Inventario</h1>
-          <p className="text-muted-foreground">Gestión de stock por sucursal</p>
-        </div>
-        
-        {/* Navegación a secciones relacionadas */}
-        <div className="flex items-center space-x-2">
-          <Link
-            href="/dashboard/inventory/categories"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              pathname === '/dashboard/inventory/categories'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-          >
-            Categorías
-          </Link>
-          <Link
-            href="/dashboard/inventory/brands"
-            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              pathname === '/dashboard/inventory/brands'
-                ? 'bg-blue-100 text-blue-700 border-b-2 border-blue-500'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-          >
-            Marcas
-          </Link>
-        </div>
-        
-        {/* boton de acciones con menu */}
-        <div className="relative">
-          {/* boton principal */}
-          <button 
-            onClick={() => setShowActionsDropdown(!showActionsDropdown)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
-          >
-            <span>Agregar Producto</span>
-            <IconChevronDown className="w-4 h-4" />
-          </button>
+      {/* --- encabezado --- */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Catálogo</h1>
+        <p className="text-muted-foreground">Gestión de existencias por sucursal</p>
+      </div>
 
-          {/* menu desplegable */}
-          {showActionsDropdown && (
-            <>
-              {/* backdrop invisible para cerrar al hacer clic fuera */}
-              <div 
-                className="fixed inset-0 z-10 cursor-default" 
-                onClick={() => setShowActionsDropdown(false)}
-              ></div>
-              
-              {/* opciones */}
-              <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
-                <button
-                  onClick={openAddModal}
-                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
-                >
-                  <IconPlus className="w-4 h-4 text-muted-foreground" />
-                  <span>Agregar Manualmente</span>
-                </button>
-                <button
-                  onClick={openImportModal}
-                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2 border-t border-gray-100"
-                >
-                  <IconUpload className="w-4 h-4 text-muted-foreground" />
-                  <span>Importar CSV</span>
-                </button>
-                <button
-                  onClick={handleExportCSV}
-                  className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
-                >
-                  <IconDownload className="w-4 h-4 text-muted-foreground" />
-                  <span>Exportar CSV</span>
-                </button>
-              </div>
-            </>
-          )}
+      {/* --- tabs de navegación --- */}
+      <div className="border-b border-border">
+        <div className="flex justify-between items-center">
+          <nav className="-mb-px flex space-x-8 flex-1">
+            <Link
+              href="/dashboard/inventory"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Catálogo
+            </Link>
+            <Link
+              href="/dashboard/inventory/categories"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/categories'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Categorías
+            </Link>
+            <Link
+              href="/dashboard/inventory/brands"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/brands'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Marcas
+            </Link>
+          </nav>
+          
+          {/* boton de acciones con menu */}
+          <div className="relative ml-4">
+            {/* boton principal */}
+            <button 
+              onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
+            >
+              <span>Agregar Producto</span>
+              <IconChevronDown className="w-4 h-4" />
+            </button>
+
+            {/* menu desplegable */}
+            {showActionsDropdown && (
+              <>
+                {/* backdrop invisible para cerrar al hacer clic fuera */}
+                <div 
+                  className="fixed inset-0 z-10 cursor-default" 
+                  onClick={() => setShowActionsDropdown(false)}
+                ></div>
+                
+                {/* opciones */}
+                <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
+                  <button
+                    onClick={openAddModal}
+                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <IconPlus className="w-4 h-4 text-muted-foreground" />
+                    <span>Agregar Manualmente</span>
+                  </button>
+                  <button
+                    onClick={openImportModal}
+                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2 border-t border-gray-100"
+                  >
+                    <IconUpload className="w-4 h-4 text-muted-foreground" />
+                    <span>Importar CSV</span>
+                  </button>
+                  <button
+                    onClick={handleExportCSV}
+                    className="w-full text-left px-4 py-2 text-sm text-foreground hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <IconDownload className="w-4 h-4 text-muted-foreground" />
+                    <span>Exportar CSV</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -534,11 +546,11 @@ export default function InventoryPage() {
       <div className="w-full">
         <div className="bg-card rounded-lg shadow overflow-hidden">
           {isLoading && (
-            <div className="p-8 text-center text-muted-foreground">Cargando inventario...</div>
+            <div className="p-8 text-center text-muted-foreground">Cargando catálogo...</div>
           )}
           {error && (
             <div className="p-8 text-center text-red-500">
-              Error al cargar inventario: {
+              Error al cargar catálogo: {
                 error instanceof Error 
                   ? error.message 
                   : (error as any)?.response?.data?.message 
@@ -617,7 +629,7 @@ export default function InventoryPage() {
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
                 <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
                   <option value={20}>20</option>
                   <option value={50}>50</option>
@@ -658,8 +670,8 @@ export default function InventoryPage() {
                 <div><label className="block text-sm font-medium text-foreground">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Costo de adquisición" /></div>
                 <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium text-foreground">Stock {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
-                  <div><label className="block text-sm font-medium text-foreground">Stock Mínimo</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                  <div><label className="block text-sm font-medium text-foreground">Existencias {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                  <div><label className="block text-sm font-medium text-foreground">Existencias Mínimas</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 </div>
                  <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
               </div>
@@ -695,7 +707,7 @@ export default function InventoryPage() {
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
             <h2 className="text-xl font-bold text-foreground">Registrar Movimiento</h2>
-            <div className="mt-4"><p className="font-medium">{itemForMovement.name}</p><p className="text-sm text-muted-foreground">Stock Actual: {itemForMovement.qty}</p></div>
+            <div className="mt-4"><p className="font-medium">{itemForMovement.name}</p><p className="text-sm text-muted-foreground">Existencias Actuales: {itemForMovement.qty}</p></div>
             <div className="space-y-4 mt-6">
               <div><label className="block text-sm font-medium text-foreground">Tipo</label><select value={movementType} onChange={(e) => setMovementType(e.target.value as 'entrada' | 'salida')} className="mt-1 block w-full border border-border rounded-md p-2"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div>
               <div><label className="block text-sm font-medium text-foreground">Cantidad</label><input type="number" min="1" value={movementQuantity} onChange={(e) => setMovementQuantity(parseInt(e.target.value) || 0)} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
