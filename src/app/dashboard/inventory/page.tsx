@@ -96,7 +96,7 @@ export default function InventoryPage() {
   // Obtener items de inventario desde la API
   const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
   const pagination = (stockData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
-  
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedBrand, modelSearch, selectedStatus, filterCategory, itemsPerPage]);
@@ -141,9 +141,9 @@ export default function InventoryPage() {
     return (
       <div>
         <label className="block text-sm font-medium text-foreground">Categoría</label>
-        <select 
-          onChange={(e) => setSelectedCategory(e.target.value)} 
-          value={selectedCategory} 
+        <select
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          value={selectedCategory}
           className="mt-1 block w-full border border-border rounded-md p-2"
         >
           <option value="">Selecciona una categoría</option>
@@ -160,7 +160,7 @@ export default function InventoryPage() {
       alert('Por favor, completa el nombre.');
       return;
     }
-    
+
     try {
       if (itemToEdit) {
         await updateItem.mutateAsync({
@@ -261,8 +261,8 @@ export default function InventoryPage() {
   // --- exportar csv ---
   const handleExportCSV = () => {
     const headers = ["id", "sku", "name", "brand", "model", "qty", "min", "max", "reserved", "price", "status", "categoryId"];
-    const data = inventoryItems.map((item:InventoryItem) => [
-      item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`, 
+    const data = inventoryItems.map((item: InventoryItem) => [
+      item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`,
       item.brand, item.model, item.qty, item.min, item.max, item.reserved, item.price, item.status, item.categoryId
     ].join(','));
     const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + data.join('\n');
@@ -311,21 +311,21 @@ export default function InventoryPage() {
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim() !== ''); 
+        const lines = text.split('\n').filter(line => line.trim() !== '');
         if (lines.length <= 1) throw new Error("El archivo está vacío o no tiene datos.");
         const headers = lines[0].split(',').map(h => h.trim());
         const requiredHeaders = CSV_TEMPLATE_HEADERS.split(',');
-        for(const header of requiredHeaders) {
+        for (const header of requiredHeaders) {
           if (!headers.includes(header)) throw new Error(`Error: Falta columna "${header}".`);
         }
-        
+
         const newItems: InventoryItem[] = [];
-        let maxId = Math.max(0, ...inventoryItems.map((i:InventoryItem) => i.id));
+        let maxId = Math.max(0, ...inventoryItems.map((i: InventoryItem) => i.id));
 
         for (let i = 1; i < lines.length; i++) {
           const values = lines[i].split(',');
           if (values.length !== headers.length) continue;
-          
+
           const obj: any = {};
           headers.forEach((header, index) => {
             obj[header] = values[index].trim().replace(/"/g, '');
@@ -373,7 +373,7 @@ export default function InventoryPage() {
         
         // Refrescar inventario para mostrar nuevos items
         await refetch();
-        
+
         setImportStatus(`¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`);
         setCsvFile(null);
         setIsImportModalOpen(false);
@@ -646,9 +646,9 @@ export default function InventoryPage() {
           </div>
         </div>
       </div>
-      
+
       {/* --- Modales --- */}
-      
+
       {/* agregar/editar */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
@@ -668,12 +668,12 @@ export default function InventoryPage() {
                 </div>
                 <div><label className="block text-sm font-medium text-foreground">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 <div><label className="block text-sm font-medium text-foreground">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Costo de adquisición" /></div>
-                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({...newProduct, barcode: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
+                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({ ...newProduct, barcode: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-sm font-medium text-foreground">Existencias {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                   <div><label className="block text-sm font-medium text-foreground">Existencias Mínimas</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 </div>
-                 <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({...newProduct, sku: e.target.value})} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({ ...newProduct, sku: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
               </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-foreground border-b pb-2">Clasificación</h3>
@@ -728,7 +728,7 @@ export default function InventoryPage() {
             <div className="mt-6 space-y-4">
               <p className="text-sm text-muted-foreground">Sube un archivo CSV. Columnas requeridas:</p>
               <code className="block text-xs bg-gray-100 p-2 rounded">{CSV_TEMPLATE_HEADERS}</code>
-              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4"/><span>Descargar plantilla</span></button>
+              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4" /><span>Descargar plantilla</span></button>
               <div><label className="block text-sm font-medium text-foreground">Archivo</label><input type="file" accept=".csv" onChange={handleFileSelect} className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-blue-700 hover:file:bg-blue-100" /></div>
               {importStatus && <p className={`text-sm ${importStatus.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{importStatus}</p>}
             </div>
