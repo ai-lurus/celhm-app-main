@@ -24,7 +24,7 @@ const IconDelete = ({ className }: { className?: string }) => (
 );
 // --- Fin iconos ---
 
-// Product type is now imported from useCatalog hook
+// El tipo de producto ahora se importa desde el hook useCatalog
 
 interface NewProductForm {
   name: string;
@@ -45,7 +45,7 @@ interface Brand {
   value: string;
 }
 
-// Removed initialProducts and filtersData - now using API (useCategories and useBrands hooks)
+// Se eliminaron initialProducts y filtersData; ahora se utiliza la API (hooks useCategories y useBrands)
 
 // --- Estados para formularios ---
 const newProductInitialState: NewProductForm = {
@@ -83,7 +83,7 @@ export default function CatalogPage() {
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
-  // Get products from API
+  // Obtener productos de la API
   const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
   const pagination = (productsData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 }
 
@@ -200,9 +200,7 @@ export default function CatalogPage() {
     setItemToView(null);
   };
 
-  // Filtering now handled by backend API
-
-  // Filtering now handled by backend API
+  // Filtrado ahora gestionado por la API del backend
   const filteredProducts = products;
 
   return (
@@ -210,7 +208,7 @@ export default function CatalogPage() {
       {/* --- encabezado --- */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Catálogo de Productos</h1>
+          <h1 className="text-2xl font-bold text-foreground">Definición de Productos</h1>
           <p className="text-muted-foreground">Gestión centralizada de productos</p>
         </div>
         <button
@@ -242,7 +240,7 @@ export default function CatalogPage() {
               <select className="w-full border border-border rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
                 <option value="">Todas las categorías</option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -252,7 +250,7 @@ export default function CatalogPage() {
               <select className="w-full border border-border rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
                 <option value="">Todas las marcas</option>
                 {brands.map((brand) => (
-                  <option key={brand} value={brand}>{brand}</option>
+                  <option key={brand.id} value={brand.id}>{brand.name}</option>
                 ))}
               </select>
             </div>
@@ -339,7 +337,7 @@ export default function CatalogPage() {
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Items por pág:</label>
+                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
                   <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
                     <option value={20}>20</option>
                     <option value={50}>50</option>
@@ -383,7 +381,7 @@ export default function CatalogPage() {
                   <select name="category" value={newProductData.category} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una categoría</option>
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
@@ -392,7 +390,7 @@ export default function CatalogPage() {
                   <select name="brand" value={newProductData.brand} onChange={handleProductModalChange} className="mt-1 block w-full border border-border rounded-md p-2">
                     <option value="">Selecciona una marca</option>
                     {brands.map((brand) => (
-                      <option key={brand} value={brand}>{brand}</option>
+                      <option key={brand.id} value={brand.id}>{brand.name}</option>
                     ))}
                   </select>
                 </div>

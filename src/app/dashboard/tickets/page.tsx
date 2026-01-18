@@ -593,7 +593,7 @@ export default function TicketsPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Correo electrónico</label>
                     <input
                       type="email"
                       value={formData.customerEmail}

@@ -64,7 +64,7 @@ export default function CashPage(): ReactElement {
       setIsCreateModalOpen(false)
       setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
     } catch (error) {
-      console.error('Error creating cash cut:', error)
+      console.error('Error al crear el corte de caja:', error)
     }
   }
 

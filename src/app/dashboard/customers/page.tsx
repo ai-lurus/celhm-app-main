@@ -167,7 +167,7 @@ export default function CustomersPage() {
       }
       handleCloseModal()
     } catch (error) {
-      console.error('Error saving customer:', error)
+      console.error('Error al guardar el cliente:', error)
       alert('Error al guardar el cliente. Por favor intenta nuevamente.')
     }
   }
@@ -177,7 +177,7 @@ export default function CustomersPage() {
       try {
         await deleteCustomer.mutateAsync(id)
       } catch (error) {
-        console.error('Error deleting customer:', error)
+        console.error('Error al eliminar al cliente:', error)
         alert('Error al eliminar el cliente.')
       }
     }
