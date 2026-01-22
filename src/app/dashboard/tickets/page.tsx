@@ -337,228 +337,225 @@ export default function TicketsPage() {
         </button>
       </div>
 
-      <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-        {/* Filtros */}
-        <div className="w-full md:w-1/4">
-          <div className="bg-card p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
-              <input
-                type="text"
-                placeholder="Folio, cliente, dispositivo..."
-                className="w-full border border-border rounded-md px-3 py-2"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value)
-                  setPage(1)
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
-              <select
-                value={selectedState}
-                onChange={(e) => {
-                  setSelectedState(e.target.value as TicketState | '')
-                  setPage(1)
-                }}
-                className="w-full border border-border rounded-md px-3 py-2"
-              >
-                <option value="">Todos los estados</option>
-                {allStates.map((state: TicketState) => (
-                  <option key={state} value={state}>
-                    {formatState(state)}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* Filtros */}
+      <div className="bg-card p-4 rounded-lg shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
+            <input
+              type="text"
+              placeholder="Folio, cliente, dispositivo..."
+              className="w-full border border-border rounded-md px-3 py-2"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setPage(1)
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Estado</label>
+            <select
+              value={selectedState}
+              onChange={(e) => {
+                setSelectedState(e.target.value as TicketState | '')
+                setPage(1)
+              }}
+              className="w-full border border-border rounded-md px-3 py-2"
+            >
+              <option value="">Todos los estados</option>
+              {allStates.map((state: TicketState) => (
+                <option key={state} value={state}>
+                  {formatState(state)}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+      </div>
 
-        {/* Contenido principal */}
-        <div className="w-full md:w-3/4 space-y-6">
-          {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveView('kanban')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'kanban'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                  }`}
-              >
-                Vista Kanban
-              </button>
-              <button
-                onClick={() => setActiveView('table')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'table'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                  }`}
-              >
-                Lista
-              </button>
-            </nav>
+      {/* Contenido principal */}
+      <div className="w-full space-y-6">
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveView('kanban')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'kanban'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+            >
+              Vista Kanban
+            </button>
+            <button
+              onClick={() => setActiveView('table')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === 'table'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
+            >
+              Lista
+            </button>
+          </nav>
+        </div>
+
+        {isLoading ? (
+          <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
+            Cargando tickets...
           </div>
-
-          {isLoading ? (
-            <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
-              Cargando tickets...
-            </div>
-          ) : tickets.length === 0 ? (
-            <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
-              No hay tickets registrados
-            </div>
-          ) : activeView === 'kanban' ? (
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {(['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
-                const stateTickets = tickets.filter((ticket: Ticket) => ticket.state === state)
-                return (
-                  <div key={state} className="bg-muted rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-foreground">{formatState(state as TicketState)}</h3>
-                      <span className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
-                        {stateTickets.length}
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {stateTickets.map((ticket: Ticket) => (
-                        <div key={ticket.id} className="bg-card p-4 rounded-lg shadow-sm border border-gray-200">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="text-sm font-medium text-foreground">{ticket.folio}</div>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
-                              {formatState(ticket.state)}
-                            </span>
-                          </div>
-                          <div className="space-y-2">
-                            <div>
-                              <p className="text-sm font-medium text-foreground">{ticket.customerName}</p>
-                              <p className="text-xs text-muted-foreground">{ticket.customerPhone || '-'}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-foreground">
-                                {ticket.device} {ticket.brand ? `- ${ticket.brand}` : ''}
-                              </p>
-                              <p className="text-xs text-muted-foreground truncate">{ticket.problem}</p>
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>Est: ${(ticket.estimatedCost || 0).toLocaleString()}</span>
-                              <span>{ticket.estimatedTime || 0} días</span>
-                            </div>
-                          </div>
-                          <div className="mt-3 flex space-x-2">
-                            <button
-                              onClick={() => handleOpenView(ticket)}
-                              title="Ver Detalle"
-                              className="flex-1 flex justify-center p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
-                            >
-                              <IconView className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenEdit(ticket)}
-                              title="Editar"
-                              className="flex-1 flex justify-center p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
-                            >
-                              <IconEdit className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleOpenStatus(ticket)}
-                              title="Cambiar Estado"
-                              className="flex-1 flex justify-center p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
-                            >
-                              <IconMovement className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      {stateTickets.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground text-sm">
-                          No hay tickets en este estado
-                        </div>
-                      )}
-                    </div>
+        ) : tickets.length === 0 ? (
+          <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
+            No hay tickets registrados
+          </div>
+        ) : activeView === 'kanban' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {(['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
+              const stateTickets = tickets.filter((ticket: Ticket) => ticket.state === state)
+              return (
+                <div key={state} className="bg-muted rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-medium text-foreground">{formatState(state as TicketState)}</h3>
+                    <span className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
+                      {stateTickets.length}
+                    </span>
                   </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="bg-card rounded-lg shadow overflow-hidden">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Problema</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
-                  {tickets.map((ticket: Ticket) => (
-                    <tr key={ticket.id} className="hover:bg-muted">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                        {ticket.folio}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
-                          <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
+                  <div className="space-y-3">
+                    {stateTickets.map((ticket: Ticket) => (
+                      <div key={ticket.id} className="bg-card p-4 rounded-lg shadow-sm border border-gray-200">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="text-sm font-medium text-foreground">{ticket.folio}</div>
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
+                            {formatState(ticket.state)}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{ticket.device}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{ticket.customerName}</p>
+                            <p className="text-xs text-muted-foreground">{ticket.customerPhone || '-'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-foreground">
+                              {ticket.device} {ticket.brand ? `- ${ticket.brand}` : ''}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">{ticket.problem}</p>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Est: ${(ticket.estimatedCost || 0).toLocaleString()}</span>
+                            <span>{ticket.estimatedTime || 0} días</span>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
-                          {formatState(ticket.state)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                        ${(ticket.estimatedCost || 0).toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
+                        <div className="mt-3 flex space-x-2">
                           <button
                             onClick={() => handleOpenView(ticket)}
-                            title="Ver"
-                            className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                            title="Ver Detalle"
+                            className="flex-1 flex justify-center p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
                           >
                             <IconView className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleOpenEdit(ticket)}
                             title="Editar"
-                            className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                            className="flex-1 flex justify-center p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
                           >
                             <IconEdit className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => handleOpenStatus(ticket)}
                             title="Cambiar Estado"
-                            className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                            className="flex-1 flex justify-center p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
                           >
                             <IconMovement className="w-5 h-5" />
                           </button>
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                      </div>
+                    ))}
+                    {stateTickets.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground text-sm">
+                        No hay tickets en este estado
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="bg-card rounded-lg shadow overflow-hidden">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Problema</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {tickets.map((ticket: Ticket) => (
+                  <tr key={ticket.id} className="hover:bg-muted">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                      {ticket.folio}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
+                        <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{ticket.device}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
+                        {formatState(ticket.state)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      ${(ticket.estimatedCost || 0).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => handleOpenView(ticket)}
+                          title="Ver"
+                          className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                        >
+                          <IconView className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(ticket)}
+                          title="Editar"
+                          className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                        >
+                          <IconEdit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenStatus(ticket)}
+                          title="Cambiar Estado"
+                          className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                        >
+                          <IconMovement className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Modal Crear/Editar Ticket */}
