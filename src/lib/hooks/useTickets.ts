@@ -12,6 +12,7 @@ interface GetTicketsParams {
   endDate?: Date
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  kanban?: boolean
 }
 
 export function useTickets(params: GetTicketsParams = {}) {
@@ -28,6 +29,7 @@ export function useTickets(params: GetTicketsParams = {}) {
       if (params.endDate) queryParams.append('endDate', params.endDate.toISOString())
       if (params.sortBy) queryParams.append('sortBy', params.sortBy)
       if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder)
+      if (params.kanban) queryParams.append('kanban', 'true')
 
       const response = await api.get<ApiResponse<Ticket>>(`/tickets?${queryParams.toString()}`)
       return response.data

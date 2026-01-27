@@ -138,6 +138,7 @@ export default function TicketsPage() {
     sortOrder,
     page: activeView === 'table' ? page : 1,
     pageSize: activeView === 'table' ? pageSize : 1000,
+    kanban: activeView === 'kanban',
   })
 
   const { data: viewingTicket } = useTicket(viewingTicketId || 0)
@@ -342,14 +343,14 @@ export default function TicketsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Tickets</h1>
-          <p className="text-muted-foreground">Gestión de tickets de reparación</p>
+          <h1 className="text-2xl font-bold text-foreground">Laboratorio</h1>
+          <p className="text-muted-foreground">Gestión de notas de laboratorio</p>
         </div>
         <button
           onClick={handleOpenCreate}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
         >
-          Nuevo Ticket
+          Nueva Nota
         </button>
       </div>
 
@@ -463,15 +464,15 @@ export default function TicketsPage() {
 
         {isLoading ? (
           <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
-            Cargando tickets...
+            Cargando notas...
           </div>
         ) : tickets.length === 0 ? (
           <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
-            No hay tickets registrados
+            No hay notas registradas
           </div>
         ) : activeView === 'kanban' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {(['RECIBIDO', 'DIAGNOSTICO', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {(['RECIBIDO', 'DIAGNOSTICO', 'ESPERANDO_PIEZA', 'EN_REPARACION', 'REPARADO'] as TicketState[]).map((state: TicketState) => {
               const stateTickets = tickets.filter((ticket: Ticket) => ticket.state === state)
               return (
                 <div key={state} className="bg-muted rounded-lg p-4">
@@ -680,7 +681,7 @@ export default function TicketsPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
             <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-3xl max-h-full overflow-y-auto space-y-6">
               <h2 className="text-2xl font-bold text-foreground">
-                {editingTicket ? 'Editar Ticket' : 'Crear Nuevo Ticket'}
+                {editingTicket ? 'Editar Nota' : 'Crear Nueva Nota'}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

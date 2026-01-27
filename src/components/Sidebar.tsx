@@ -56,7 +56,7 @@ export function Sidebar() {
 
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', permission: undefined },
-    { label: 'Tickets', href: '/dashboard/tickets', permission: 'canManageTickets' },
+    { label: 'Laboratorio', href: '/dashboard/laboratorio', permission: 'canManageTickets' },
     { label: 'Clientes', href: '/dashboard/customers', permission: 'canManageCustomers' },
     { label: 'Ventas', href: '/dashboard/sales', permission: 'canManageSales' },
     { label: 'Catálogo', href: '/dashboard/inventory', permission: 'canManageInventory' },
@@ -118,11 +118,10 @@ export function Sidebar() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-              isActive(item.href)
+            className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
                 ? 'bg-blue-600 text-white font-medium'
                 : 'text-blue-100 hover:bg-blue-800 hover:text-white'
-            }`}
+              }`}
           >
             <span className="text-sm">{item.label}</span>
           </Link>
@@ -140,11 +139,10 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                  isActive(item.href)
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
                     ? 'bg-blue-600 text-white font-medium'
                     : 'text-blue-100 hover:bg-blue-800 hover:text-white'
-                }`}
+                  }`}
               >
                 <span className="text-sm">{item.label}</span>
               </Link>
