@@ -41,7 +41,7 @@ export default function InventoryPage() {
   const user = useAuthStore((state) => state.user);
   const { can } = usePermissions();
   const pathname = usePathname();
-
+  
   // --- estados de filtros y paginacion ---
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [modelSearch, setModelSearch] = useState<string>('');
@@ -68,9 +68,12 @@ export default function InventoryPage() {
   // Obtener categorías y marcas desde la API
   const { data: categories = [] } = useCategories();
   const { data: brands = [] } = useBrands();
-
+  
   // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
   const flatCategories = categories.filter(cat => !cat.parentId);
+
+  // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
+  const flatBrands = brands.filter(brand => brand.id !== 0 && brand.id !== undefined);
 
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -350,7 +353,7 @@ export default function InventoryPage() {
           };
           if (newItem.name && newItem.categoryId) newItems.push(newItem);
         }
-
+        
         // Crear elementos vía API
         let successCount = 0;
         for (const item of newItems) {
@@ -370,7 +373,7 @@ export default function InventoryPage() {
             console.error('Error creating item:', err);
           }
         }
-
+        
         // Refrescar inventario para mostrar nuevos items
         await refetch();
 
@@ -383,7 +386,7 @@ export default function InventoryPage() {
     };
     reader.readAsText(csvFile);
   };
-
+  
   // Filtrado y paginación ahora manejados por la API de backend
   const paginatedInventory = inventoryItems;
   const totalItems = pagination.total;
@@ -393,7 +396,7 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-
+      
       {/* --- encabezado --- */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Catálogo</h1>
@@ -406,41 +409,54 @@ export default function InventoryPage() {
           <nav className="-mb-px flex space-x-8 flex-1">
             <Link
               href="/dashboard/inventory"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              }`}
+            >
+              Inventario
+            </Link>
+            <Link
+              href="/dashboard/catalog"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/catalog'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
             >
               Catálogo
             </Link>
             <Link
               href="/dashboard/inventory/categories"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/categories'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              }`}
             >
               Categorías
             </Link>
             <Link
               href="/dashboard/inventory/brands"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/brands'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              }`}
             >
               Marcas
             </Link>
           </nav>
-
+          
           {/* boton de acciones con menu */}
           <div className="relative ml-4">
             {/* boton principal */}
-            <button
+            <button 
               onClick={() => setShowActionsDropdown(!showActionsDropdown)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2 focus:outline-none"
             >
-              <span>Agregar Producto</span>
+              <span>Agregar Catalogo</span>
               <IconChevronDown className="w-4 h-4" />
             </button>
 
@@ -448,11 +464,11 @@ export default function InventoryPage() {
             {showActionsDropdown && (
               <>
                 {/* backdrop invisible para cerrar al hacer clic fuera */}
-                <div
-                  className="fixed inset-0 z-10 cursor-default"
+                <div 
+                  className="fixed inset-0 z-10 cursor-default" 
                   onClick={() => setShowActionsDropdown(false)}
                 ></div>
-
+                
                 {/* opciones */}
                 <div className="absolute right-0 mt-2 w-48 bg-card rounded-md shadow-lg z-20 border border-gray-200 overflow-hidden">
                   <button
@@ -488,9 +504,9 @@ export default function InventoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Categoría</label>
-            <select
-              onChange={(e) => setFilterCategory(e.target.value)}
-              value={filterCategory}
+            <select 
+              onChange={(e) => setFilterCategory(e.target.value)} 
+              value={filterCategory} 
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todas las categorías</option>
@@ -501,9 +517,9 @@ export default function InventoryPage() {
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Marca</label>
-            <select
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
+            <select 
+              value={selectedBrand} 
+              onChange={(e) => setSelectedBrand(e.target.value)} 
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todas las marcas</option>
@@ -514,19 +530,19 @@ export default function InventoryPage() {
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Modelo</label>
-            <input
-              value={modelSearch}
-              onChange={(e) => setModelSearch(e.target.value)}
-              type="text"
-              placeholder="Buscar modelo..."
-              className="w-full border border-border rounded-md px-3 py-2 text-sm"
+            <input 
+              value={modelSearch} 
+              onChange={(e) => setModelSearch(e.target.value)} 
+              type="text" 
+              placeholder="Buscar modelo..." 
+              className="w-full border border-border rounded-md px-3 py-2 text-sm" 
             />
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Estado</label>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')}
+            <select 
+              value={selectedStatus} 
+              onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')} 
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todos los estados</option>
@@ -547,71 +563,73 @@ export default function InventoryPage() {
           {error && (
             <div className="p-8 text-center text-red-500">
               Error al cargar catálogo: {
-                error instanceof Error
-                  ? error.message
-                  : (error as any)?.response?.data?.message
-                    ? (error as any).response.data.message
-                    : (error as any)?.message
-                      ? (error as any).message
-                      : 'Error desconocido'
+                error instanceof Error 
+                  ? error.message 
+                  : (error as any)?.response?.data?.message 
+                  ? (error as any).response.data.message
+                  : (error as any)?.message 
+                  ? (error as any).message
+                  : 'Error desconocido'
               }
             </div>
           )}
           {!isLoading && !error && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">SKU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Reservado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mín/Máx</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Precio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">SKU</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Modelo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Reservado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mín/Máx</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Precio</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="bg-card divide-y divide-border">
+                {paginatedInventory.map((item:InventoryItem) => (
+                  <tr key={item.id} className="hover:bg-muted">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{item.name}</div>
+                        <div className="text-sm text-muted-foreground">{item.brand}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.model}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-foreground">{item.qty}</div>
+                      <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                        {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-3">
+                        {can('canEditPrices') && (
+                          <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
+                        )}
+                        <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
+                        {can('canDeleteOrders') && (
+                          <button onClick={() => openDeleteModal(item)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"><IconDelete className="w-5 h-5" /></button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-card divide-y divide-border">
-                  {paginatedInventory.map((item: InventoryItem) => (
-                    <tr key={item.id} className="hover:bg-muted">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{item.name}</div>
-                          <div className="text-sm text-muted-foreground">{item.brand} - {item.model}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">{item.qty}</div>
-                        <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                          {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
-                          {can('canEditPrices') && (
-                            <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
-                          )}
-                          <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
-                          {can('canDeleteOrders') && (
-                            <button onClick={() => openDeleteModal(item)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"><IconDelete className="w-5 h-5" /></button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
           )}
-
+          
           {/* --- paginacion --- */}
           <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">

@@ -172,38 +172,50 @@ export default function CategoriesPage() {
 
       {/* --- tabs de navegación --- */}
       <div className="border-b border-border">
-        <nav className="-mb-px flex space-x-8">
-          <Link
-            href="/dashboard/inventory"
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              pathname === '/dashboard/inventory'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
-          >
-            Catálogo
-          </Link>
-          <Link
-            href="/dashboard/inventory/categories"
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              pathname === '/dashboard/inventory/categories'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
-          >
-            Categorías
-          </Link>
-          <Link
-            href="/dashboard/inventory/brands"
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              pathname === '/dashboard/inventory/brands'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
-          >
-            Marcas
-          </Link>
-        </nav>
+        <div className="flex justify-between items-center">
+          <nav className="-mb-px flex space-x-8 flex-1">
+            <Link
+              href="/dashboard/inventory"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Inventario
+            </Link>
+            <Link
+              href="/dashboard/catalog"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/catalog'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Catálogo
+            </Link>
+            <Link
+              href="/dashboard/inventory/categories"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/categories'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Categorías
+            </Link>
+            <Link
+              href="/dashboard/inventory/brands"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/brands'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Marcas
+            </Link>
+          </nav>
+        </div>
       </div>
 
       {/* --- Tab de Categorías --- */}

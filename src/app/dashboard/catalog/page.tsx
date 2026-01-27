@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useCategories, useBrands, Product } from '../../../lib/hooks/useCatalog'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 // --- Iconos ---
 const IconEdit = ({ className }: { className?: string }) => (
@@ -59,6 +61,7 @@ const newProductInitialState: NewProductForm = {
 export default function CatalogPage() {
   const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
+  const pathname = usePathname()
 
   // --- Estados para los filtros ---
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -203,62 +206,122 @@ export default function CatalogPage() {
   // Filtrado ahora gestionado por la API del backend
   const filteredProducts = products;
 
+  // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
+  const flatCategories = categories.filter(cat => !cat.parentId);
+
   return (
     <div className="space-y-6">
       {/* --- encabezado --- */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Definición de Productos</h1>
-          <p className="text-muted-foreground">Gestión centralizada de productos</p>
-        </div>
-        <button
-          onClick={() => {
-            setProductToEdit(null);
-            setNewProductData(newProductInitialState);
-            setIsProductModalOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-          Nuevo Producto
-        </button>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Definición de Productos</h1>
+        <p className="text-muted-foreground">Gestión centralizada de productos</p>
       </div>
 
-      {/* --- layout de 2 columnas --- */}
-      <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-
-        {/* --- columna izquierda: sidebar de filtros --- */}
-        <div className="w-full md:w-1/4">
-          <div className="bg-card p-4 rounded-lg shadow space-y-4">
-            <h3 className="text-lg font-semibold text-foreground border-b pb-2">Filtros</h3>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
-              <input type="text" placeholder="Nombre, Modelo..." className="w-full border border-border rounded-md px-3 py-2" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-            </div>
-
-            {/* filtro simple de categoria (para coincidir con los datos mock actuales) */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Categoría</label>
-              <select className="w-full border border-border rounded-md px-3 py-2" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                <option value="">Todas las categorías</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
-              <select className="w-full border border-border rounded-md px-3 py-2" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
-                <option value="">Todas las marcas</option>
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>{brand.name}</option>
-                ))}
-              </select>
-            </div>
+      {/* --- tabs de navegación --- */}
+      <div className="border-b border-border">
+        <div className="flex justify-between items-center">
+          <nav className="-mb-px flex space-x-8 flex-1">
+            <Link
+              href="/dashboard/inventory"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Inventario
+            </Link>
+            <Link
+              href="/dashboard/catalog"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/catalog'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Catálogo
+            </Link>
+            <Link
+              href="/dashboard/inventory/categories"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/categories'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Categorías
+            </Link>
+            <Link
+              href="/dashboard/inventory/brands"
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === '/dashboard/inventory/brands'
+                  ? 'border-blue-500 text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              Marcas
+            </Link>
+          </nav>
+          
+          {/* boton de acciones */}
+          <div className="ml-4">
+            <button
+              onClick={() => {
+                setProductToEdit(null);
+                setNewProductData(newProductInitialState);
+                setIsProductModalOpen(true);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+              Nuevo Producto
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* --- columna derecha: tabla de productos --- */}
-        <div className="w-full md:w-3/4">
+      {/* --- Filtros en la parte superior --- */}
+      <div className="bg-card p-4 rounded-lg shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-foreground">Categoría</label>
+            <select 
+              onChange={(e) => setSelectedCategory(e.target.value)} 
+              value={selectedCategory} 
+              className="w-full border border-border rounded-md px-3 py-2 text-sm"
+            >
+              <option value="">Todas las categorías</option>
+              {flatCategories.map((cat) => (
+                <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-foreground">Marca</label>
+            <select 
+              value={selectedBrand} 
+              onChange={(e) => setSelectedBrand(e.target.value)} 
+              className="w-full border border-border rounded-md px-3 py-2 text-sm"
+            >
+              <option value="">Todas las marcas</option>
+              {brands.map((brand) => (
+                <option key={brand.id} value={brand.name}>{brand.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-foreground">Buscar</label>
+            <input 
+              type="text" 
+              placeholder="Nombre, Modelo..." 
+              className="w-full border border-border rounded-md px-3 py-2 text-sm" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* --- tabla de productos --- */}
+      <div className="w-full">
           <div className="bg-card rounded-lg shadow overflow-hidden">
             {isLoading && (
               <div className="p-8 text-center text-muted-foreground">Cargando productos...</div>
@@ -354,7 +417,6 @@ export default function CatalogPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
 
       {/* --- MODALES --- */}
