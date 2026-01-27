@@ -43,9 +43,22 @@ export default function LoginPage() {
       await login({ email, password })
       router.push('/dashboard')
     } catch (err: any) {
-      const errorMessage = err?.response?.data?.message
-        || err?.message
-        || (typeof err === 'string' ? err : 'Error al iniciar sesión')
+      let errorMessage = 'Error al iniciar sesión'
+
+      if (err?.response?.data?.message) {
+        if (typeof err.response.data.message === 'string') {
+          errorMessage = err.response.data.message
+        } else if (Array.isArray(err.response.data.message)) {
+          errorMessage = err.response.data.message.join(', ')
+        } else if (typeof err.response.data.message === 'object') {
+          errorMessage = JSON.stringify(err.response.data.message)
+        }
+      } else if (err?.message) {
+        errorMessage = err.message
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      }
+
       setError(errorMessage)
     } finally {
       setIsLoading(false)

@@ -72,6 +72,9 @@ export default function InventoryPage() {
   // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
   const flatCategories = categories.filter(cat => !cat.parentId);
 
+  // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
+  const flatBrands = brands.filter(brand => brand.id !== 0 && brand.id !== undefined);
+
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
