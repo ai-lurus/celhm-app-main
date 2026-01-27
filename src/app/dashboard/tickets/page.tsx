@@ -101,6 +101,7 @@ export default function TicketsPage() {
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [activeView, setActiveView] = useState<'kanban' | 'table'>('kanban')
 
   // New filters state
@@ -129,14 +130,14 @@ export default function TicketsPage() {
 
   // API hooks
   const { data: ticketsData, isLoading } = useTickets({
-    state: selectedState || undefined,
+    state: activeView === 'table' ? (selectedState || undefined) : undefined,
     search: searchTerm || undefined,
     branchId: branchId === '' ? undefined : branchId,
     startDate: startDate ? new Date(startDate) : undefined,
     endDate: endDate ? new Date(endDate) : undefined,
     sortOrder,
-    page,
-    pageSize: 50,
+    page: activeView === 'table' ? page : 1,
+    pageSize: activeView === 'table' ? pageSize : 1000,
   })
 
   const { data: viewingTicket } = useTicket(viewingTicketId || 0)
@@ -146,6 +147,12 @@ export default function TicketsPage() {
   const updateTicketState = useUpdateTicketState()
 
   const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
+  const pagination = (ticketsData as any)?.pagination as {
+    page: number
+    pageSize: number
+    total: number
+    totalPages: number
+  } | undefined
 
   const handleOpenCreate = () => {
     setEditingTicket(null)
@@ -535,79 +542,134 @@ export default function TicketsPage() {
             })}
           </div>
         ) : (
-          <div className="bg-card rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-border">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Problema</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="bg-card divide-y divide-border">
-                {tickets.map((ticket: Ticket) => (
-                  <tr key={ticket.id} className="hover:bg-muted">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
-                      {ticket.folio}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
-                        <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-foreground">{ticket.device}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
-                        {formatState(ticket.state)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      ${(ticket.estimatedCost || 0).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-3">
-                        <button
-                          onClick={() => handleOpenView(ticket)}
-                          title="Ver"
-                          className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
-                        >
-                          <IconView className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(ticket)}
-                          title="Editar"
-                          className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
-                        >
-                          <IconEdit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenStatus(ticket)}
-                          title="Cambiar Estado"
-                          className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
-                        >
-                          <IconMovement className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
+          <div className="space-y-4">
+            <div className="bg-card rounded-lg shadow overflow-hidden">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Dispositivo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Problema</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Costo Est.</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {tickets.map((ticket: Ticket) => (
+                    <tr key={ticket.id} className="hover:bg-muted">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
+                        {ticket.folio}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{ticket.customerName}</div>
+                          <div className="text-sm text-muted-foreground">{ticket.customerPhone || '-'}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-foreground">{ticket.device}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {ticket.brand || ''} {ticket.model ? `- ${ticket.model}` : ''}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-foreground max-w-xs truncate">{ticket.problem}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}>
+                          {formatState(ticket.state)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                        ${(ticket.estimatedCost || 0).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-3">
+                          <button
+                            onClick={() => handleOpenView(ticket)}
+                            title="Ver"
+                            className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                          >
+                            <IconView className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(ticket)}
+                            title="Editar"
+                            className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                          >
+                            <IconEdit className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenStatus(ticket)}
+                            title="Cambiar Estado"
+                            className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                          >
+                            <IconMovement className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {pagination && pagination.totalPages > 0 && (
+              <div className="flex flex-col sm:flex-row justify-between items-center bg-card p-4 rounded-lg shadow-sm border border-border gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Mostrando <span className="font-medium text-foreground">
+                    {Math.min(pagination.total, (pagination.page - 1) * pagination.pageSize + 1)}
+                  </span>
+                  -
+                  <span className="font-medium text-foreground">
+                    {Math.min(pagination.total, pagination.page * pagination.pageSize)}
+                  </span> de <span className="font-medium text-foreground">{pagination.total}</span> resultados
+                </div>
+
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm text-muted-foreground">Filas por página:</label>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value))
+                        setPage(1)
+                      }}
+                      className="border border-border rounded-md px-2 py-1 text-sm bg-background"
+                    >
+                      {[10, 20, 50, 100].map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
+                    >
+                      Anterior
+                    </button>
+                    <div className="px-3 py-1 text-sm font-medium">
+                      Página {page} de {pagination.totalPages}
+                    </div>
+                    <button
+                      onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
+                      disabled={page === pagination.totalPages}
+                      className="px-3 py-1 border border-border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted"
+                    >
+                      Siguiente
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
