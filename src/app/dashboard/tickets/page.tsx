@@ -5,6 +5,7 @@ import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, use
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 import { Ticket, TicketState } from '@celhm/types'
+import { DateRangePicker } from '../../../components/ui/DateRangePicker'
 import dynamic from 'next/dynamic'
 import { TicketReceiptDocument } from '../../../components/tickets/TicketReceipt'
 
@@ -97,12 +98,16 @@ interface StatusForm {
 export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
   const { data: branches = [] } = useBranches()
-  const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
-
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
   const [activeView, setActiveView] = useState<'kanban' | 'table'>('kanban')
+
+  // New filters state
+  const [branchId, setBranchId] = useState<number | ''>(user?.branchId || (branches.length > 0 ? branches[0].id : 1))
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -124,8 +129,12 @@ export default function TicketsPage() {
 
   // API hooks
   const { data: ticketsData, isLoading } = useTickets({
-    estado: selectedState || undefined,
-    q: searchTerm || undefined,
+    state: selectedState || undefined,
+    search: searchTerm || undefined,
+    branchId: branchId === '' ? undefined : branchId,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
+    sortOrder,
     page,
     pageSize: 50,
   })
@@ -236,7 +245,7 @@ export default function TicketsPage() {
         })
       } else {
         await createTicket.mutateAsync({
-          branchId,
+          branchId: typeof branchId === 'number' ? branchId : (user?.branchId || branches[0]?.id || 1),
           customerName: formData.customerName,
           customerPhone: formData.customerPhone || undefined,
           customerEmail: formData.customerEmail || undefined,
@@ -339,7 +348,7 @@ export default function TicketsPage() {
 
       {/* Filtros */}
       <div className="bg-card p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Buscar</label>
             <input
@@ -370,6 +379,51 @@ export default function TicketsPage() {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Sucursal</label>
+            <select
+              value={branchId}
+              onChange={(e) => {
+                const value = e.target.value === '' ? '' : parseInt(e.target.value)
+                setBranchId(value)
+                setPage(1)
+              }}
+              className="w-full border border-border rounded-md px-3 py-2"
+            >
+              {branches.length > 1 && <option value="">Todas</option>}
+              {branches.map((branch: any) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Orden</label>
+            <select
+              value={sortOrder}
+              onChange={(e) => {
+                setSortOrder(e.target.value as 'asc' | 'desc')
+                setPage(1)
+              }}
+              className="w-full border border-border rounded-md px-3 py-2"
+            >
+              <option value="desc">Más recientes primero</option>
+              <option value="asc">Más antiguos primero</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Periodo</label>
+            <DateRangePicker
+              from={startDate}
+              to={endDate}
+              onRangeChange={(from, to) => {
+                setStartDate(from)
+                setEndDate(to)
+                setPage(1)
+              }}
+            />
           </div>
         </div>
       </div>
@@ -559,455 +613,461 @@ export default function TicketsPage() {
       </div>
 
       {/* Modal Crear/Editar Ticket */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-3xl max-h-full overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-bold text-foreground">
-              {editingTicket ? 'Editar Ticket' : 'Crear Nuevo Ticket'}
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      Nombre del Cliente *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Teléfono</label>
-                    <input
-                      type="text"
-                      value={formData.customerPhone}
-                      onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Correo electrónico</label>
-                    <input
-                      type="email"
-                      value={formData.customerEmail}
-                      onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Dispositivo *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.device}
-                      onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: iPhone 12"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
-                    <input
-                      type="text"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: Apple"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
-                    <input
-                      type="text"
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: A2403"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Número de Serie / IMEI</label>
-                    <input
-                      type="text"
-                      value={formData.serialNumber}
-                      onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Estado / Condición</label>
-                    <input
-                      type="text"
-                      value={formData.condition}
-                      onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: Bueno, Pantalla estrellada..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Accesorios</label>
-                    <input
-                      type="text"
-                      value={formData.accessories}
-                      onChange={(e) => setFormData({ ...formData, accessories: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: Funda, SIM, Cargador..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Observaciones / Riesgo</label>
-                    <textarea
-                      rows={2}
-                      value={formData.risk}
-                      onChange={(e) => setFormData({ ...formData, risk: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Riesgos aceptados por el cliente..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Garantía (Días)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={formData.warrantyDays}
-                      onChange={(e) => setFormData({ ...formData, warrantyDays: parseInt(e.target.value) || 0 })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Problema Reportado *</label>
-                    <textarea
-                      required
-                      rows={4}
-                      value={formData.problem}
-                      onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: Pantalla rota, no enciende..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
-                    <textarea
-                      rows={3}
-                      value={formData.diagnosis}
-                      onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Diagnóstico técnico..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.estimatedCost}
-                      onChange={(e) => setFormData({ ...formData, estimatedCost: parseFloat(e.target.value) || 0 })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  {editingTicket && (
+      {
+        isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+            <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-3xl max-h-full overflow-y-auto space-y-6">
+              <h2 className="text-2xl font-bold text-foreground">
+                {editingTicket ? 'Editar Ticket' : 'Crear Nuevo Ticket'}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Nombre del Cliente *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.customerName}
+                        onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Teléfono</label>
+                      <input
+                        type="text"
+                        value={formData.customerPhone}
+                        onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Correo electrónico</label>
+                      <input
+                        type="email"
+                        value={formData.customerEmail}
+                        onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Dispositivo *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.device}
+                        onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: iPhone 12"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
+                      <input
+                        type="text"
+                        value={formData.brand}
+                        onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: Apple"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
+                      <input
+                        type="text"
+                        value={formData.model}
+                        onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: A2403"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Número de Serie / IMEI</label>
+                      <input
+                        type="text"
+                        value={formData.serialNumber}
+                        onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Estado / Condición</label>
+                      <input
+                        type="text"
+                        value={formData.condition}
+                        onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: Bueno, Pantalla estrellada..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Accesorios</label>
+                      <input
+                        type="text"
+                        value={formData.accessories}
+                        onChange={(e) => setFormData({ ...formData, accessories: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: Funda, SIM, Cargador..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Observaciones / Riesgo</label>
+                      <textarea
+                        rows={2}
+                        value={formData.risk}
+                        onChange={(e) => setFormData({ ...formData, risk: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Riesgos aceptados por el cliente..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Garantía (Días)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={formData.warrantyDays}
+                        onChange={(e) => setFormData({ ...formData, warrantyDays: parseInt(e.target.value) || 0 })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Problema Reportado *</label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={formData.problem}
+                        onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Ej: Pantalla rota, no enciende..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
+                      <textarea
+                        rows={3}
+                        value={formData.diagnosis}
+                        onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Diagnóstico técnico..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
                       <input
                         type="number"
                         min="0"
                         step="0.01"
-                        value={formData.finalCost}
-                        onChange={(e) => setFormData({ ...formData, finalCost: parseFloat(e.target.value) || 0 })}
+                        value={formData.estimatedCost}
+                        onChange={(e) => setFormData({ ...formData, estimatedCost: parseFloat(e.target.value) || 0 })}
                         className="w-full border border-border rounded-md px-3 py-2"
                       />
                     </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Tiempo Estimado (días)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={formData.estimatedTime}
-                      onChange={(e) => setFormData({ ...formData, estimatedTime: parseInt(e.target.value) || 1 })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                    />
-                  </div>
-                  {!editingTicket && (
+                    {editingTicket && (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.finalCost}
+                          onChange={(e) => setFormData({ ...formData, finalCost: parseFloat(e.target.value) || 0 })}
+                          className="w-full border border-border rounded-md px-3 py-2"
+                        />
+                      </div>
+                    )}
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
+                      <label className="block text-sm font-medium text-foreground mb-1">Tiempo Estimado (días)</label>
                       <input
                         type="number"
-                        min="0"
-                        step="0.01"
-                        value={formData.advancePayment}
-                        onChange={(e) => setFormData({ ...formData, advancePayment: parseFloat(e.target.value) || 0 })}
+                        min="1"
+                        value={formData.estimatedTime}
+                        onChange={(e) => setFormData({ ...formData, estimatedTime: parseInt(e.target.value) || 1 })}
                         className="w-full border border-border rounded-md px-3 py-2"
                       />
                     </div>
-                  )}
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Notas Internas</label>
-                    <textarea
-                      rows={3}
-                      value={formData.internalNotes}
-                      onChange={(e) => setFormData({ ...formData, internalNotes: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Notas visibles solo para el personal..."
-                    />
+                    {!editingTicket && (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={formData.advancePayment}
+                          onChange={(e) => setFormData({ ...formData, advancePayment: parseFloat(e.target.value) || 0 })}
+                          className="w-full border border-border rounded-md px-3 py-2"
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Notas Internas</label>
+                      <textarea
+                        rows={3}
+                        value={formData.internalNotes}
+                        onChange={(e) => setFormData({ ...formData, internalNotes: e.target.value })}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="Notas visibles solo para el personal..."
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex justify-end space-x-4 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={createTicket.isPending || updateTicket.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
-                >
-                  {createTicket.isPending || updateTicket.isPending
-                    ? 'Guardando...'
-                    : editingTicket
-                      ? 'Actualizar Ticket'
-                      : 'Guardar Ticket'}
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end space-x-4 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createTicket.isPending || updateTicket.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+                  >
+                    {createTicket.isPending || updateTicket.isPending
+                      ? 'Guardando...'
+                      : editingTicket
+                        ? 'Actualizar Ticket'
+                        : 'Guardar Ticket'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Modal Cambiar Estado */}
-      {isStatusModalOpen && statusTicket && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-foreground">Cambiar Estado del Ticket</h2>
-            <div className="mt-4">
-              <p className="font-medium">{statusTicket.folio}</p>
-              <p className="text-sm text-muted-foreground">{statusTicket.customerName}</p>
+      {
+        isStatusModalOpen && statusTicket && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+            <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+              <h2 className="text-xl font-bold text-foreground">Cambiar Estado del Ticket</h2>
+              <div className="mt-4">
+                <p className="font-medium">{statusTicket.folio}</p>
+                <p className="text-sm text-muted-foreground">{statusTicket.customerName}</p>
+              </div>
+              <form onSubmit={handleUpdateStatus} className="space-y-4 mt-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Nuevo Estado</label>
+                  <select
+                    value={statusForm.state}
+                    onChange={(e) => setStatusForm({ ...statusForm, state: e.target.value as TicketState })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  >
+                    {allStates.map((state: TicketState) => (
+                      <option key={state} value={state}>
+                        {formatState(state)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
+                  <textarea
+                    rows={3}
+                    value={statusForm.diagnosis}
+                    onChange={(e) => setStatusForm({ ...statusForm, diagnosis: e.target.value })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Solución</label>
+                  <textarea
+                    rows={3}
+                    value={statusForm.solution}
+                    onChange={(e) => setStatusForm({ ...statusForm, solution: e.target.value })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={statusForm.estimatedCost}
+                    onChange={(e) => setStatusForm({ ...statusForm, estimatedCost: parseFloat(e.target.value) || 0 })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={statusForm.finalCost}
+                    onChange={(e) => setStatusForm({ ...statusForm, finalCost: parseFloat(e.target.value) || 0 })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
+                  <textarea
+                    rows={2}
+                    value={statusForm.notes}
+                    onChange={(e) => setStatusForm({ ...statusForm, notes: e.target.value })}
+                    className="w-full border border-border rounded-md px-3 py-2"
+                  />
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={handleCloseStatusModal}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateTicketState.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+                  >
+                    {updateTicketState.isPending ? 'Actualizando...' : 'Actualizar Estado'}
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleUpdateStatus} className="space-y-4 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Nuevo Estado</label>
-                <select
-                  value={statusForm.state}
-                  onChange={(e) => setStatusForm({ ...statusForm, state: e.target.value as TicketState })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                >
-                  {allStates.map((state: TicketState) => (
-                    <option key={state} value={state}>
-                      {formatState(state)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Diagnóstico</label>
-                <textarea
-                  rows={3}
-                  value={statusForm.diagnosis}
-                  onChange={(e) => setStatusForm({ ...statusForm, diagnosis: e.target.value })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Solución</label>
-                <textarea
-                  rows={3}
-                  value={statusForm.solution}
-                  onChange={(e) => setStatusForm({ ...statusForm, solution: e.target.value })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={statusForm.estimatedCost}
-                  onChange={(e) => setStatusForm({ ...statusForm, estimatedCost: parseFloat(e.target.value) || 0 })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={statusForm.finalCost}
-                  onChange={(e) => setStatusForm({ ...statusForm, finalCost: parseFloat(e.target.value) || 0 })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
-                <textarea
-                  rows={2}
-                  value={statusForm.notes}
-                  onChange={(e) => setStatusForm({ ...statusForm, notes: e.target.value })}
-                  className="w-full border border-border rounded-md px-3 py-2"
-                />
-              </div>
-              <div className="flex justify-end space-x-4 mt-6">
-                <button
-                  type="button"
-                  onClick={handleCloseStatusModal}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={updateTicketState.isPending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
-                >
-                  {updateTicketState.isPending ? 'Actualizando...' : 'Actualizar Estado'}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Modal Ver Detalles */}
-      {isViewModalOpen && viewingTicket && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
-            <h2 className="text-2xl font-bold text-foreground">Detalles del Ticket</h2>
+      {
+        isViewModalOpen && viewingTicket && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+            <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto space-y-4">
+              <h2 className="text-2xl font-bold text-foreground">Detalles del Ticket</h2>
 
-            <div className="space-y-3 pt-4">
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Folio</span>
-                <span className="font-medium text-foreground">{viewingTicket.folio}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Estado</span>
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(viewingTicket.state)}`}>
-                  {formatState(viewingTicket.state)}
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Cliente</span>
-                <span className="font-medium text-foreground">{viewingTicket.customerName}</span>
-              </div>
-              {viewingTicket.customerPhone && (
+              <div className="space-y-3 pt-4">
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Teléfono</span>
-                  <span className="font-medium text-foreground">{viewingTicket.customerPhone}</span>
+                  <span className="font-medium text-muted-foreground">Folio</span>
+                  <span className="font-medium text-foreground">{viewingTicket.folio}</span>
                 </div>
-              )}
-              {viewingTicket.customerEmail && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Email</span>
-                  <span className="font-medium text-foreground">{viewingTicket.customerEmail}</span>
-                </div>
-              )}
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Dispositivo</span>
-                <span className="font-medium text-foreground text-right">
-                  {viewingTicket.device} {viewingTicket.brand ? `(${viewingTicket.brand}` : ''}
-                  {viewingTicket.model ? ` - ${viewingTicket.model})` : viewingTicket.brand ? ')' : ''}
-                </span>
-              </div>
-              {viewingTicket.serialNumber && (
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Número de Serie / IMEI</span>
-                  <span className="font-medium text-foreground">{viewingTicket.serialNumber}</span>
-                </div>
-              )}
-              <div className="border-b pb-2">
-                <span className="font-medium text-muted-foreground">Problema Reportado</span>
-                <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.problem}</p>
-              </div>
-              {viewingTicket.diagnosis && (
-                <div className="border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Diagnóstico</span>
-                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.diagnosis}</p>
-                </div>
-              )}
-              {viewingTicket.solution && (
-                <div className="border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Solución</span>
-                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.solution}</p>
-                </div>
-              )}
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Costo Estimado</span>
-                <span className="font-medium text-foreground">
-                  ${(viewingTicket.estimatedCost || 0).toLocaleString()}
-                </span>
-              </div>
-              {viewingTicket.finalCost && (
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Costo Final</span>
-                  <span className="font-medium text-foreground">
-                    ${(viewingTicket.finalCost || 0).toLocaleString()}
+                  <span className="font-medium text-muted-foreground">Estado</span>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(viewingTicket.state)}`}>
+                    {formatState(viewingTicket.state)}
                   </span>
                 </div>
-              )}
-              {viewingTicket.advancePayment && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Anticipo</span>
-                  <span className="font-medium text-foreground">
-                    ${(viewingTicket.advancePayment || 0).toLocaleString()}
-                  </span>
+                  <span className="font-medium text-muted-foreground">Cliente</span>
+                  <span className="font-medium text-foreground">{viewingTicket.customerName}</span>
                 </div>
-              )}
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Tiempo Estimado</span>
-                <span className="font-medium text-foreground">{viewingTicket.estimatedTime || 0} días</span>
-              </div>
-              {viewingTicket.internalNotes && (
-                <div className="border-b pb-2">
-                  <span className="font-medium text-muted-foreground">Notas Internas</span>
-                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">
-                    {viewingTicket.internalNotes}
-                  </p>
-                </div>
-              )}
-              <div className="flex justify-between border-b pb-2">
-                <span className="font-medium text-muted-foreground">Fecha de Creación</span>
-                <span className="font-medium text-foreground">
-                  {new Date(viewingTicket.createdAt).toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <button
-                onClick={handleCloseViewModal}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
-              >
-                Cerrar
-              </button>
-              <PDFDownloadLink
-                document={<TicketReceiptDocument ticket={viewingTicket} />}
-                fileName={`RECIBO-${viewingTicket.folio}.pdf`}
-              >
-                {({ loading }) => (
-                  <button
-                    disabled={loading}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center disabled:opacity-50"
-                  >
-                    {loading ? 'Generando...' : 'Descargar Recibo'}
-                  </button>
+                {viewingTicket.customerPhone && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Teléfono</span>
+                    <span className="font-medium text-foreground">{viewingTicket.customerPhone}</span>
+                  </div>
                 )}
-              </PDFDownloadLink>
+                {viewingTicket.customerEmail && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Email</span>
+                    <span className="font-medium text-foreground">{viewingTicket.customerEmail}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Dispositivo</span>
+                  <span className="font-medium text-foreground text-right">
+                    {viewingTicket.device} {viewingTicket.brand ? `(${viewingTicket.brand}` : ''}
+                    {viewingTicket.model ? ` - ${viewingTicket.model})` : viewingTicket.brand ? ')' : ''}
+                  </span>
+                </div>
+                {viewingTicket.serialNumber && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Número de Serie / IMEI</span>
+                    <span className="font-medium text-foreground">{viewingTicket.serialNumber}</span>
+                  </div>
+                )}
+                <div className="border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Problema Reportado</span>
+                  <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.problem}</p>
+                </div>
+                {viewingTicket.diagnosis && (
+                  <div className="border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Diagnóstico</span>
+                    <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.diagnosis}</p>
+                  </div>
+                )}
+                {viewingTicket.solution && (
+                  <div className="border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Solución</span>
+                    <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">{viewingTicket.solution}</p>
+                  </div>
+                )}
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Costo Estimado</span>
+                  <span className="font-medium text-foreground">
+                    ${(viewingTicket.estimatedCost || 0).toLocaleString()}
+                  </span>
+                </div>
+                {viewingTicket.finalCost && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Costo Final</span>
+                    <span className="font-medium text-foreground">
+                      ${(viewingTicket.finalCost || 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {viewingTicket.advancePayment && (
+                  <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Anticipo</span>
+                    <span className="font-medium text-foreground">
+                      ${(viewingTicket.advancePayment || 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Tiempo Estimado</span>
+                  <span className="font-medium text-foreground">{viewingTicket.estimatedTime || 0} días</span>
+                </div>
+                {viewingTicket.internalNotes && (
+                  <div className="border-b pb-2">
+                    <span className="font-medium text-muted-foreground">Notas Internas</span>
+                    <p className="font-medium text-foreground mt-1 whitespace-pre-wrap">
+                      {viewingTicket.internalNotes}
+                    </p>
+                  </div>
+                )}
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Fecha de Creación</span>
+                  <span className="font-medium text-foreground">
+                    {new Date(viewingTicket.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  onClick={handleCloseViewModal}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+                >
+                  Cerrar
+                </button>
+                <PDFDownloadLink
+                  document={<TicketReceiptDocument ticket={viewingTicket} />}
+                  fileName={`RECIBO-${viewingTicket.folio}.pdf`}
+                >
+                  {({ loading }) => (
+                    <button
+                      disabled={loading}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center disabled:opacity-50"
+                    >
+                      {loading ? 'Generando...' : 'Descargar Recibo'}
+                    </button>
+                  )}
+                </PDFDownloadLink>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }
 
