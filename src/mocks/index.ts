@@ -5,7 +5,7 @@ export const mockUsers: AuthUser[] = [
     id: 1,
     email: 'direccion@acme-repair.com',
     name: 'Juan Pérez',
-    role: 'DIRECCION',
+    role: 'ADMINISTRADOR',
     organizationId: 1,
     branchId: 1,
   },
