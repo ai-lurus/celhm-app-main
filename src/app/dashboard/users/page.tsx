@@ -22,7 +22,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA']
+const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA', 'ADMON']
 
 const formatRole = (role: Role) => {
   return role.charAt(0) + role.slice(1).toLowerCase()
@@ -88,14 +88,10 @@ export default function UsersPage() {
     switch (role) {
       case 'ADMINISTRADOR':
         return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
-      case 'DIRECCION':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
       case 'ADMON':
         return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
       case 'LABORATORIO':
         return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-      case 'TECNICO':
-        return 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
       case 'RECEPCIONISTA':
         return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
       default:
@@ -458,5 +454,3 @@ export default function UsersPage() {
     </div>
   )
 }
-
-

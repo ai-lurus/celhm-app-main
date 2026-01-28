@@ -11,7 +11,6 @@ export interface OrgMember {
     id: number
     name: string | null
     email: string | null
-    role: Role
     branch: {
       id: number
       name: string
@@ -26,7 +25,6 @@ export interface User {
   id: number
   name: string | null
   email: string | null
-  role: Role
   branchId: number | null
   branch: {
     id: number
