@@ -3,10 +3,16 @@ import { api } from '../api'
 import { Ticket, ApiResponse, TicketState, CreateTicketRequest, UpdateTicketRequest, UpdateTicketStateRequest } from '@celhm/types'
 
 interface GetTicketsParams {
-  estado?: TicketState
-  q?: string
+  state?: TicketState
+  search?: string
   page?: number
   pageSize?: number
+  branchId?: number
+  startDate?: Date
+  endDate?: Date
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  kanban?: boolean
 }
 
 export function useTickets(params: GetTicketsParams = {}) {
@@ -14,10 +20,16 @@ export function useTickets(params: GetTicketsParams = {}) {
     queryKey: ['tickets', params],
     queryFn: async () => {
       const queryParams = new URLSearchParams()
-      if (params.estado) queryParams.append('estado', params.estado)
-      if (params.q) queryParams.append('q', params.q)
+      if (params.state) queryParams.append('state', params.state)
+      if (params.search) queryParams.append('search', params.search)
       if (params.page) queryParams.append('page', params.page.toString())
       if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
+      if (params.branchId) queryParams.append('branchId', params.branchId.toString())
+      if (params.startDate) queryParams.append('startDate', params.startDate.toISOString())
+      if (params.endDate) queryParams.append('endDate', params.endDate.toISOString())
+      if (params.sortBy) queryParams.append('sortBy', params.sortBy)
+      if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder)
+      if (params.kanban) queryParams.append('kanban', 'true')
 
       const response = await api.get<ApiResponse<Ticket>>(`/tickets?${queryParams.toString()}`)
       return response.data
