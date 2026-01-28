@@ -30,7 +30,7 @@ export default function ReportsPage() {
     )
   }
   const [activeTab, setActiveTab] = useState<'sales' | 'tickets' | 'inventory'>('sales')
-  
+
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : undefined)
 
@@ -73,31 +73,28 @@ export default function ReportsPage() {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('sales')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'sales'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'sales'
+              ? 'border-blue-500 text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
           >
             Ventas
           </button>
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'tickets'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'tickets'
+              ? 'border-blue-500 text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
           >
             Órdenes
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'inventory'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'inventory'
+              ? 'border-blue-500 text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
           >
             Inventario
           </button>
@@ -105,34 +102,31 @@ export default function ReportsPage() {
       </div>
 
       {activeTab === 'sales' && (
-        <div className="flex flex-col md:flex-row md:space-x-6 space-y-4 md:space-y-0">
-          <div className="w-full md:w-1/4">
-            <div className="bg-card p-4 rounded-lg shadow">
-              <h2 className="text-lg font-medium mb-4">Filtros</h2>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Fecha Inicio</label>
-                  <input
-                    type="date"
-                    value={salesParams.startDate}
-                    onChange={(e) => setSalesParams({ ...salesParams, startDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Fecha Fin</label>
-                  <input
-                    type="date"
-                    value={salesParams.endDate}
-                    onChange={(e) => setSalesParams({ ...salesParams, endDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-md"
-                  />
-                </div>
+        <div className="space-y-4">
+          <div className="bg-card p-4 rounded-lg shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Fecha Inicio</label>
+                <input
+                  type="date"
+                  value={salesParams.startDate}
+                  onChange={(e) => setSalesParams({ ...salesParams, startDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Fecha Fin</label>
+                <input
+                  type="date"
+                  value={salesParams.endDate}
+                  onChange={(e) => setSalesParams({ ...salesParams, endDate: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                />
               </div>
             </div>
           </div>
 
-          <div className="w-full md:w-3/4 space-y-4">
+          <div className="w-full space-y-4">
             {salesLoading ? (
               <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">Cargando...</div>
             ) : salesReport && typeof salesReport.totalSales === 'number' ? (

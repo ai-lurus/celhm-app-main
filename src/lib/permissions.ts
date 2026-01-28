@@ -18,19 +18,6 @@ export const rolePermissions = {
     canEditPrices: true,
     canViewAllBranches: true,
   },
-  DIRECCION: {
-    canViewReports: true,
-    canViewFinancialReports: true,
-    canManageSales: true,
-    canManageCash: true,
-    canManageTickets: true,
-    canManageCustomers: true,
-    canManageInventory: true,
-    canManageCatalog: true,
-    canDeleteOrders: true,
-    canEditPrices: true,
-    canViewAllBranches: true,
-  },
   ADMON: {
     canViewReports: true,
     canViewFinancialReports: true,
@@ -45,19 +32,6 @@ export const rolePermissions = {
     canViewAllBranches: true,
   },
   LABORATORIO: {
-    canViewReports: false,
-    canViewFinancialReports: false,
-    canManageSales: false,
-    canManageCash: false,
-    canManageTickets: true,
-    canManageCustomers: false,
-    canManageInventory: true,
-    canManageCatalog: true,
-    canDeleteOrders: false,
-    canEditPrices: false,
-    canViewAllBranches: false,
-  },
-  TECNICO: {
     canViewReports: false,
     canViewFinancialReports: false,
     canManageSales: false,
@@ -119,4 +93,3 @@ export function hasAllPermissions(role: Role, ...permissions: PermissionKey[]): 
 export function getRolePermissions(role: Role): Record<PermissionKey, boolean> {
   return rolePermissions[role] || ({} as Record<PermissionKey, boolean>)
 }
-

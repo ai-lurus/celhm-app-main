@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUsers, OrgMember } from '../../../lib/hooks/useUsers'
+import { useUsers, OrgMember, useCreateUser } from '../../../lib/hooks/useUsers'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
@@ -22,7 +22,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA']
+const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA', 'ADMON']
 
 const formatRole = (role: Role) => {
   return role.charAt(0) + role.slice(1).toLowerCase()
@@ -40,10 +40,10 @@ export default function UsersPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [viewingMember, setViewingMember] = useState<OrgMember | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const createUser = useCreateUser()
   const [newUserForm, setNewUserForm] = useState({
     name: '',
     email: '',
-    password: '',
     role: 'RECEPCIONISTA' as Role,
     branchId: '',
   })
@@ -88,14 +88,10 @@ export default function UsersPage() {
     switch (role) {
       case 'ADMINISTRADOR':
         return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
-      case 'DIRECCION':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
       case 'ADMON':
         return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
       case 'LABORATORIO':
         return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-      case 'TECNICO':
-        return 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
       case 'RECEPCIONISTA':
         return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
       default:
@@ -107,7 +103,6 @@ export default function UsersPage() {
     setNewUserForm({
       name: '',
       email: '',
-      password: '',
       role: 'RECEPCIONISTA',
       branchId: branches.length > 0 ? branches[0].id.toString() : '',
     })
@@ -119,7 +114,6 @@ export default function UsersPage() {
     setNewUserForm({
       name: '',
       email: '',
-      password: '',
       role: 'RECEPCIONISTA',
       branchId: '',
     })
@@ -127,14 +121,24 @@ export default function UsersPage() {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implementar cuando el endpoint esté disponible
-    alert('El endpoint de creación de usuarios no ha sido implementado en el backend aún')
-    // try {
-    //   await createUser.mutateAsync(newUserForm)
-    //   handleCloseCreate()
-    // } catch (error) {
-    //   console.error('Error creating user:', error)
-    // }
+
+    if (!user?.organizationId) {
+      alert('Error: No se encontró la organización del usuario actual')
+      return;
+    }
+
+    try {
+      await createUser.mutateAsync({
+        ...newUserForm,
+        organizationId: user.organizationId,
+        branchId: newUserForm.branchId ? parseInt(newUserForm.branchId) : undefined
+      })
+      handleCloseCreate()
+      alert('Usuario creado e invitado exitosamente. Se ha enviado un correo de activación.')
+    } catch (error: any) {
+      console.error('Error creating user:', error)
+      alert(error.response?.data?.message || 'Error al crear usuario')
+    }
   }
 
   return (
@@ -382,20 +386,7 @@ export default function UsersPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={newUserForm.password}
-                  onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ingresa la contraseña"
-                  minLength={6}
-                />
-              </div>
+
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -435,9 +426,9 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-4">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>Nota:</strong> El endpoint de creación de usuarios (POST /orgs/members) necesita ser implementado en el backend.
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  <strong>Nota:</strong> Se enviará un correo de invitación al usuario para que active su cuenta.
                 </p>
               </div>
 
@@ -463,5 +454,3 @@ export default function UsersPage() {
     </div>
   )
 }
-
-

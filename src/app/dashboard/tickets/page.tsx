@@ -124,8 +124,8 @@ export default function TicketsPage() {
 
   // API hooks
   const { data: ticketsData, isLoading } = useTickets({
-    estado: selectedState || undefined,
-    q: searchTerm || undefined,
+    state: selectedState || undefined,
+    search: searchTerm || undefined,
     page,
     pageSize: 50,
   })

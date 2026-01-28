@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import { Role } from '@celhm/types'
 
@@ -11,7 +11,6 @@ export interface OrgMember {
     id: number
     name: string | null
     email: string | null
-    role: Role
     branch: {
       id: number
       name: string
@@ -26,7 +25,6 @@ export interface User {
   id: number
   name: string | null
   email: string | null
-  role: Role
   branchId: number | null
   branch: {
     id: number
@@ -43,6 +41,26 @@ export function useUsers() {
       return response.data
     },
     retry: false,
+  })
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: {
+      email: string
+      name: string
+      role: Role
+      organizationId: number
+      branchId?: number
+    }) => {
+      const response = await api.post('/auth/register', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
   })
 }
 

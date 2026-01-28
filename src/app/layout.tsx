@@ -6,8 +6,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'CELHM - Sistema de Inventario y Tickets',
-  description: 'SaaS Multi-tenant para inventario por sucursal y tickets de reparación',
+  title: 'CELHM - Sistema de Inventario y Laboratorio',
+  description: 'SaaS Multi-tenant para inventario por sucursal y notas de laboratorio',
 }
 
 export default function RootLayout({

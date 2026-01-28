@@ -73,8 +73,8 @@ export default function CompanySettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          <p className="mt-2 text-sm text-gray-600">Cargando...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Cargando...</p>
         </div>
       </div>
     )
@@ -83,16 +83,16 @@ export default function CompanySettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Configuración de la Empresa</h1>
-        <p className="text-gray-600">Gestiona la información de tu empresa</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Configuración de la Empresa</h1>
+        <p className="text-gray-600 dark:text-gray-400">Gestiona la información de tu empresa</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
         {/* Sección de Logo de la Empresa */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Logo de la Empresa</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo de la Empresa</label>
           <div className="flex items-start space-x-4">
-            <div className="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-300">
+            <div className="w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600">
               {logoPreview ? (
                 <img src={logoPreview} alt="Company Logo" className="w-full h-full object-cover rounded-lg" />
               ) : (
@@ -102,7 +102,7 @@ export default function CompanySettingsPage() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-12 h-12 text-gray-400"
+                  className="w-12 h-12 text-gray-400 dark:text-gray-500"
                 >
                   <path
                     strokeLinecap="round"
@@ -113,7 +113,7 @@ export default function CompanySettingsPage() {
               )}
             </div>
             <div className="flex-1">
-              <label className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+              <label className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -136,7 +136,7 @@ export default function CompanySettingsPage() {
                   className="hidden"
                 />
               </label>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 Recomendado: Imagen cuadrada, al menos 200x200px
               </p>
             </div>
@@ -146,100 +146,100 @@ export default function CompanySettingsPage() {
         {/* Campos del formulario */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de la Empresa</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Número de Teléfono</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Teléfono</label>
             <input
               type="text"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dirección de la Empresa</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección de la Empresa</label>
             <textarea
               value={formData.address}
               onChange={(e) => handleInputChange('address', e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Ingrese la dirección de la empresa"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">RUC / Número de Negocio</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">RUC / Número de Negocio</label>
             <input
               type="text"
               value={formData.taxId}
               onChange={(e) => handleInputChange('taxId', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sitio Web</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sitio Web</label>
             <input
               type="url"
               value={formData.website}
               onChange={(e) => handleInputChange('website', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="https://"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Moneda</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Moneda</label>
             <input
               type="text"
               value={formData.currency}
               onChange={(e) => handleInputChange('currency', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="MXN"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Zona Horaria</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Zona Horaria</label>
             <input
               type="text"
               value={formData.timezone}
               onChange={(e) => handleInputChange('timezone', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Mexico/Mexico_City"
             />
           </div>
         </div>
 
         {/* Estado y botón Guardar */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-500">
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {isSaved ? 'All changes saved' : 'Unsaved changes'}
           </p>
           <button
             type="submit"
             disabled={updateOrganization.isPending}
-            className="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -261,9 +261,9 @@ export default function CompanySettingsPage() {
       </form>
 
       {/* Sección de Configuración de la Empresa */}
-      <div className="bg-blue-50 rounded-lg border border-blue-100 p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">Acerca de la Configuración de la Empresa</h3>
-        <p className="text-sm text-blue-800">
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 p-6">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-2">Acerca de la Configuración de la Empresa</h3>
+        <p className="text-sm text-blue-800 dark:text-blue-200">
           Estas configuraciones afectan cómo se muestra la información de tu empresa en todo el sistema, incluyendo en facturas, recibos y comunicaciones con clientes.
         </p>
       </div>

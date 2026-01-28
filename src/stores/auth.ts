@@ -1,7 +1,8 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { AuthUser, LoginRequest, LoginResponse } from '@celhm/types'
+import { AuthUser, LoginRequest } from '@celhm/types'
 import { api } from '../lib/api'
+import { supabase } from '../lib/supabase'
 
 interface AuthState {
   user: AuthUser | null
@@ -11,7 +12,7 @@ interface AuthState {
   isHydrated: boolean
   isCheckingSession: boolean
   login: (credentials: LoginRequest) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   clearError: () => void
   checkSession: () => Promise<boolean>
   setHydrated: () => void
@@ -34,83 +35,100 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
         try {
-          const response = await api.post<LoginResponse>('/auth/login', credentials)
-          const { access_token, user } = response.data
-          
-          set({ 
-            user, 
-            token: access_token, 
+          // 1. Authenticate with Supabase
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: credentials.email,
+            password: credentials.password
+          })
+
+          if (error) throw error
+          if (!data.session) throw new Error('No session returned from Supabase')
+
+          const accessToken = data.session.access_token
+
+          // 2. Set token temporarily so API interceptor can use it
+          set({ token: accessToken })
+
+          // 3. Get Internal User details from backend
+          const response = await api.get<AuthUser>('/auth/me')
+          const user = response.data
+
+          set({
+            user,
+            token: accessToken,
             isLoading: false,
-            error: null 
+            error: null
           })
         } catch (error: any) {
-          // Extract error message safely
+          console.error('Login error:', error)
           let errorMessage = 'Error al iniciar sesión'
-          
-          if (error?.response?.data) {
-            const errorData = error.response.data
-            if (typeof errorData === 'string') {
-              errorMessage = errorData
-            } else if (errorData?.message && typeof errorData.message === 'string') {
-              errorMessage = errorData.message
-            } else if (errorData?.error && typeof errorData.error === 'string') {
-              errorMessage = errorData.error
-            }
-          } else if (error?.message && typeof error.message === 'string') {
+
+          if (error?.message) {
             errorMessage = error.message
-          } else if (typeof error === 'string') {
-            errorMessage = error
+            if (errorMessage === 'Invalid login credentials') {
+              errorMessage = 'Credenciales inválidas'
+            }
           }
-          
-          set({ 
+
+          // Reset state on failure
+          set({
+            user: null,
+            token: null,
             error: errorMessage,
-            isLoading: false 
+            isLoading: false
           })
-          
-          // Throw a normalized error
-          const normalizedError = new Error(errorMessage)
-          ;(normalizedError as any).response = error?.response
-          throw normalizedError
+
+          throw new Error(errorMessage)
         }
       },
 
       checkSession: async () => {
-        const { token } = get()
-        
-        // If no token, no session to check
-        if (!token) {
-          set({ user: null, token: null, isCheckingSession: false })
-          return false
-        }
-
         set({ isCheckingSession: true })
-        
+
         try {
-          // Verify token by calling /auth/me
+          // 1. Check Supabase Session
+          const { data: { session }, error } = await supabase.auth.getSession()
+
+          if (error || !session) {
+            throw new Error('No active Supabase session')
+          }
+
+          const accessToken = session.access_token
+
+          // 2. Update token if it changed (or was null)
+          set({ token: accessToken })
+
+          // 3. Verify backend session and get fresh user data
           const response = await api.get<AuthUser>('/auth/me')
           const user = response.data
-          
-          // Update user data in case it changed
-          set({ 
-            user, 
-            isCheckingSession: false 
+
+          set({
+            user,
+            token: accessToken,
+            isCheckingSession: false
           })
-          
+
           return true
         } catch (error: any) {
-          // Token is invalid or expired
-          console.log('Session check failed, clearing auth state')
-          set({ 
-            user: null, 
-            token: null, 
-            error: null,
-            isCheckingSession: false 
+          // Token is invalid, expired, or user not found
+          console.log('Session check failed:', error.message)
+
+          // Ensure clear state
+          get().logout()
+
+          set({
+            isCheckingSession: false
           })
           return false
         }
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          await supabase.auth.signOut()
+        } catch (error) {
+          console.error('Error signing out from Supabase:', error)
+        }
         set({ user: null, token: null, error: null })
       },
 
@@ -121,9 +139,9 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ 
-        user: state.user, 
-        token: state.token 
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token
       }),
       onRehydrateStorage: () => (state) => {
         // Mark as hydrated after rehydration

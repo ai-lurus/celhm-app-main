@@ -65,6 +65,9 @@ importers:
       '@react-pdf/renderer':
         specifier: ^4.3.2
         version: 4.3.2(react@19.2.1)
+      '@supabase/supabase-js':
+        specifier: ^2.91.1
+        version: 2.91.1
       '@tanstack/react-query':
         specifier: ^5.8.4
         version: 5.90.2(react@19.2.1)
@@ -95,6 +98,9 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.2.1
+      react-date-range:
+        specifier: ^2.0.1
+        version: 2.0.1(date-fns@2.30.0)(react@19.2.1)
       react-dom:
         specifier: ^19.0.0
         version: 19.2.1(react@19.2.1)
@@ -141,6 +147,9 @@ importers:
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.7
+      '@types/react-date-range':
+        specifier: ^1.4.10
+        version: 1.4.10
       '@types/react-dom':
         specifier: ^19.0.0
         version: 19.2.3(@types/react@19.2.7)
@@ -5393,6 +5402,62 @@ packages:
       storybook: 8.3.0
     dev: true
 
+  /@supabase/auth-js@2.91.1:
+    resolution: {integrity: sha512-3gFGMPuif2BOuAHXLAGsoOlDa64PROct1v7G94pMnvUAhh75u6+vnx4MYz1wyoyDBN5lCkJPGQNg5+RIgqxnpA==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      tslib: 2.8.1
+    dev: false
+
+  /@supabase/functions-js@2.91.1:
+    resolution: {integrity: sha512-xKepd3HZ6K6rKibriehKggIegsoz+jjV67tikN51q/YQq3AlUAkjUMSnMrqs8t5LMlAi+a3dJU812acXanR0cw==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      tslib: 2.8.1
+    dev: false
+
+  /@supabase/postgrest-js@2.91.1:
+    resolution: {integrity: sha512-UKumTC6SGHd65G/5Gj0V58u+SkUyiH4zEJ8OP2eb06+Tqnges1E/3Tl7lyq2qbcMP8nEyH/0M7m2bYjrn++haw==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      tslib: 2.8.1
+    dev: false
+
+  /@supabase/realtime-js@2.91.1:
+    resolution: {integrity: sha512-Y4rifuvzekFgd2hUfiEvcMoh/JU3s1hmpWYS7tNGL2QHuFfWg8a4w/qg5qoSMVDvgGRz6G4L6yB1FaQRTplENQ==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@types/phoenix': 1.6.7
+      '@types/ws': 8.18.1
+      tslib: 2.8.1
+      ws: 8.18.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
+
+  /@supabase/storage-js@2.91.1:
+    resolution: {integrity: sha512-hMJNT2tSleOrWwx4FmHTpihIA2PRDixAsWflECuQ4YDkeduBZGX5m2txnstMnteWW+H+mm+92WRRFLuidXqbfA==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
+    dev: false
+
+  /@supabase/supabase-js@2.91.1:
+    resolution: {integrity: sha512-57Fb4s5nfLn5ed2a1rPtl+LI1Wbtms8MS4qcUa0w6luaStBlFhmSeD2TLBgJWdMIupWRF6iFTH4QTrO2+pG/ZQ==}
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@supabase/auth-js': 2.91.1
+      '@supabase/functions-js': 2.91.1
+      '@supabase/postgrest-js': 2.91.1
+      '@supabase/realtime-js': 2.91.1
+      '@supabase/storage-js': 2.91.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false
+
   /@swc/helpers@0.5.15:
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
     dependencies:
@@ -5687,7 +5752,6 @@ packages:
     resolution: {integrity: sha512-pb1Uqj5WJP7wrcbLU7Ru4QtA0+3kAXrkutGiD26wUKzSMgNNaPARTUDQmElUXp64kh3cWdou3Q0C7qwwxqSFmg==}
     dependencies:
       undici-types: 6.21.0
-    dev: true
 
   /@types/node@22.19.3:
     resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
@@ -5699,6 +5763,10 @@ packages:
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
     dev: true
 
+  /@types/phoenix@1.6.7:
+    resolution: {integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==}
+    dev: false
+
   /@types/prop-types@15.7.15:
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -5708,6 +5776,13 @@ packages:
 
   /@types/range-parser@1.2.7:
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
+    dev: true
+
+  /@types/react-date-range@1.4.10:
+    resolution: {integrity: sha512-1g3SUKak9ShCH8ZAcLrYT/Ln3t5sI0iDKesAkuAuAXtagpgoI89RTh1APH4RV1IQ0YZQSBQvcQGC2oYaZ++2jw==}
+    dependencies:
+      '@types/react': 19.2.7
+      date-fns: 2.30.0
     dev: true
 
   /@types/react-dom@18.3.7(@types/react@18.3.26):
@@ -5778,6 +5853,12 @@ packages:
   /@types/uuid@9.0.8:
     resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
     dev: true
+
+  /@types/ws@8.18.1:
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
+    dependencies:
+      '@types/node': 20.19.19
+    dev: false
 
   /@types/yargs-parser@21.0.3:
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -7114,6 +7195,10 @@ packages:
       clsx: 2.1.1
     dev: false
 
+  /classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
+    dev: false
+
   /clean-css@5.3.3:
     resolution: {integrity: sha512-D5J+kHaVb/wKSFcyyV75uCn8fiY4sV38XJoe4CUyGQ+mOU/fMVYUdH1hJC+CJQ5uY3EnW27SbJYS4X8BiLrAFg==}
     engines: {node: '>= 10.0'}
@@ -7483,7 +7568,6 @@ packages:
     engines: {node: '>=0.11'}
     dependencies:
       '@babel/runtime': 7.28.4
-    dev: false
 
   /debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -9061,6 +9145,11 @@ packages:
 
   /hyphen@1.13.0:
     resolution: {integrity: sha512-flZoIooovWALhu04Z3ooPWQldjTOgLDs5DlbUxTjnIyhQKu9ukljKWwElFCUyVi6TBk210bMBlaMG8eW3bXU+g==}
+    dev: false
+
+  /iceberg-js@0.8.1:
+    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
+    engines: {node: '>=20.0.0'}
     dev: false
 
   /iconv-lite@0.4.24:
@@ -11243,6 +11332,20 @@ packages:
       react-dom: 18.3.1(react@18.3.1)
     dev: true
 
+  /react-date-range@2.0.1(date-fns@2.30.0)(react@19.2.1):
+    resolution: {integrity: sha512-jwKYc9zcjYMg2hWbPht+6BF2wjGG5DkRVNJLRXn2Y0B/QCOOnvQX6YXziZVujVADWmgsBaoQnILdmzYw+Bwh0g==}
+    peerDependencies:
+      date-fns: 3.0.6 || >=3.0.0
+      react: ^0.14 || ^15.0.0-rc || >=15.0
+    dependencies:
+      classnames: 2.5.1
+      date-fns: 2.30.0
+      prop-types: 15.8.1
+      react: 19.2.1
+      react-list: 0.8.18(react@19.2.1)
+      shallow-equal: 1.2.1
+    dev: false
+
   /react-docgen-typescript@2.4.0(typescript@5.9.3):
     resolution: {integrity: sha512-ZtAp5XTO5HRzQctjPU0ybY0RRCQO19X/8fxn3w7y2VVTUbGHDKULPTL4ky3vB05euSgG5NpALhEhDPvQ56wvXg==}
     peerDependencies:
@@ -11322,6 +11425,14 @@ packages:
   /react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
     dev: true
+
+  /react-list@0.8.18(react@19.2.1):
+    resolution: {integrity: sha512-1OSdDvzuKuwDJvQNuhXxxL+jTmmdtKg1i6KtYgxI9XR98kbOql1FcSGP+Lcvo91fk3cYng+Z6YkC6X9HRJwxfw==}
+    peerDependencies:
+      react: 0.14 || 15 - 19
+    dependencies:
+      react: 19.2.1
+    dev: false
 
   /react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -11897,6 +12008,10 @@ packages:
       safe-buffer: 5.2.1
       to-buffer: 1.2.2
     dev: true
+
+  /shallow-equal@1.2.1:
+    resolution: {integrity: sha512-S4vJDjHHMBaiZuT9NPb616CSmLf618jawtv3sufLl6ivK8WocjAo58cXwbRV1cgqxH0Qbv+iUt6m05eqEa2IRA==}
+    dev: false
 
   /sharp@0.33.5:
     resolution: {integrity: sha512-haPVm1EkS9pgvHrQ/F3Xy+hgcuMV0Wm9vfIBSiwZ05k+xgb0PkBQpGsAA/oWdDobNaZTH5ppvHtzCFbnSEwHVw==}
@@ -12691,7 +12806,6 @@ packages:
 
   /undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-    dev: true
 
   /unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
@@ -13199,7 +13313,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-    dev: true
 
   /xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}
