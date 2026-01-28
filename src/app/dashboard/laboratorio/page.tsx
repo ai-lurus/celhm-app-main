@@ -54,10 +54,10 @@ interface TicketForm {
   serialNumber: string
   problem: string
   diagnosis: string
-  estimatedCost: number
-  finalCost: number
+  estimatedCost: number | string
+  finalCost: number | string
   estimatedTime: number
-  advancePayment: number
+  advancePayment: number | string
   internalNotes: string
   condition: string
   accessories: string
@@ -75,10 +75,10 @@ const initialFormState: TicketForm = {
   serialNumber: '',
   problem: '',
   diagnosis: '',
-  estimatedCost: 0,
-  finalCost: 0,
+  estimatedCost: '0.00',
+  finalCost: '0.00',
   estimatedTime: 1,
-  advancePayment: 0,
+  advancePayment: '0.00',
   internalNotes: '',
   condition: 'BUENO',
   accessories: 'N/A',
@@ -173,10 +173,10 @@ export default function TicketsPage() {
       serialNumber: ticket.serialNumber || '',
       problem: ticket.problem,
       diagnosis: ticket.diagnosis || '',
-      estimatedCost: ticket.estimatedCost || 0,
-      finalCost: ticket.finalCost || 0,
+      estimatedCost: ticket.estimatedCost ? Number(ticket.estimatedCost).toFixed(2) : '0.00',
+      finalCost: ticket.finalCost ? Number(ticket.finalCost).toFixed(2) : '0.00',
       estimatedTime: ticket.estimatedTime || 1,
-      advancePayment: ticket.advancePayment || 0,
+      advancePayment: ticket.advancePayment ? Number(ticket.advancePayment).toFixed(2) : '0.00',
       internalNotes: ticket.internalNotes || '',
       condition: ticket.condition || 'BUENO',
       accessories: ticket.accessories || 'N/A',
@@ -220,6 +220,70 @@ export default function TicketsPage() {
     setViewingTicketId(null)
   }
 
+  const handlePriceChange = (
+    field: keyof TicketForm,
+    value: string
+  ) => {
+    // Permitir solo números y un punto decimal
+    if (!/^\d*\.?\d*$/.test(value)) return
+
+    // Si el valor actual es '0.00' y el usuario ingresa un número, reemplazar
+    // Si el valor es solo '.', convertir a '0.'
+    let newValue = value
+
+    if (formData[field] === '0.00' && value.length === 5 && value.endsWith('.')) {
+      // Caso borde: usuario escribe punto sobre 0.00 seleccionado o similar, pero más seguro manejar el cambio directo
+    }
+
+    // Lógica principal: si el valor anterior era 0.00 y entra un dígito, 
+    // asumimos que el usuario quiere empezar a escribir un nuevo número
+    if (formData[field] === '0.00' && value !== '0.00') {
+      const lastChar = value.slice(-1)
+      if (value.length > 4 && /^\d$/.test(lastChar)) {
+        // Si longitud aumentó y es 0.00 + digito -> reemplazar por digito
+        // Pero value vendrá como "0.005", hay que detectar eso.
+        // Mejor approach: analizar la entrada más cruda si fuera posible, pero aquí tenemos el valor resultante.
+        // Si el valor resultante empieza con 0.00 y sigue algo, quitar el 0.00
+        if (value.startsWith('0.00')) {
+          newValue = value.substring(4)
+        }
+      }
+    }
+
+    // Mejor lógica más simple recomendada:
+    // Si el usuario escribe, el input nativo da el nuevo valor.
+    // Si teníamos '0.00' y ahora tenemos '0.005', el usuario escribió 5. Queremos que sea '5'.
+    if (formData[field] === '0.00' && value.length > 4) {
+      newValue = value.replace('0.00', '')
+    }
+
+    // Evitar múltiples ceros a la izquierda excepto si es 0.
+    if (newValue.length > 1 && newValue.startsWith('0') && newValue[1] !== '.') {
+      newValue = newValue.replace(/^0+/, '')
+    }
+
+    if (newValue === '') newValue = '' // Permitir vacío mientras escribe
+
+    setFormData({ ...formData, [field]: newValue })
+  }
+
+  const handlePriceBlur = (field: keyof TicketForm) => {
+    const value = formData[field]
+    if (typeof value === 'string' && value !== '') {
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        setFormData({ ...formData, [field]: num.toFixed(2) })
+      } else {
+        // Reset to 0.00 if invalid? Or keep as is? User said "fix the value", implies valid number usually.
+        // If it's something like ".", fallback to 0.00
+        setFormData({ ...formData, [field]: '0.00' })
+      }
+    } else if (value === '' || value === undefined) {
+      // If empty, set to 0.00
+      setFormData({ ...formData, [field]: '0.00' })
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.customerName || !formData.device || !formData.problem) {
@@ -241,8 +305,8 @@ export default function TicketsPage() {
             serialNumber: formData.serialNumber || undefined,
             problem: formData.problem,
             diagnosis: formData.diagnosis || undefined,
-            estimatedCost: formData.estimatedCost || undefined,
-            finalCost: formData.finalCost || undefined,
+            estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost.toString()) : undefined,
+            finalCost: formData.finalCost ? parseFloat(formData.finalCost.toString()) : undefined,
             estimatedTime: formData.estimatedTime || undefined,
             internalNotes: formData.internalNotes || undefined,
             condition: formData.condition || undefined,
@@ -263,9 +327,9 @@ export default function TicketsPage() {
           serialNumber: formData.serialNumber || undefined,
           problem: formData.problem,
           diagnosis: formData.diagnosis || undefined,
-          estimatedCost: formData.estimatedCost || undefined,
+          estimatedCost: formData.estimatedCost ? parseFloat(formData.estimatedCost.toString()) : undefined,
           estimatedTime: formData.estimatedTime || undefined,
-          advancePayment: formData.advancePayment || undefined,
+          advancePayment: formData.advancePayment ? parseFloat(formData.advancePayment.toString()) : undefined,
           internalNotes: formData.internalNotes || undefined,
           condition: formData.condition || undefined,
           accessories: formData.accessories || undefined,
@@ -822,24 +886,26 @@ export default function TicketsPage() {
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
                       <input
-                        type="number"
-                        min="0"
-                        step="0.01"
+                        type="text"
                         value={formData.estimatedCost}
-                        onChange={(e) => setFormData({ ...formData, estimatedCost: parseFloat(e.target.value) || 0 })}
+                        onChange={(e) => handlePriceChange('estimatedCost', e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        onBlur={() => handlePriceBlur('estimatedCost')}
                         className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="0.00"
                       />
                     </div>
                     {editingTicket && (
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
                         <input
-                          type="number"
-                          min="0"
-                          step="0.01"
+                          type="text"
                           value={formData.finalCost}
-                          onChange={(e) => setFormData({ ...formData, finalCost: parseFloat(e.target.value) || 0 })}
+                          onChange={(e) => handlePriceChange('finalCost', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onBlur={() => handlePriceBlur('finalCost')}
                           className="w-full border border-border rounded-md px-3 py-2"
+                          placeholder="0.00"
                         />
                       </div>
                     )}
@@ -853,19 +919,17 @@ export default function TicketsPage() {
                         className="w-full border border-border rounded-md px-3 py-2"
                       />
                     </div>
-                    {!editingTicket && (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={formData.advancePayment}
-                          onChange={(e) => setFormData({ ...formData, advancePayment: parseFloat(e.target.value) || 0 })}
-                          className="w-full border border-border rounded-md px-3 py-2"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
+                      <input
+                        type="text"
+                        value={formData.advancePayment}
+                        onChange={(e) => handlePriceChange('advancePayment', e.target.value)}
+                        onBlur={() => handlePriceBlur('advancePayment')}
+                        className="w-full border border-border rounded-md px-3 py-2"
+                        placeholder="0.00"
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">Notas Internas</label>
                       <textarea
@@ -1077,14 +1141,12 @@ export default function TicketsPage() {
                     </span>
                   </div>
                 )}
-                {viewingTicket.advancePayment && (
-                  <div className="flex justify-between border-b pb-2">
-                    <span className="font-medium text-muted-foreground">Anticipo</span>
-                    <span className="font-medium text-foreground">
-                      ${(viewingTicket.advancePayment || 0).toLocaleString()}
-                    </span>
-                  </div>
-                )}
+                <div className="flex justify-between border-b pb-2">
+                  <span className="font-medium text-muted-foreground">Anticipo</span>
+                  <span className="font-medium text-foreground">
+                    ${(viewingTicket.advancePayment || 0).toLocaleString()}
+                  </span>
+                </div>
                 <div className="flex justify-between border-b pb-2">
                   <span className="font-medium text-muted-foreground">Tiempo Estimado</span>
                   <span className="font-medium text-foreground">{viewingTicket.estimatedTime || 0} días</span>
