@@ -56,15 +56,11 @@ export function Sidebar() {
 
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', permission: undefined },
-<<<<<<< HEAD
-    { label: 'Tickets', href: '/dashboard/tickets', permission: 'canManageTickets' },
-=======
     { label: 'Laboratorio', href: '/dashboard/laboratorio', permission: 'canManageTickets' },
->>>>>>> 75e971f72420757676614f31feaca18cce7b6cdb
     { label: 'Clientes', href: '/dashboard/customers', permission: 'canManageCustomers' },
     { label: 'Ventas', href: '/dashboard/sales', permission: 'canManageSales' },
     { label: 'Catálogo', href: '/dashboard/inventory', permission: 'canManageInventory' },
-    { label: 'Punto de Venta', href: '/dashboard/cash', permission: 'canManageCash' },
+    { label: 'Caja', href: '/dashboard/cash', permission: 'canManageCash' },
     { label: 'Reportes', href: '/dashboard/reports', permission: 'canViewFinancialReports' },
   ]
 

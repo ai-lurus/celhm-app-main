@@ -111,6 +111,12 @@ export function CashRegister({
   const handleUpdateLine = (index: number, field: keyof SaleLineItem, value: any) => {
     const newLines = [...form.lines]
     const line = { ...newLines[index] }
+    const isRepairOrder = line.code.startsWith('TICKET-')
+    
+    // Si es una orden de reparación y se intenta cambiar la cantidad, no permitirlo
+    if (field === 'qty' && isRepairOrder) {
+      return // No permitir cambiar la cantidad de órdenes de reparación
+    }
     
     if (field === 'qty') {
       const qty = Math.max(1, Number(value) || 1)
@@ -309,23 +315,32 @@ export function CashRegister({
                 </div>
               ) : (
                 <div className="divide-y">
-                  {form.lines.map((line, index) => (
+                  {form.lines.map((line, index) => {
+                    const isRepairOrder = line.code.startsWith('TICKET-')
+                    return (
                     <div key={index} className="grid grid-cols-5 gap-4 px-6 py-3 hover:bg-gray-50">
                       <input
                         type="number"
                         min="1"
                         value={line.qty}
                         onChange={(e) => {
+                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
                           const qty = parseInt(e.target.value) || 1
                           handleUpdateLine(index, 'qty', qty)
                         }}
                         onBlur={(e) => {
+                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
                           const qty = parseInt(e.target.value) || 1
                           if (qty < 1) {
                             handleUpdateLine(index, 'qty', 1)
                           }
                         }}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        disabled={isRepairOrder}
+                        readOnly={isRepairOrder}
+                        className={`w-full px-2 py-1 border border-gray-300 rounded text-sm ${
+                          isRepairOrder ? 'bg-gray-100 cursor-not-allowed' : ''
+                        }`}
+                        title={isRepairOrder ? 'La cantidad de órdenes de reparación está fija en 1' : ''}
                       />
                       <div className="text-sm text-gray-700">{String(line.code || '')}</div>
                       <div className="text-sm text-gray-700">{String(line.product || '')}</div>
@@ -343,7 +358,8 @@ export function CashRegister({
                         </button>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>

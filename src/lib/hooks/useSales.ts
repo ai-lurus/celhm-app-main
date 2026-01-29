@@ -128,6 +128,7 @@ export function useCreateSale() {
       return response.data
     },
     onSuccess: () => {
+      // Invalidar todas las queries de ventas para forzar el refetch
       queryClient.invalidateQueries({ queryKey: ['sales'] })
       queryClient.invalidateQueries({ queryKey: ['tickets'] })
     },

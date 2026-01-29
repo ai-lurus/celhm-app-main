@@ -68,18 +68,51 @@ export function CreateSaleModal({
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">Orden de Reparación</label>
-              <select
-                value={form.ticketId}
-                onChange={(e) => onFormChange({ ...form, ticketId: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
-              >
-                <option value="">Ninguna</option>
-                {tickets.map((t: Ticket) => (
-                  <option key={t.id} value={t.id}>
-                    {t.folio} - {t.customerName}
-                  </option>
-                ))}
-              </select>
+              <div className="flex space-x-2">
+                <select
+                  value={form.ticketId}
+                  onChange={(e) => {
+                    const ticketId = e.target.value
+                    if (ticketId) {
+                      const selectedTicket = tickets.find((t: Ticket) => t.id.toString() === ticketId)
+                      if (selectedTicket) {
+                        const ticketPrice = selectedTicket.finalCost || selectedTicket.estimatedCost || 0
+                        // Verificar si ya existe una línea con este ticketId
+                        const existingIndex = form.lines.findIndex(line => line.ticketId?.toString() === ticketId)
+                        if (existingIndex >= 0) {
+                          alert('Esta orden de reparación ya está agregada')
+                          return
+                        }
+                        // Agregar como línea de venta
+                        const newLine: CreateSaleLine = {
+                          ticketId: parseInt(ticketId),
+                          description: `Orden de Reparación ${selectedTicket.folio} - ${selectedTicket.device} (${selectedTicket.customerName})`,
+                          qty: 1, // Siempre cantidad 1 para órdenes de reparación
+                          unitPrice: ticketPrice,
+                        }
+                        onFormChange({
+                          ...form,
+                          ticketId: '', // Limpiar el selector
+                          lines: [...form.lines, newLine],
+                        })
+                      }
+                    } else {
+                      onFormChange({ ...form, ticketId: '' })
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-border rounded-md"
+                >
+                  <option value="">Agregar orden de reparación...</option>
+                  {tickets.map((t: Ticket) => {
+                    const isAlreadyAdded = form.lines.some(line => line.ticketId === t.id)
+                    return (
+                      <option key={t.id} value={t.id} disabled={isAlreadyAdded}>
+                        {t.folio} - {t.customerName} {isAlreadyAdded ? '(Ya agregada)' : ''}
+                      </option>
+                    )
+                  })}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -130,20 +163,31 @@ export function CreateSaleModal({
                       min="1"
                       value={line.qty}
                       onChange={(e) => onUpdateLine(index, 'qty', parseInt(e.target.value))}
-                      className="w-full px-2 py-1 border border-border rounded text-sm"
+                      disabled={!!line.ticketId} // Deshabilitar si es orden de reparacion
+                      readOnly={!!line.ticketId} // Solo lectura si es orden de reparacion
+                      className={`w-full px-2 py-1 border border-border rounded text-sm ${
+                        line.ticketId ? 'bg-gray-100 cursor-not-allowed' : ''
+                      }`}
+                      title={line.ticketId ? 'La cantidad de órdenes de reparación está fija en 1' : ''}
                     />
                   </div>
                   <div>
                     <label className="block text-xs text-muted-foreground mb-1">Precio Unit.</label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      step="0.01"
-                      value={line.unitPrice}
-                      onChange={(e) => onUpdateLine(index, 'unitPrice', parseFloat(e.target.value))}
-                      className="w-full px-2 py-1 border border-border rounded text-sm"
-                    />
+                    {line.ticketId ? (
+                      <div className="w-full px-2 py-1 border border-border rounded text-sm bg-gray-100 text-gray-700">
+                        ${(line.unitPrice || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        required
+                        min="0"
+                        step="0.01"
+                        value={line.unitPrice}
+                        onChange={(e) => onUpdateLine(index, 'unitPrice', parseFloat(e.target.value))}
+                        className="w-full px-2 py-1 border border-border rounded text-sm"
+                      />
+                    )}
                   </div>
                   <div className="flex items-end space-x-1">
                     <button

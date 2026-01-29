@@ -14,73 +14,57 @@ export default function Error({
     console.error('Error boundary caught:', error)
   }, [error])
 
-<<<<<<< HEAD
-  // Extract error message safely
-  const errorMessage = error?.message 
-    || (typeof error === 'string' ? error : 'Ocurrió un error')
-    || 'Ocurrió un error inesperado'
-=======
-  // Extract error message safely - handle both Error objects and API error objects
-  const getErrorMessage = (err: any): string => {
+  // Extract error message safely - ensure we always return a string
+  const extractErrorMessage = (err: any): string => {
     if (!err) return 'Ocurrió un error inesperado'
     
-    // If it's a string, return it
+    // If it's already a string, return it
     if (typeof err === 'string') return err
     
-    // If it's an Error object, return the message
-    if (err instanceof Error) {
-      return (err as Error).message || 'Ocurrió un error'
+    // If it's an Error object with a string message
+    if (err instanceof Error && typeof (err as any).message === 'string') {
+      return (err as any).message
     }
     
-    // If it's an object, extract the message property safely
-    if (err && typeof err === 'object') {
-      // Check for message property (most common)
-      if (err.message !== undefined) {
-        if (typeof err.message === 'string' && err.message.trim()) {
-          return err.message
-        }
-        // If message exists but is not a string, try to convert it
-        if (typeof err.message === 'object') {
-          // If message is itself an object, try to extract from it
-          if (err.message.message && typeof err.message.message === 'string') {
-            return err.message.message
-          }
-        }
+    // Handle error objects with message property
+    if (err?.message) {
+      if (typeof err.message === 'string') {
+        return err.message
       }
-      
-      // Check for error property
-      if (err.error !== undefined) {
-        if (typeof err.error === 'string' && err.error.trim()) {
-          return err.error
-        }
-        if (typeof err.error === 'object' && err.error.message && typeof err.error.message === 'string') {
-          return err.error.message
-        }
-      }
-      
-      // If there's a statusCode, create a meaningful message
-      if (err.statusCode !== undefined) {
-        const statusCode = err.statusCode
-        const message = err.message && typeof err.message === 'string' ? err.message : 'Ocurrió un error en el servidor'
-        return `Error ${statusCode}: ${message}`
-      }
-      
-      // Last resort: try to stringify safely (but avoid circular references)
-      try {
-        const stringified = JSON.stringify(err)
-        if (stringified && stringified !== '{}') {
-          return `Error: ${stringified.substring(0, 200)}`
-        }
-      } catch (e) {
-        // If stringify fails, return generic message
+      // If message is an object, recurse
+      if (typeof err.message === 'object' && err.message !== null) {
+        return extractErrorMessage(err.message)
       }
     }
     
-    return 'Ocurrió un error inesperado'
+    // Handle error objects with error property
+    if (err?.error) {
+      if (typeof err.error === 'string') {
+        return err.error
+      }
+      if (typeof err.error === 'object' && err.error !== null) {
+        return extractErrorMessage(err.error)
+      }
+    }
+    
+    // Handle response.data structure (from axios)
+    if (err?.response?.data) {
+      const data = err.response.data
+      if (typeof data === 'string') return data
+      if (data?.message && typeof data.message === 'string') return data.message
+      if (data?.error && typeof data.error === 'string') return data.error
+    }
+    
+    // Last resort: try to stringify, but limit length
+    try {
+      const str = JSON.stringify(err)
+      return str.length > 200 ? str.substring(0, 200) + '...' : str
+    } catch {
+      return 'Ocurrió un error inesperado'
+    }
   }
-
-  const errorMessage = getErrorMessage(error)
->>>>>>> 75e971f72420757676614f31feaca18cce7b6cdb
+  
+  const errorMessage = extractErrorMessage(error)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
