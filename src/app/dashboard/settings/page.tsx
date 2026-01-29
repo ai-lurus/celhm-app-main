@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useOrganization, useUpdateOrganization } from '../../../lib/hooks/useOrganization'
+import { useToast } from '../../../hooks/use-toast'
 
 export default function CompanySettingsPage() {
   const { data: organization, isLoading } = useOrganization()
@@ -56,6 +57,8 @@ export default function CompanySettingsPage() {
     }
   }
 
+  const { toast } = useToast()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -64,8 +67,18 @@ export default function CompanySettingsPage() {
         logo: logoPreview || undefined,
       })
       setIsSaved(true)
+      toast({
+        variant: "success",
+        title: "Configuración guardada",
+        description: "Los cambios se han guardado correctamente.",
+      })
     } catch (error) {
       console.error('Error actualizando la organización:', error)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "Hubo un error al actualizar la configuración de la empresa.",
+      })
     }
   }
 

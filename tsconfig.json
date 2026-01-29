@@ -3,9 +3,18 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@celhm/ui": ["./packages/ui/src"],
-      "@celhm/types": ["./packages/types/src"],
-      "@celhm/config": ["./packages/config"]
+      "@celhm/ui": [
+        "./packages/ui/src"
+      ],
+      "@celhm/types": [
+        "./packages/types/src"
+      ],
+      "@celhm/config": [
+        "./packages/config"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     },
     "plugins": [
       {
@@ -32,7 +41,11 @@
     "tests"
   ],
   "references": [
-    { "path": "./packages/ui" },
-    { "path": "./packages/types" }
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/types"
+    }
   ]
 }

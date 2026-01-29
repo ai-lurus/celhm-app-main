@@ -7,6 +7,7 @@ import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
 import { Role } from '@celhm/types'
+import { useToast } from '../../../hooks/use-toast'
 
 // Iconos
 const IconEdit = ({ className }: { className?: string }) => (
@@ -22,7 +23,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA', 'ADMON']
+const allRoles: Role[] = ['ADMINISTRADOR', 'LABORATORIO', 'RECEPCIONISTA']
 
 const formatRole = (role: Role) => {
   return role.charAt(0) + role.slice(1).toLowerCase()
@@ -48,9 +49,16 @@ export default function UsersPage() {
     branchId: '',
   })
 
+  const { toast } = useToast()
+
   // Proteger la página - solo administradores
   useEffect(() => {
     if (user && !can('canViewAllBranches')) {
+      toast({
+        variant: "destructive",
+        title: "Acceso denegado",
+        description: "No tienes permisos para ver esta página.",
+      })
       router.push('/dashboard')
     }
   }, [user, can, router])
@@ -67,6 +75,9 @@ export default function UsersPage() {
   }
 
   const filteredMembers = (members || []).filter((member: OrgMember) => {
+    // Hide ADMON from the UI
+    if (member.role === 'ADMON') return false
+
     const user = member.user
     const nameMatch = user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false
     const emailMatch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) || false
@@ -123,7 +134,11 @@ export default function UsersPage() {
     e.preventDefault()
 
     if (!user?.organizationId) {
-      alert('Error: No se encontró la organización del usuario actual')
+      toast({
+        variant: "destructive",
+        title: "Error de organización",
+        description: "No se encontró la organización del usuario actual.",
+      })
       return;
     }
 
@@ -134,10 +149,18 @@ export default function UsersPage() {
         branchId: newUserForm.branchId ? parseInt(newUserForm.branchId) : undefined
       })
       handleCloseCreate()
-      alert('Usuario creado e invitado exitosamente. Se ha enviado un correo de activación.')
+      toast({
+        variant: "success",
+        title: "Usuario creado",
+        description: "Usuario creado e invitado exitosamente. Se ha enviado un correo de activación.",
+      })
     } catch (error: any) {
       console.error('Error creating user:', error)
-      alert(error.response?.data?.message || 'Error al crear usuario')
+      toast({
+        variant: "destructive",
+        title: "Error al crear usuario",
+        description: error.response?.data?.message || 'Error al crear usuario',
+      })
     }
   }
 

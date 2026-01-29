@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, useTicket } from '../../../lib/hooks/useTickets'
+import { useToast } from '../../../hooks/use-toast'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
@@ -97,9 +98,9 @@ interface StatusForm {
 }
 
 export default function TicketsPage() {
-  const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
-  const { data: branches = [] } = useBranches()
+  const user = useAuthStore((state) => state.user)
+  const { data: branches = [] } = useBranches({ enabled: can('canViewAllBranches') })
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
@@ -131,6 +132,7 @@ export default function TicketsPage() {
   })
 
   // API hooks
+  const { toast } = useToast()
   const { data: ticketsData, isLoading } = useTickets({
     state: activeView === 'table' ? (selectedState || undefined) : undefined,
     search: searchTerm || undefined,
@@ -289,7 +291,11 @@ export default function TicketsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.customerName || !formData.device || !formData.problem) {
-      alert('Por favor, completa Nombre del Cliente, Dispositivo y Problema.')
+      toast({
+        variant: "destructive",
+        title: "Campos faltantes",
+        description: "Por favor, completa Nombre del Cliente, Dispositivo y Problema.",
+      })
       return
     }
 
@@ -317,6 +323,11 @@ export default function TicketsPage() {
             warrantyDays: formData.warrantyDays || undefined,
           },
         })
+        toast({
+          variant: "success",
+          title: "Nota actualizada",
+          description: "La nota se ha actualizado correctamente.",
+        })
       } else {
         await createTicket.mutateAsync({
           branchId: typeof branchId === 'number' ? branchId : (user?.branchId || branches[0]?.id || 1),
@@ -338,11 +349,20 @@ export default function TicketsPage() {
           risk: formData.risk || undefined,
           warrantyDays: formData.warrantyDays || undefined,
         })
+        toast({
+          variant: "success",
+          title: "Nota creada",
+          description: "La nota se ha creado correctamente.",
+        })
       }
       handleCloseModal()
     } catch (error: any) {
       console.error('Error saving ticket:', error)
-      alert(error?.message || 'Error al guardar el ticket')
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: error?.message || 'Error al guardar el ticket',
+      })
     }
   }
 
@@ -356,7 +376,11 @@ export default function TicketsPage() {
       const finalCost = Number(statusForm.finalCost || statusTicket.finalCost || statusTicket.estimatedCost) || 0
 
       if (totalPaid < finalCost) {
-        alert(`No se puede marcar como ENTREGADO. El ticket tiene un costo de $${finalCost.toLocaleString()} pero solo se ha pagado $${totalPaid.toLocaleString()}. Falta pagar $${(finalCost - totalPaid).toLocaleString()}.`)
+        toast({
+          variant: "destructive",
+          title: "Pago pendiente",
+          description: `No se puede marcar como ENTREGADO. El ticket tiene un costo de $${finalCost.toLocaleString()} pero solo se ha pagado $${totalPaid.toLocaleString()}. Falta pagar $${(finalCost - totalPaid).toLocaleString()}.`,
+        })
         return
       }
     }
@@ -373,10 +397,19 @@ export default function TicketsPage() {
           notes: statusForm.notes || undefined,
         },
       })
+      toast({
+        variant: "success",
+        title: "Estado actualizado",
+        description: "El estado del ticket se ha actualizado correctamente.",
+      })
       handleCloseStatusModal()
     } catch (error: any) {
       console.error('Error updating ticket status:', error)
-      alert(error?.message || 'Error al actualizar el estado del ticket')
+      toast({
+        variant: "destructive",
+        title: "Error al actualizar",
+        description: error?.message || 'Error al actualizar el estado del ticket',
+      })
     }
   }
 
@@ -444,7 +477,8 @@ export default function TicketsPage() {
                 setSelectedState(e.target.value as TicketState | '')
                 setPage(1)
               }}
-              className="w-full border border-border rounded-md px-3 py-2"
+              disabled={activeView === 'kanban'}
+              className={`w-full border border-border rounded-md px-3 py-2 ${activeView === 'kanban' ? 'bg-muted text-muted-foreground' : ''}`}
             >
               <option value="">Todos los estados</option>
               {allStates.map((state: TicketState) => (
@@ -463,14 +497,23 @@ export default function TicketsPage() {
                 setBranchId(value)
                 setPage(1)
               }}
-              className="w-full border border-border rounded-md px-3 py-2"
+              disabled={!can('canViewAllBranches')}
+              className={`w-full border border-border rounded-md px-3 py-2 ${!can('canViewAllBranches') ? 'bg-muted text-muted-foreground cursor-not-allowed' : ''}`}
             >
-              {branches.length > 1 && <option value="">Todas</option>}
-              {branches.map((branch: any) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
+              {branches.length > 1 && can('canViewAllBranches') && <option value="">Todas</option>}
+              {can('canViewAllBranches') ? (
+                branches.map((branch: any) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))
+              ) : (
+                <option value={user?.branchId || 1}>
+                  {/* Si no cargamos ramas, mostrar ID o nombre genérico, o confiar en que branches está vacío */}
+                  {/* Mejor: si no tiene permiso, branches estará vacio. Mostramos "Mi Sucursal" o el ID */}
+                  Sucursal {user?.branchId || 1}
                 </option>
-              ))}
+              )}
             </select>
           </div>
           <div>

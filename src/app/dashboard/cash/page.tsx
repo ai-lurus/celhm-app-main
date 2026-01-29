@@ -4,6 +4,7 @@ import React, { useState, useEffect, type ReactElement } from 'react'
 import { useCashRegisters, useCashCuts, useCreateCashCut, useCreateCashRegister, CashCut, CashRegister } from '../../../lib/hooks/useCash'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
+import { useToast } from '../../../hooks/use-toast'
 
 const IconView = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
@@ -53,10 +54,16 @@ export default function CashPage(): ReactElement {
     }
   }, [selectedRegister, cutForm.cashRegisterId])
 
+  const { toast } = useToast()
+
   const handleCreateCut = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!cutForm.cashRegisterId) {
-      alert('Selecciona una caja')
+      toast({
+        variant: "destructive",
+        title: "Caja requerida",
+        description: "Por favor, selecciona una caja.",
+      })
       return
     }
 
@@ -69,8 +76,18 @@ export default function CashPage(): ReactElement {
       })
       setIsCreateModalOpen(false)
       setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
+      toast({
+        variant: "success",
+        title: "Corte creado",
+        description: "El corte de caja se ha registrado exitosamente.",
+      })
     } catch (error) {
       console.error('Error al crear el corte de caja:', error)
+      toast({
+        variant: "destructive",
+        title: "Error al crear corte",
+        description: "Hubo un error al registrar el corte de caja.",
+      })
     }
   }
 
