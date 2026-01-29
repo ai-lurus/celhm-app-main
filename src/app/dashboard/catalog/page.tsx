@@ -223,46 +223,42 @@ export default function CatalogPage() {
           <nav className="-mb-px flex space-x-8 flex-1">
             <Link
               href="/dashboard/inventory"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
             >
               Inventario
             </Link>
             <Link
               href="/dashboard/catalog"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/catalog'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
             >
               Catálogo
             </Link>
             <Link
               href="/dashboard/inventory/categories"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/categories'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
             >
               Categorías
             </Link>
             <Link
               href="/dashboard/inventory/brands"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/brands'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                }`}
             >
               Marcas
             </Link>
           </nav>
-          
+
           {/* boton de acciones */}
           <div className="ml-4">
             <button
@@ -283,9 +279,9 @@ export default function CatalogPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Categoría</label>
-            <select 
-              onChange={(e) => setSelectedCategory(e.target.value)} 
-              value={selectedCategory} 
+            <select
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              value={selectedCategory}
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todas las categorías</option>
@@ -296,9 +292,9 @@ export default function CatalogPage() {
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Marca</label>
-            <select 
-              value={selectedBrand} 
-              onChange={(e) => setSelectedBrand(e.target.value)} 
+            <select
+              value={selectedBrand}
+              onChange={(e) => setSelectedBrand(e.target.value)}
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todas las marcas</option>
@@ -309,12 +305,12 @@ export default function CatalogPage() {
           </div>
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">Buscar</label>
-            <input 
-              type="text" 
-              placeholder="Nombre, Modelo..." 
-              className="w-full border border-border rounded-md px-3 py-2 text-sm" 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Nombre, Modelo..."
+              className="w-full border border-border rounded-md px-3 py-2 text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -322,37 +318,44 @@ export default function CatalogPage() {
 
       {/* --- tabla de productos --- */}
       <div className="w-full">
-          <div className="bg-card rounded-lg shadow overflow-hidden">
-            {isLoading && (
-              <div className="p-8 text-center text-muted-foreground">Cargando productos...</div>
-            )}
-            {error && (
-              <div className="p-8 text-center text-red-500">
-                Error al cargar productos: {
-                  error instanceof Error 
-                    ? error.message 
-                    : (error as any)?.response?.data?.message 
+        <div className="bg-card rounded-lg shadow overflow-hidden">
+          {isLoading && (
+            <div className="p-8 text-center text-muted-foreground">Cargando productos...</div>
+          )}
+          {error && (
+            <div className="p-8 text-center text-red-500">
+              Error al cargar productos: {
+                error instanceof Error
+                  ? error.message
+                  : (error as any)?.response?.data?.message
                     ? (error as any).response.data.message
-                    : (error as any)?.message 
-                    ? (error as any).message
-                    : 'Error desconocido'
-                }
-              </div>
-            )}
-            {!isLoading && !error && (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-border">
-                  <thead className="bg-muted">
+                    : (error as any)?.message
+                      ? (error as any).message
+                      : 'Error desconocido'
+              }
+            </div>
+          )}
+          {!isLoading && !error && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoría</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Marca/Modelo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Descripción</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-card divide-y divide-border">
+                  {filteredProducts.length === 0 ? (
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoría</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Marca/Modelo</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Descripción</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                      <td colSpan={5} className="px-6 py-4 text-center text-muted-foreground">
+                        No hay productos registrados
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-border">
-                    {filteredProducts.map((product: Product) => (
+                  ) : (
+                    filteredProducts.map((product: Product) => (
                       <tr key={product.id} className="hover:bg-muted">
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-foreground">{product.name}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">{product.category}</span></td>
@@ -381,42 +384,43 @@ export default function CatalogPage() {
                           </div>
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-            {/* Paginacion */}
-            <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
+          {/* Paginacion */}
+          <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
+              <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-foreground">
+                  Mostrando <span className="font-medium">{pagination.total > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0}</span> a <span className="font-medium">{Math.min(pagination.page * pagination.pageSize, pagination.total)}</span> de <span className="font-medium">{pagination.total}</span> productos
+                </p>
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-foreground">
-                    Mostrando <span className="font-medium">{pagination.total > 0 ? (pagination.page - 1) * pagination.pageSize + 1 : 0}</span> a <span className="font-medium">{Math.min(pagination.page * pagination.pageSize, pagination.total)}</span> de <span className="font-medium">{pagination.total}</span> productos
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
-                  <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
-                      Pág {pagination.page} de {pagination.totalPages || 1}
-                    </span>
-                    <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || pagination.totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
-                  </nav>
-                </div>
+              <div className="flex items-center space-x-2">
+                <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
+                <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
+                  <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
+                    Pág {pagination.page} de {pagination.totalPages || 1}
+                  </span>
+                  <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === pagination.totalPages || pagination.totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
+                </nav>
               </div>
             </div>
           </div>
+        </div>
       </div>
 
       {/* --- MODALES --- */}

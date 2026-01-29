@@ -19,25 +19,25 @@ export default function CategoriesPage() {
 
   // Obtener categorías desde la API
   const { data: categories = [] } = useCategories()
-  
+
   // Hooks CRUD de categoría
   const createCategory = useCreateCategory()
   const updateCategory = useUpdateCategory()
   const deleteCategory = useDeleteCategory()
-  
+
   // Obtener nombre actual de la ruta
   const pathname = usePathname()
-  
+
   // Organizar categorías en jerarquía (padres e hijos)
   const organizeCategories = (cats: Category[]): Category[] => {
     const categoryMap = new Map<number, Category>()
     const rootCategories: Category[] = []
-    
+
     // Primero, crear un mapa de todas las categorías
     cats.forEach(cat => {
       categoryMap.set(cat.id, { ...cat, children: [] })
     })
-    
+
     // Luego, organizar en jerarquía
     cats.forEach(cat => {
       const category = categoryMap.get(cat.id)!
@@ -49,10 +49,10 @@ export default function CategoriesPage() {
         rootCategories.push(category)
       }
     })
-    
+
     return rootCategories
   }
-  
+
   // Función para aplanar categorías recursivamente para búsqueda
   const flattenCategories = (cats: Category[]): Category[] => {
     const result: Category[] = []
@@ -64,16 +64,16 @@ export default function CategoriesPage() {
     })
     return result
   }
-  
+
   // Organizar categorías en jerarquía
   const organizedCategories = organizeCategories(categories)
-  
+
   // Filtrar categorías por búsqueda
   const allCategoriesFlat = flattenCategories(organizedCategories)
   const filteredCategories = allCategoriesFlat.filter((cat) => {
     return cat.name.toLowerCase().includes(categorySearch.toLowerCase())
   })
-  
+
   // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
   const flatCategories = categories.filter(cat => !cat.parentId)
 
@@ -87,7 +87,7 @@ export default function CategoriesPage() {
     setIsSubcategory(false)
     setIsCategoryModalOpen(true)
   }
-  
+
   const openEditCategoryModal = (category: Category) => {
     setCategoryToEdit(category)
     setNewCategoryName(category.name)
@@ -95,7 +95,7 @@ export default function CategoriesPage() {
     setIsSubcategory(!!category.parentId)
     setIsCategoryModalOpen(true)
   }
-  
+
   const closeCategoryModal = () => {
     setIsCategoryModalOpen(false)
     setCategoryToEdit(null)
@@ -103,29 +103,29 @@ export default function CategoriesPage() {
     setSelectedParentCategory('')
     setIsSubcategory(false)
   }
-  
+
   const handleSaveCategory = async () => {
     if (!newCategoryName.trim()) {
       alert('Por favor, ingresa un nombre para la categoría.')
       return
     }
-    
+
     if (isSubcategory && !selectedParentCategory) {
       alert('Por favor, selecciona una categoría principal para la subcategoría.')
       return
     }
-    
+
     try {
       if (categoryToEdit) {
         await updateCategory.mutateAsync({
           id: categoryToEdit.id,
-          data: { 
+          data: {
             name: newCategoryName.trim(),
             parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
           }
         })
       } else {
-        await createCategory.mutateAsync({ 
+        await createCategory.mutateAsync({
           name: newCategoryName.trim(),
           parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
         })
@@ -135,17 +135,17 @@ export default function CategoriesPage() {
       alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar categoría'}`)
     }
   }
-  
+
   const openDeleteCategoryModal = (category: Category) => {
     setCategoryToDelete(category)
     setIsDeleteCategoryModalOpen(true)
   }
-  
+
   const closeDeleteCategoryModal = () => {
     setIsDeleteCategoryModalOpen(false)
     setCategoryToDelete(null)
   }
-  
+
   const handleConfirmDeleteCategory = async () => {
     if (categoryToDelete) {
       try {
@@ -176,41 +176,37 @@ export default function CategoriesPage() {
           <nav className="-mb-px flex space-x-8 flex-1">
             <Link
               href="/dashboard/inventory"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Inventario
             </Link>
             <Link
               href="/dashboard/catalog"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/catalog'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Catálogo
             </Link>
             <Link
               href="/dashboard/inventory/categories"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/categories'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Categorías
             </Link>
             <Link
               href="/dashboard/inventory/brands"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/brands'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Marcas
             </Link>
@@ -317,16 +313,16 @@ export default function CategoriesPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Modal de Categoría */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
             <h2 className="text-xl font-bold text-foreground">
-              {categoryToEdit 
-                ? 'Editar Categoría' 
-                : isSubcategory 
-                  ? 'Agregar Subcategoría' 
+              {categoryToEdit
+                ? 'Editar Categoría'
+                : isSubcategory
+                  ? 'Agregar Subcategoría'
                   : 'Agregar Categoría'}
             </h2>
             <div className="mt-4 space-y-4">

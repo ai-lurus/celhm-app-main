@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation'
 
 export default function BrandsPage() {
   const pathname = usePathname();
-  
+
   // --- estados para marcas ---
   const [brandSearch, setBrandSearch] = useState<string>('')
   const [isBrandModalOpen, setIsBrandModalOpen] = useState<boolean>(false)
@@ -19,12 +19,12 @@ export default function BrandsPage() {
 
   // Obtener marcas desde la API
   const { data: brands = [] } = useBrands()
-  
+
   // Hooks CRUD de marca
   const createBrand = useCreateBrand()
   const updateBrand = useUpdateBrand()
   const deleteBrand = useDeleteBrand()
-  
+
   // Filtrar marcas por búsqueda
   const filteredBrands = brands.filter((brand) => {
     return brand.name.toLowerCase().includes(brandSearch.toLowerCase())
@@ -38,25 +38,25 @@ export default function BrandsPage() {
     setNewBrandName('')
     setIsBrandModalOpen(true)
   }
-  
+
   const openEditBrandModal = (brand: Brand) => {
     setBrandToEdit(brand)
     setNewBrandName(brand.name)
     setIsBrandModalOpen(true)
   }
-  
+
   const closeBrandModal = () => {
     setIsBrandModalOpen(false)
     setBrandToEdit(null)
     setNewBrandName('')
   }
-  
+
   const handleSaveBrand = async () => {
     if (!newBrandName.trim()) {
       alert('Por favor, ingresa un nombre para la marca.')
       return
     }
-    
+
     try {
       if (brandToEdit) {
         await updateBrand.mutateAsync({
@@ -71,17 +71,17 @@ export default function BrandsPage() {
       alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar marca'}`)
     }
   }
-  
+
   const openDeleteBrandModal = (brand: Brand) => {
     setBrandToDelete(brand)
     setIsDeleteBrandModalOpen(true)
   }
-  
+
   const closeDeleteBrandModal = () => {
     setIsDeleteBrandModalOpen(false)
     setBrandToDelete(null)
   }
-  
+
   const handleConfirmDeleteBrand = async () => {
     if (brandToDelete) {
       try {
@@ -107,41 +107,37 @@ export default function BrandsPage() {
           <nav className="-mb-px flex space-x-8 flex-1">
             <Link
               href="/dashboard/inventory"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory' || pathname === '/dashboard/inventory/'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Inventario
             </Link>
             <Link
               href="/dashboard/catalog"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/catalog'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Catálogo
             </Link>
             <Link
               href="/dashboard/inventory/categories"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/categories'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Categorías
             </Link>
             <Link
               href="/dashboard/inventory/brands"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === '/dashboard/inventory/brands'
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
                   ? 'border-blue-500 text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              }`}
+                }`}
             >
               Marcas
             </Link>
@@ -218,7 +214,7 @@ export default function BrandsPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Modal de Marca */}
       {isBrandModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">

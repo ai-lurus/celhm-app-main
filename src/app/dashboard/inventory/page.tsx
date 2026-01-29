@@ -586,43 +586,51 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
-                  {paginatedInventory.map((item: InventoryItem) => (
-                    <tr key={item.id} className="hover:bg-muted">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">{item.name}</div>
-                          <div className="text-sm text-muted-foreground">{item.brand}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.model}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-foreground">{item.qty}</div>
-                        <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                          {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-3">
-                          {can('canEditPrices') && (
-                            <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
-                          )}
-                          {can('canManageInventory') && (
-                            <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
-                          )}
-                          {can('canDeleteOrders') && (
-                            <button onClick={() => openDeleteModal(item)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"><IconDelete className="w-5 h-5" /></button>
-                          )}
-                        </div>
+                  {paginatedInventory.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-4 text-center text-muted-foreground">
+                        No hay artículos en el inventario
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    paginatedInventory.map((item: InventoryItem) => (
+                      <tr key={item.id} className="hover:bg-muted">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-foreground">{item.name}</div>
+                            <div className="text-sm text-muted-foreground">{item.brand}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.model}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-foreground">{item.qty}</div>
+                          <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                            {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center space-x-3">
+                            {can('canEditPrices') && (
+                              <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
+                            )}
+                            {can('canManageInventory') && (
+                              <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
+                            )}
+                            {can('canDeleteOrders') && (
+                              <button onClick={() => openDeleteModal(item)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"><IconDelete className="w-5 h-5" /></button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
