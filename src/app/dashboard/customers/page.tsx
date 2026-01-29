@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useCustomers, useCreateCustomer, useUpdateCustomer, useDeleteCustomer, Customer } from '../../../lib/hooks/useCustomers'
+import { useToast } from '../../../hooks/use-toast'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
 
 // Iconos
@@ -69,6 +70,7 @@ export default function CustomersPage() {
   const createCustomer = useCreateCustomer()
   const updateCustomer = useUpdateCustomer()
   const deleteCustomer = useDeleteCustomer()
+  const { toast } = useToast()
 
   const handleFilterChange = (level: number, id: string) => {
     const newPath = filterPath.slice(0, level);
@@ -162,13 +164,27 @@ export default function CustomersPage() {
           id: editingCustomer.id,
           data: formData,
         })
+        toast({
+          variant: "success",
+          title: "Cliente actualizado",
+          description: "Los datos del cliente se han actualizado correctamente.",
+        })
       } else {
         await createCustomer.mutateAsync(formData)
+        toast({
+          variant: "success",
+          title: "Cliente creado",
+          description: "El cliente se ha creado correctamente.",
+        })
       }
       handleCloseModal()
     } catch (error) {
       console.error('Error al guardar el cliente:', error)
-      alert('Error al guardar el cliente. Por favor intenta nuevamente.')
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "Error al guardar el cliente. Por favor intenta nuevamente.",
+      })
     }
   }
 
@@ -176,9 +192,18 @@ export default function CustomersPage() {
     if (confirm('¿Estás seguro de eliminar este cliente?')) {
       try {
         await deleteCustomer.mutateAsync(id)
+        toast({
+          variant: "success",
+          title: "Cliente eliminado",
+          description: "El cliente se ha eliminado correctamente.",
+        })
       } catch (error) {
         console.error('Error al eliminar al cliente:', error)
-        alert('Error al eliminar el cliente.')
+        toast({
+          variant: "destructive",
+          title: "Error al eliminar",
+          description: "Error al eliminar el cliente.",
+        })
       }
     }
   }

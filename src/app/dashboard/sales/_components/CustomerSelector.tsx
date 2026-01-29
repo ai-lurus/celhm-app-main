@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Customer } from '../../../../lib/hooks/useCustomers'
 import { useCreateCustomer } from '../../../../lib/hooks/useCustomers'
+import { useToast } from '../../../../hooks/use-toast'
 
 interface CustomerSelectorProps {
   customers: Customer[]
@@ -61,13 +62,23 @@ export function CustomerSelector({
     setSearchTerm('')
   }
 
+  const { toast } = useToast()
+
   const handleCreateCustomer = async () => {
     if (!newCustomerName.trim()) {
-      alert('El nombre del cliente es requerido')
+      toast({
+        variant: "destructive",
+        title: "Nombre requerido",
+        description: "El nombre del cliente es requerido.",
+      })
       return
     }
     if (!newCustomerPhone.trim()) {
-      alert('El teléfono del cliente es requerido')
+      toast({
+        variant: "destructive",
+        title: "Teléfono requerido",
+        description: "El teléfono del cliente es requerido.",
+      })
       return
     }
 
@@ -82,9 +93,18 @@ export function CustomerSelector({
       setNewCustomerName('')
       setNewCustomerPhone('')
       setIsOpen(false)
+      toast({
+        variant: "success",
+        title: "Cliente creado",
+        description: "El cliente se ha creado correctamente.",
+      })
     } catch (error) {
       console.error('Error creating customer:', error)
-      alert('Error al crear el cliente')
+      toast({
+        variant: "destructive",
+        title: "Error al crear",
+        description: "Hubo un error al crear el cliente.",
+      })
     }
   }
 

@@ -15,6 +15,7 @@ import {
   calculateTotalPieces,
 } from './utils'
 import { CustomerSelector } from './CustomerSelector'
+import { useToast } from '../../../../hooks/use-toast'
 
 interface CashRegisterProps {
   isOpen: boolean
@@ -111,7 +112,7 @@ export function CashRegister({
   const handleUpdateLine = (index: number, field: keyof SaleLineItem, value: any) => {
     const newLines = [...form.lines]
     const line = { ...newLines[index] }
-    
+
     if (field === 'qty') {
       const qty = Math.max(1, Number(value) || 1)
       const unitPrice = Number(line.unitPrice) || 0
@@ -133,6 +134,8 @@ export function CashRegister({
     })
   }
 
+  const { toast } = useToast()
+
   const handleAddTicket = (ticket: Ticket) => {
     // Verificar si el ticket ya está agregado
     const existingTicketIndex = form.lines.findIndex(
@@ -140,7 +143,11 @@ export function CashRegister({
     )
 
     if (existingTicketIndex >= 0) {
-      alert('Esta orden de reparación ya está agregada')
+      toast({
+        variant: "destructive",
+        title: "Orden duplicada",
+        description: "Esta orden de reparación ya está agregada.",
+      })
       return
     }
 
@@ -163,6 +170,12 @@ export function CashRegister({
 
     setShowTicketModal(false)
     setTicketSearch('')
+
+    toast({
+      variant: "default",
+      title: "Orden agregada",
+      description: "La orden se ha agregado a la venta.",
+    })
   }
 
   const filteredTickets = tickets.filter(ticket =>
@@ -579,15 +592,14 @@ export function CashRegister({
                   {filteredTickets.map((ticket) => {
                     const ticketPrice = ticket.finalCost || ticket.estimatedCost || 0
                     const isAlreadyAdded = form.lines.some(line => line.code === `TICKET-${ticket.id}`)
-                    
+
                     return (
                       <button
                         key={ticket.id}
                         onClick={() => !isAlreadyAdded && handleAddTicket(ticket)}
                         disabled={isAlreadyAdded}
-                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                          isAlreadyAdded ? 'bg-gray-100 opacity-60 cursor-not-allowed' : ''
-                        }`}
+                        className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${isAlreadyAdded ? 'bg-gray-100 opacity-60 cursor-not-allowed' : ''
+                          }`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">

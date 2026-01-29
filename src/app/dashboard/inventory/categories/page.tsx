@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, Category } from '../../../../lib/hooks/useCatalog'
+import { useToast } from '../../../../hooks/use-toast'
 import { IconEdit, IconDelete, IconPlus } from '../_components/icons'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -80,6 +81,8 @@ export default function CategoriesPage() {
   //-------------------
   // GESTIÓN DE CATEGORÍAS
   //-------------------
+  const { toast } = useToast()
+
   const openAddCategoryModal = () => {
     setCategoryToEdit(null)
     setNewCategoryName('')
@@ -106,12 +109,20 @@ export default function CategoriesPage() {
 
   const handleSaveCategory = async () => {
     if (!newCategoryName.trim()) {
-      alert('Por favor, ingresa un nombre para la categoría.')
+      toast({
+        variant: "destructive",
+        title: "Nombre requerido",
+        description: "Por favor, ingresa un nombre para la categoría.",
+      })
       return
     }
 
     if (isSubcategory && !selectedParentCategory) {
-      alert('Por favor, selecciona una categoría principal para la subcategoría.')
+      toast({
+        variant: "destructive",
+        title: "Categoría principal requerida",
+        description: "Por favor, selecciona una categoría principal para la subcategoría.",
+      })
       return
     }
 
@@ -124,15 +135,29 @@ export default function CategoriesPage() {
             parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
           }
         })
+        toast({
+          variant: "success",
+          title: "Categoría actualizada",
+          description: "La categoría se ha actualizado correctamente.",
+        })
       } else {
         await createCategory.mutateAsync({
           name: newCategoryName.trim(),
           parentId: isSubcategory && selectedParentCategory ? parseInt(selectedParentCategory) : null
         })
+        toast({
+          variant: "success",
+          title: "Categoría creada",
+          description: "La categoría se ha creado correctamente.",
+        })
       }
       closeCategoryModal()
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar categoría'}`)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: error.response?.data?.message || error.message || 'Error al guardar categoría',
+      })
     }
   }
 
@@ -150,13 +175,26 @@ export default function CategoriesPage() {
     if (categoryToDelete) {
       try {
         await deleteCategory.mutateAsync(categoryToDelete.id)
+        toast({
+          variant: "success",
+          title: "Categoría eliminada",
+          description: "La categoría se ha eliminado correctamente.",
+        })
         closeDeleteCategoryModal()
       } catch (error: any) {
         const errorMessage = error.response?.data?.message || error.message || 'Error al eliminar'
         if (errorMessage.includes('items') || errorMessage.includes('productos') || errorMessage.includes('asignados')) {
-          alert('No se puede eliminar la categoría porque tiene productos asignados.')
+          toast({
+            variant: "destructive",
+            title: "No se puede eliminar",
+            description: "No se puede eliminar la categoría porque tiene productos asignados.",
+          })
         } else {
-          alert(`Error: ${errorMessage}`)
+          toast({
+            variant: "destructive",
+            title: "Error al eliminar",
+            description: errorMessage,
+          })
         }
       }
     }
@@ -177,8 +215,8 @@ export default function CategoriesPage() {
             <Link
               href="/dashboard/inventory"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Inventario
@@ -186,8 +224,8 @@ export default function CategoriesPage() {
             <Link
               href="/dashboard/catalog"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Catálogo
@@ -195,8 +233,8 @@ export default function CategoriesPage() {
             <Link
               href="/dashboard/inventory/categories"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Categorías
@@ -204,8 +242,8 @@ export default function CategoriesPage() {
             <Link
               href="/dashboard/inventory/brands"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Marcas

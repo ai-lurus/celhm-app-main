@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useBrands, useCreateBrand, useUpdateBrand, useDeleteBrand, Brand } from '../../../../lib/hooks/useCatalog'
+import { useToast } from '../../../../hooks/use-toast'
 import { IconEdit, IconDelete, IconPlus } from '../_components/icons'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -33,6 +34,8 @@ export default function BrandsPage() {
   //-------------------
   // GESTIÓN DE MARCAS
   //-------------------
+  const { toast } = useToast()
+
   const openAddBrandModal = () => {
     setBrandToEdit(null)
     setNewBrandName('')
@@ -53,7 +56,11 @@ export default function BrandsPage() {
 
   const handleSaveBrand = async () => {
     if (!newBrandName.trim()) {
-      alert('Por favor, ingresa un nombre para la marca.')
+      toast({
+        variant: "destructive",
+        title: "Nombre requerido",
+        description: "Por favor, ingresa un nombre para la marca.",
+      })
       return
     }
 
@@ -63,12 +70,26 @@ export default function BrandsPage() {
           id: brandToEdit.id,
           data: { name: newBrandName.trim() }
         })
+        toast({
+          variant: "success",
+          title: "Marca actualizada",
+          description: "La marca se ha actualizado correctamente.",
+        })
       } else {
         await createBrand.mutateAsync({ name: newBrandName.trim() })
+        toast({
+          variant: "success",
+          title: "Marca creada",
+          description: "La marca se ha creado correctamente.",
+        })
       }
       closeBrandModal()
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar marca'}`)
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: error.response?.data?.message || error.message || 'Error al guardar marca',
+      })
     }
   }
 
@@ -86,9 +107,18 @@ export default function BrandsPage() {
     if (brandToDelete) {
       try {
         await deleteBrand.mutateAsync(brandToDelete.id)
+        toast({
+          variant: "success",
+          title: "Marca eliminada",
+          description: "La marca se ha eliminado correctamente.",
+        })
         closeDeleteBrandModal()
       } catch (error: any) {
-        alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar marca'}`)
+        toast({
+          variant: "destructive",
+          title: "Error al eliminar",
+          description: error.response?.data?.message || error.message || 'Error al eliminar marca',
+        })
       }
     }
   }
@@ -108,8 +138,8 @@ export default function BrandsPage() {
             <Link
               href="/dashboard/inventory"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Inventario
@@ -117,8 +147,8 @@ export default function BrandsPage() {
             <Link
               href="/dashboard/catalog"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Catálogo
@@ -126,8 +156,8 @@ export default function BrandsPage() {
             <Link
               href="/dashboard/inventory/categories"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Categorías
@@ -135,8 +165,8 @@ export default function BrandsPage() {
             <Link
               href="/dashboard/inventory/brands"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
-                  ? 'border-blue-500 text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                ? 'border-blue-500 text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
             >
               Marcas

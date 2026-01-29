@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct, useCategories, useBrands, Product } from '../../../lib/hooks/useCatalog'
+import { useToast } from '../../../hooks/use-toast'
 import { useAuthStore } from '../../../stores/auth'
 import { usePermissions } from '../../../lib/hooks/usePermissions'
 import Link from 'next/link'
@@ -71,6 +72,7 @@ export default function CatalogPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   // API hooks
+  const { toast } = useToast()
   const { data: productsData, isLoading, error } = useProducts({
     categoria: selectedCategory || undefined,
     marca: selectedBrand || undefined,
@@ -131,7 +133,11 @@ export default function CatalogPage() {
 
   const handleSaveProduct = async () => {
     if (!newProductData.name) {
-      alert('Completa el nombre del producto.');
+      toast({
+        variant: "destructive",
+        title: "Nombre requerido",
+        description: "Completa el nombre del producto.",
+      })
       return;
     }
 
@@ -147,6 +153,11 @@ export default function CatalogPage() {
             model: newProductData.model || undefined,
           },
         });
+        toast({
+          variant: "success",
+          title: "Producto actualizado",
+          description: "El producto se ha actualizado correctamente.",
+        })
       } else {
         await createProduct.mutateAsync({
           name: newProductData.name,
@@ -155,10 +166,19 @@ export default function CatalogPage() {
           brand: newProductData.brand || undefined,
           model: newProductData.model || undefined,
         });
+        toast({
+          variant: "success",
+          title: "Producto creado",
+          description: "El producto se ha creado correctamente.",
+        })
       }
       closeProductModal();
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar'}`);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: error.response?.data?.message || error.message || 'Error al guardar el producto',
+      })
     }
   };
 
@@ -184,9 +204,18 @@ export default function CatalogPage() {
     if (!itemToDelete) return;
     try {
       await deleteProduct.mutateAsync(itemToDelete.id);
+      toast({
+        variant: "success",
+        title: "Producto eliminado",
+        description: "El producto se ha eliminado correctamente.",
+      })
       closeDeleteModal();
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar'}`);
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: error.response?.data?.message || error.message || 'Error al eliminar el producto',
+      })
     }
   };
 

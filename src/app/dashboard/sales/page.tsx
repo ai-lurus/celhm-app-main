@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod } from '../../../lib/hooks/useSales'
+import { useToast } from '../../../hooks/use-toast'
 import { useCustomers } from '../../../lib/hooks/useCustomers'
 import { useTickets } from '../../../lib/hooks/useTickets'
 import { useProducts } from '../../../lib/hooks/useCatalog'
@@ -40,6 +41,8 @@ export default function SalesPage() {
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
+  // API hooks
+  const { toast } = useToast()
   const { data: salesData, isLoading } = useSales({ branchId, page, pageSize: 20 })
   const { data: customersData } = useCustomers({ page: 1, pageSize: 100 })
   const { data: ticketsData } = useTickets({ page: 1, pageSize: 100 })
@@ -58,7 +61,7 @@ export default function SalesPage() {
   const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
   const stockItems: InventoryItem[] = Array.isArray((stockData as any)?.data) ? (stockData as any).data : []
   const users: OrgMember[] = Array.isArray(usersData) ? usersData : []
-  
+
   // Ensure customers array doesn't contain error objects
   const safeCustomers = customers.filter((c: any) => {
     if (!c || typeof c !== 'object') return false
@@ -113,7 +116,11 @@ export default function SalesPage() {
   const handleCreateSale = async (e: React.FormEvent) => {
     e.preventDefault()
     if (saleForm.lines.length === 0) {
-      alert('Agrega al menos una línea de venta')
+      toast({
+        variant: "destructive",
+        title: "Venta vacía",
+        description: "Agrega al menos una línea de venta.",
+      })
       return
     }
 
@@ -125,10 +132,20 @@ export default function SalesPage() {
         lines: saleForm.lines,
         discount: saleForm.discount,
       })
+      toast({
+        variant: "success",
+        title: "Venta creada",
+        description: "La venta se ha registrado exitosamente.",
+      })
       setIsCreateModalOpen(false)
       setSaleForm({ customerId: '', ticketId: '', lines: [], discount: 0 })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating sale:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message || "Error al crear la venta.",
+      })
     }
   }
 
@@ -140,16 +157,30 @@ export default function SalesPage() {
         saleId: selectedSale.id,
         data,
       })
+      toast({
+        variant: "success",
+        title: "Pago registrado",
+        description: "El pago se ha registrado correctamente.",
+      })
       setIsPaymentModalOpen(false)
       setSelectedSale(null)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding payment:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error?.message || "Error al registrar el pago.",
+      })
     }
   }
 
   const handleCashRegisterPay = async () => {
     if (cashRegisterForm.lines.length === 0) {
-      alert('Agrega al menos un producto a la venta')
+      toast({
+        variant: "destructive",
+        title: "Venta vacía",
+        description: "Agrega al menos un producto a la venta.",
+      })
       return
     }
 
@@ -179,11 +210,21 @@ export default function SalesPage() {
         },
       })
 
+      toast({
+        variant: "success",
+        title: "Venta procesada",
+        description: "La venta y el pago se han registrado correctamente.",
+      })
+
       setIsCashRegisterOpen(false)
       setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing sale:', error)
-      alert('Error al procesar la venta')
+      toast({
+        variant: "destructive",
+        title: "Error al procesar venta",
+        description: error?.message || 'Error al procesar la venta',
+      })
     }
   }
 
