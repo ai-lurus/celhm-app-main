@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useStock, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem, InventoryItem } from '../../../lib/hooks/useStock'
+import { useToast } from '../../../hooks/use-toast'
 import { useCreateMovement } from '../../../lib/hooks/useMovements'
 import { useCategories, useBrands } from '../../../lib/hooks/useCatalog'
 import { useAuthStore } from '../../../stores/auth'
@@ -51,6 +52,7 @@ export default function InventoryPage() {
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   // API hooks
+  const { toast } = useToast()
   const { data: stockData, isLoading, error, refetch } = useStock({
     marca: selectedBrand || undefined,
     modelo: modelSearch || undefined,
@@ -160,7 +162,11 @@ export default function InventoryPage() {
 
   const handleSaveProduct = async () => {
     if (!newProduct.name) {
-      alert('Por favor, completa el nombre.');
+      toast({
+        variant: "destructive",
+        title: "Nombre requerido",
+        description: "Por favor, completa el nombre del producto.",
+      })
       return;
     }
 
@@ -180,6 +186,11 @@ export default function InventoryPage() {
             max_stock: 100,
           },
         });
+        toast({
+          variant: "success",
+          title: "Producto actualizado",
+          description: "El producto se ha actualizado correctamente.",
+        })
       } else {
         await createItem.mutateAsync({
           branchId: user?.branchId,
@@ -194,10 +205,19 @@ export default function InventoryPage() {
           min: newProduct.min_stock,
           max: 100,
         });
+        toast({
+          variant: "success",
+          title: "Producto creado",
+          description: "El producto se ha creado correctamente.",
+        })
       }
       closeModal();
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al guardar'}`);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: error.response?.data?.message || error.message || 'Error al guardar el producto',
+      })
     }
   };
 
@@ -214,9 +234,18 @@ export default function InventoryPage() {
     if (itemToDelete) {
       try {
         await deleteItem.mutateAsync(itemToDelete.id);
+        toast({
+          variant: "success",
+          title: "Producto eliminado",
+          description: "El producto se ha eliminado correctamente.",
+        })
         closeDeleteModal();
       } catch (error: any) {
-        alert(`Error: ${error.response?.data?.message || error.message || 'Error al eliminar'}`);
+        toast({
+          variant: "destructive",
+          title: "Error al eliminar",
+          description: error.response?.data?.message || error.message || 'Error al eliminar el producto',
+        })
       }
     }
   };
@@ -234,17 +263,29 @@ export default function InventoryPage() {
   };
   const handleSaveMovement = async () => {
     if (movementQuantity <= 0) {
-      alert('La cantidad debe ser mayor a 0.');
+      toast({
+        variant: "destructive",
+        title: "Cantidad inválida",
+        description: "La cantidad debe ser mayor a 0.",
+      })
       return;
     }
     if (!itemForMovement || !user?.branchId) {
-      alert('Error: No se puede registrar el movimiento.');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se puede registrar el movimiento.",
+      })
       return;
     }
 
     // Check if salida would result in negative stock
     if (movementType === 'salida' && itemForMovement.qty - movementQuantity < 0) {
-      alert('Error: No se puede registrar una salida que deje el stock en negativo.');
+      toast({
+        variant: "destructive",
+        title: "Stock insuficiente",
+        description: "No se puede registrar una salida que deje el stock en negativo.",
+      })
       return;
     }
 
@@ -255,9 +296,18 @@ export default function InventoryPage() {
         type: movementType,
         qty: movementQuantity,
       });
+      toast({
+        variant: "success",
+        title: "Movimiento registrado",
+        description: `Se registró una ${movementType} de ${movementQuantity} unidades.`,
+      })
       closeMovementModal();
     } catch (error: any) {
-      alert(`Error: ${error.response?.data?.message || error.message || 'Error al registrar movimiento'}`);
+      toast({
+        variant: "destructive",
+        title: "Error al registrar movimiento",
+        description: error.response?.data?.message || error.message || 'Error al registrar movimiento',
+      })
     }
   };
 
