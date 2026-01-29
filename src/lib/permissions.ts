@@ -17,6 +17,7 @@ export const rolePermissions = {
     canDeleteOrders: true,
     canEditPrices: true,
     canViewAllBranches: true,
+    canUpdateTickets: true,
   },
   ADMON: {
     canViewReports: true,
@@ -30,6 +31,7 @@ export const rolePermissions = {
     canDeleteOrders: false, // No puede borrar órdenes, solo cancelarlas
     canEditPrices: true,
     canViewAllBranches: true,
+    canUpdateTickets: true,
   },
   LABORATORIO: {
     canViewReports: false,
@@ -43,6 +45,7 @@ export const rolePermissions = {
     canDeleteOrders: false,
     canEditPrices: false,
     canViewAllBranches: false,
+    canUpdateTickets: true,
   },
   RECEPCIONISTA: {
     canViewReports: false,
@@ -56,6 +59,7 @@ export const rolePermissions = {
     canDeleteOrders: false,
     canEditPrices: false,
     canViewAllBranches: false,
+    canUpdateTickets: false,
   },
 } as const
 

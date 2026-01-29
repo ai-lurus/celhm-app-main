@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, useTicket } from '../../../lib/hooks/useTickets'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
+import { usePermissions } from '../../../lib/hooks/usePermissions'
 import { Ticket, TicketState } from '@celhm/types'
 import { DateRangePicker } from '../../../components/ui/DateRangePicker'
 import dynamic from 'next/dynamic'
@@ -97,6 +98,7 @@ interface StatusForm {
 
 export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
+  const { can } = usePermissions()
   const { data: branches = [] } = useBranches()
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -579,20 +581,24 @@ export default function TicketsPage() {
                           >
                             <IconView className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={() => handleOpenEdit(ticket)}
-                            title="Editar"
-                            className="flex-1 flex justify-center p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
-                          >
-                            <IconEdit className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenStatus(ticket)}
-                            title="Cambiar Estado"
-                            className="flex-1 flex justify-center p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
-                          >
-                            <IconMovement className="w-5 h-5" />
-                          </button>
+                          {can('canUpdateTickets') && (
+                            <>
+                              <button
+                                onClick={() => handleOpenEdit(ticket)}
+                                title="Editar"
+                                className="flex-1 flex justify-center p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                              >
+                                <IconEdit className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenStatus(ticket)}
+                                title="Cambiar Estado"
+                                className="flex-1 flex justify-center p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                              >
+                                <IconMovement className="w-5 h-5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -661,20 +667,25 @@ export default function TicketsPage() {
                           >
                             <IconView className="w-5 h-5" />
                           </button>
-                          <button
-                            onClick={() => handleOpenEdit(ticket)}
-                            title="Editar"
-                            className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
-                          >
-                            <IconEdit className="w-5 h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleOpenStatus(ticket)}
-                            title="Cambiar Estado"
-                            className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
-                          >
-                            <IconMovement className="w-5 h-5" />
-                          </button>
+
+                          {can('canUpdateTickets') && (
+                            <>
+                              <button
+                                onClick={() => handleOpenEdit(ticket)}
+                                title="Editar"
+                                className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                              >
+                                <IconEdit className="w-5 h-5" />
+                              </button>
+                              <button
+                                onClick={() => handleOpenStatus(ticket)}
+                                title="Cambiar Estado"
+                                className="p-1 rounded-md text-purple-600 hover:bg-purple-100 hover:text-purple-800 transition-colors"
+                              >
+                                <IconMovement className="w-5 h-5" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -736,8 +747,9 @@ export default function TicketsPage() {
               </div>
             )}
           </div>
-        )}
-      </div>
+        )
+        }
+      </div >
 
       {/* Modal Crear/Editar Ticket */}
       {
