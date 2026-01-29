@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, type ReactElement } from 'react'
-import { useCashRegisters, useCashCuts, useCreateCashCut, CashCut, CashRegister } from '../../../lib/hooks/useCash'
+import { useCashRegisters, useCashCuts, useCreateCashCut, useCreateCashRegister, CashCut, CashRegister } from '../../../lib/hooks/useCash'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
 
@@ -16,6 +16,7 @@ export default function CashPage(): ReactElement {
   const user = useAuthStore((state) => state.user)
   const [page, setPage] = useState(1)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isCreateRegisterModalOpen, setIsCreateRegisterModalOpen] = useState(false)
   const [viewingCut, setViewingCut] = useState<CashCut | null>(null)
 
   const { data: branches } = useBranches()
@@ -29,6 +30,7 @@ export default function CashPage(): ReactElement {
   })
 
   const createCashCut = useCreateCashCut()
+  const createCashRegister = useCreateCashRegister()
 
   const cuts: CashCut[] = Array.isArray((cutsData as any)?.data) ? (cutsData as any).data : []
   const registersArray: CashRegister[] = Array.isArray(registers) ? registers : []
@@ -38,6 +40,10 @@ export default function CashPage(): ReactElement {
     cashRegisterId: 0,
     initialAmount: 0,
     notes: '',
+  })
+
+  const [registerForm, setRegisterForm] = useState({
+    name: '',
   })
 
   // Actualizar el formulario cuando se carguen los registros
@@ -68,6 +74,26 @@ export default function CashPage(): ReactElement {
     }
   }
 
+  const handleCreateRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!registerForm.name.trim()) {
+      alert('Ingresa un nombre para la caja')
+      return
+    }
+
+    try {
+      await createCashRegister.mutateAsync({
+        branchId,
+        name: registerForm.name.trim(),
+      })
+      setIsCreateRegisterModalOpen(false)
+      setRegisterForm({ name: '' })
+    } catch (error) {
+      console.error('Error al crear la caja:', error)
+      alert('Error al crear la caja. Por favor, intenta nuevamente.')
+    }
+  }
+
   const getDifferenceColor = (diff: number) => {
     if (diff === 0) return 'text-green-600'
     if (diff > 0) return 'text-primary'
@@ -81,15 +107,26 @@ export default function CashPage(): ReactElement {
           <h1 className="text-2xl font-bold text-foreground">Caja y Cortes</h1>
           <p className="text-muted-foreground">Gestiona los cortes de caja diarios</p>
         </div>
-        <button
-          onClick={() => {
-            setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
-            setIsCreateModalOpen(true)
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
-        >
-          + Nuevo Corte
-        </button>
+        <div className="flex gap-5">
+          <button
+            onClick={() => {
+              setRegisterForm({ name: '' })
+              setIsCreateRegisterModalOpen(true)
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md"
+          >
+            + Agregar Caja
+          </button>
+          <button
+            onClick={() => {
+              setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
+              setIsCreateModalOpen(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
+          >
+            + Nuevo Corte
+          </button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -175,6 +212,44 @@ export default function CashPage(): ReactElement {
           </tbody>
         </table>
       </div>
+
+      {/* Modal Agregar Caja */}
+      {isCreateRegisterModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar Nueva Caja</h2>
+            <form onSubmit={handleCreateRegister} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Nombre de la Caja</label>
+                <input
+                  type="text"
+                  required
+                  value={registerForm.name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterForm({ name: e.target.value })}
+                  placeholder="Ej: Caja Principal"
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateRegisterModalOpen(false)}
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={createCashRegister.isPending}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {createCashRegister.isPending ? 'Guardando...' : 'Agregar Caja'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Modal Crear Corte */}
       {isCreateModalOpen && (

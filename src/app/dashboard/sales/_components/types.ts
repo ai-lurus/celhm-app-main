@@ -6,6 +6,7 @@ export interface SaleLineItem {
   product: string
   qty: number
   unitPrice: number
+  advance?: number // Anticipo para órdenes de reparación
   amount: number
 }
 
