@@ -326,7 +326,7 @@ export default function CatalogPage() {
               onChange={(e) => setSelectedBrand(e.target.value)}
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
-              <option value="">Todas las marcas</option>
+              <option key={0} value="">Todas las marcas</option>
               {brands.map((brand) => (
                 <option key={brand.id} value={brand.name}>{brand.name}</option>
               ))}

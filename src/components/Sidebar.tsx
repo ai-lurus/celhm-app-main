@@ -60,7 +60,7 @@ export function Sidebar() {
     { label: 'Clientes', href: '/dashboard/customers', permission: 'canManageCustomers' },
     { label: 'Ventas', href: '/dashboard/sales', permission: 'canManageSales' },
     { label: 'Catálogo', href: '/dashboard/inventory', permission: 'canManageInventory' },
-    { label: 'Punto de Venta', href: '/dashboard/cash', permission: 'canManageCash' },
+    { label: 'Caja', href: '/dashboard/cash', permission: 'canManageCash' },
     { label: 'Reportes', href: '/dashboard/reports', permission: 'canViewFinancialReports' },
   ]
 

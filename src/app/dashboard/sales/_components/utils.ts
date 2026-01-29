@@ -3,7 +3,8 @@ import { SaleLineItem, CashRegisterForm } from './types'
 export const calculateCashRegisterSubtotal = (lines: SaleLineItem[]): number => {
   return lines.reduce((sum, line) => {
     const amount = Number(line.amount) || 0
-    return sum + amount
+    const advance = Number(line.advance) || 0
+    return sum + (amount - advance) // Restar el anticipo del monto total
   }, 0)
 }
 

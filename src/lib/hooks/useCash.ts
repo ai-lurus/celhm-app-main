@@ -37,6 +37,11 @@ export interface CreateCashCutRequest {
   notes?: string
 }
 
+export interface CreateCashRegisterRequest {
+  branchId: number
+  name: string
+}
+
 interface GetCashCutsParams {
   branchId: number
   cashRegisterId?: number
@@ -104,3 +109,16 @@ export function useCreateCashCut() {
   })
 }
 
+export function useCreateCashRegister() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: CreateCashRegisterRequest) => {
+      const response = await api.post<CashRegister>('/cash/registers', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash', 'registers'] })
+    },
+  })
+}

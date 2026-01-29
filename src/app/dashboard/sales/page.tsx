@@ -1,241 +1,160 @@
 'use client'
 
 import { useState } from 'react'
-import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod } from '../../../lib/hooks/useSales'
-import { useToast } from '../../../hooks/use-toast'
-import { useCustomers } from '../../../lib/hooks/useCustomers'
+import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod, SaleLine, Payment } from '../../../lib/hooks/useSales'
+import { useCustomers, Customer, useCreateCustomer } from '../../../lib/hooks/useCustomers'
 import { useTickets } from '../../../lib/hooks/useTickets'
-import { useProducts } from '../../../lib/hooks/useCatalog'
+import { Ticket } from '@celhm/types'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
-import { useStock, InventoryItem } from '../../../lib/hooks/useStock'
-import { useUsers, OrgMember } from '../../../lib/hooks/useUsers'
-import {
-  SalesTable,
-  SalesPagination,
-  CashRegister,
-  CreateSaleModal,
-  PaymentModal,
-  ViewSaleModal,
-  CashRegisterForm,
-  createInitialCashRegisterForm,
-  calculateCashRegisterDiscount,
-  calculateCashRegisterTotal,
-} from './_components'
-import { useCreateCustomer } from '../../../lib/hooks/useCustomers'
+import { useStock } from '../../../lib/hooks/useStock'
+import { useUsers } from '../../../lib/hooks/useUsers'
+import { CashRegister } from './_components/CashRegister'
+import { CashRegisterForm, createInitialCashRegisterForm } from './_components/types'
+
+const IconView = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+)
 
 export default function SalesPage() {
   const user = useAuthStore((state) => state.user)
   const [page, setPage] = useState(1)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isCashRegisterOpen, setIsCashRegisterOpen] = useState(false)
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [viewingSale, setViewingSale] = useState<Sale | null>(null)
 
-  // Cash register state
-  const [cashRegisterForm, setCashRegisterForm] = useState<CashRegisterForm>(
-    createInitialCashRegisterForm(user?.id?.toString() || '')
-  )
-
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
-  // API hooks
-  const { toast } = useToast()
-  const { data: salesData, isLoading } = useSales({ branchId, page, pageSize: 20 })
-  const { data: customersData } = useCustomers({ page: 1, pageSize: 100 })
+  const { data: salesData, isLoading, refetch: refetchSales } = useSales({ branchId, page, pageSize: 20 })
+  const { data: customersData, refetch: refetchCustomers } = useCustomers({ page: 1, pageSize: 100 })
   const { data: ticketsData } = useTickets({ page: 1, pageSize: 100 })
-  const { data: productsData } = useProducts({ page: 1, pageSize: 100 })
-  const { data: stockData } = useStock({ sucursal: branchId, page: 1, pageSize: 1000 })
+  const { data: stockData } = useStock({ page: 1, pageSize: 1000 })
   const { data: usersData } = useUsers()
 
   const createSale = useCreateSale()
   const addPayment = useAddPayment()
   const createCustomer = useCreateCustomer()
 
-  // Safely extract data, ensuring we never get error objects
   const sales = Array.isArray((salesData as any)?.data) ? (salesData as any).data : []
   const customers = Array.isArray((customersData as any)?.data) ? (customersData as any).data : []
   const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
-  const products = Array.isArray((productsData as any)?.data) ? (productsData as any).data : []
-  const stockItems: InventoryItem[] = Array.isArray((stockData as any)?.data) ? (stockData as any).data : []
-  const users: OrgMember[] = Array.isArray(usersData) ? usersData : []
+  const stockItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : []
+  const users = Array.isArray(usersData) ? usersData : []
 
-  // Ensure customers array doesn't contain error objects
-  const safeCustomers = customers.filter((c: any) => {
-    if (!c || typeof c !== 'object') return false
-    // Reject objects that look like error objects
-    if (c.message && c.error && c.statusCode) return false
-    return true
+  // Form state - usando CashRegisterForm
+  const [cashRegisterForm, setCashRegisterForm] = useState<CashRegisterForm>(() => 
+    createInitialCashRegisterForm(user?.id?.toString() || '')
+  )
+
+  const [paymentForm, setPaymentForm] = useState({
+    amount: 0,
+    method: 'CASH' as PaymentMethod,
+    reference: '',
   })
 
-  // Form state for old modal
-  const [saleForm, setSaleForm] = useState({
-    customerId: '',
-    ticketId: '',
-    lines: [] as CreateSaleLine[],
-    discount: 0,
-  })
-
-  const handleAddLine = () => {
-    setSaleForm({
-      ...saleForm,
-      lines: [...saleForm.lines, { description: '', qty: 1, unitPrice: 0 }],
-    })
-  }
-
-  const handleRemoveLine = (index: number) => {
-    setSaleForm({
-      ...saleForm,
-      lines: saleForm.lines.filter((_, i) => i !== index),
-    })
-  }
-
-  const handleUpdateLine = (index: number, field: keyof CreateSaleLine, value: any) => {
-    const newLines = [...saleForm.lines]
-    newLines[index] = { ...newLines[index], [field]: value }
-    setSaleForm({ ...saleForm, lines: newLines })
-  }
-
-  const calculateSubtotal = () => {
-    return saleForm.lines.reduce((sum, line) => {
-      const unitPrice = Number(line.unitPrice) || 0
-      const qty = Number(line.qty) || 0
-      const discount = Number(line.discount) || 0
-      return sum + (unitPrice * qty) - discount
-    }, 0)
-  }
-
-  const calculateTotal = () => {
-    const subtotal = calculateSubtotal()
-    const discount = Number(saleForm.discount) || 0
-    return subtotal - discount
-  }
-
-  const handleCreateSale = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (saleForm.lines.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Venta vacía",
-        description: "Agrega al menos una línea de venta.",
-      })
+  const handlePay = async () => {
+    if (cashRegisterForm.lines.length === 0) {
+      alert('Agrega al menos un producto o orden de reparación')
       return
     }
 
     try {
+      // Convertir CashRegisterForm a CreateSaleRequest
+      const lines: CreateSaleLine[] = cashRegisterForm.lines.map(line => {
+        // Si es una orden de reparación (code empieza con TICKET-)
+        if (line.code.startsWith('TICKET-')) {
+          const ticketId = parseInt(line.code.replace('TICKET-', ''))
+          return {
+            ticketId,
+            description: line.product,
+            qty: line.qty,
+            unitPrice: line.unitPrice,
+          }
+        } else {
+          // Es un producto normal
+          return {
+            variantId: line.variantId,
+            description: line.product,
+            qty: line.qty,
+            unitPrice: line.unitPrice,
+          }
+        }
+      })
+
       await createSale.mutateAsync({
         branchId,
-        customerId: saleForm.customerId ? parseInt(saleForm.customerId) : undefined,
-        ticketId: saleForm.ticketId ? parseInt(saleForm.ticketId) : undefined,
-        lines: saleForm.lines,
-        discount: saleForm.discount,
+        customerId: cashRegisterForm.customerId ? parseInt(cashRegisterForm.customerId) : undefined,
+        lines,
+        discount: cashRegisterForm.discount,
       })
-      toast({
-        variant: "success",
-        title: "Venta creada",
-        description: "La venta se ha registrado exitosamente.",
-      })
+
+      // Si hay un pago inicial, agregarlo
+      if (cashRegisterForm.paymentMethod === 'CASH' && cashRegisterForm.lines.length > 0) {
+        // El pago se manejará después de crear la venta si es necesario
+      }
+
       setIsCreateModalOpen(false)
-      setSaleForm({ customerId: '', ticketId: '', lines: [], discount: 0 })
-    } catch (error: any) {
+      setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
+      // Resetear a la página 1 para ver la nueva venta creada
+      setPage(1)
+      // Refrescar la lista de ventas para mostrar la nueva venta creada
+      await refetchSales()
+    } catch (error) {
       console.error('Error creating sale:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.message || "Error al crear la venta.",
-      })
+      alert('Error al crear la venta. Por favor, intenta de nuevo.')
     }
   }
 
-  const handleAddPaymentToSale = async (data: { amount: number; method: PaymentMethod; reference: string }) => {
+  const handleCancel = () => {
+    setIsCreateModalOpen(false)
+    setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
+  }
+
+  const handleCreateCustomer = async (name: string, phone: string) => {
+    try {
+      await createCustomer.mutateAsync({
+        name,
+        phone,
+        branchId,
+      })
+      await refetchCustomers()
+      // Buscar el cliente recién creado y seleccionarlo
+      const newCustomer = customers.find((c: Customer) => c.name === name && c.phone === phone)
+      if (newCustomer) {
+        setCashRegisterForm({
+          ...cashRegisterForm,
+          customerId: newCustomer.id.toString(),
+          customerName: newCustomer.name,
+        })
+      }
+    } catch (error) {
+      console.error('Error creating customer:', error)
+      alert('Error al crear el cliente. Por favor, intenta de nuevo.')
+    }
+  }
+
+  const handleAddPaymentToSale = async (e: React.FormEvent) => {
+    e.preventDefault()
     if (!selectedSale) return
 
     try {
       await addPayment.mutateAsync({
         saleId: selectedSale.id,
-        data,
-      })
-      toast({
-        variant: "success",
-        title: "Pago registrado",
-        description: "El pago se ha registrado correctamente.",
+        data: paymentForm,
       })
       setIsPaymentModalOpen(false)
       setSelectedSale(null)
-    } catch (error: any) {
+      setPaymentForm({ amount: 0, method: 'CASH', reference: '' })
+      // Refrescar la lista de ventas para mostrar el pago agregado
+      await refetchSales()
+    } catch (error) {
       console.error('Error adding payment:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error?.message || "Error al registrar el pago.",
-      })
     }
-  }
-
-  const handleCashRegisterPay = async () => {
-    if (cashRegisterForm.lines.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Venta vacía",
-        description: "Agrega al menos un producto a la venta.",
-      })
-      return
-    }
-
-    try {
-      const saleLines: CreateSaleLine[] = cashRegisterForm.lines.map(line => ({
-        variantId: line.variantId,
-        description: line.product,
-        qty: line.qty,
-        unitPrice: line.unitPrice,
-      }))
-
-      const discount = calculateCashRegisterDiscount(cashRegisterForm)
-
-      const sale = await createSale.mutateAsync({
-        branchId,
-        customerId: cashRegisterForm.customerId ? parseInt(cashRegisterForm.customerId) : undefined,
-        lines: saleLines,
-        discount,
-      })
-
-      // Add payment
-      await addPayment.mutateAsync({
-        saleId: sale.id,
-        data: {
-          amount: calculateCashRegisterTotal(cashRegisterForm),
-          method: cashRegisterForm.paymentMethod,
-        },
-      })
-
-      toast({
-        variant: "success",
-        title: "Venta procesada",
-        description: "La venta y el pago se han registrado correctamente.",
-      })
-
-      setIsCashRegisterOpen(false)
-      setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
-    } catch (error: any) {
-      console.error('Error processing sale:', error)
-      toast({
-        variant: "destructive",
-        title: "Error al procesar venta",
-        description: error?.message || 'Error al procesar la venta',
-      })
-    }
-  }
-
-  const handleCashRegisterCancel = () => {
-    setIsCashRegisterOpen(false)
-    setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
-  }
-
-  const handleCreateCustomer = async (name: string, phone: string) => {
-    // El CustomerSelector ya maneja la creación, esto es solo para refrescar la lista
-    // Los datos se invalidan automáticamente por el hook
   }
 
   const getStatusColor = (status: string) => {
@@ -259,86 +178,275 @@ export default function SalesPage() {
           <p className="text-muted-foreground">Gestiona las ventas y pagos</p>
         </div>
         <button
-          onClick={() => {
-            setIsCashRegisterOpen(true)
-            setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
-          }}
+          onClick={() => setIsCreateModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
         >
-          Crear venta
+          + Nueva Venta
         </button>
       </div>
 
-      <SalesTable
-        sales={sales}
-        isLoading={isLoading}
-        onViewSale={setViewingSale}
-        onAddPayment={(sale) => {
-          setSelectedSale(sale)
-          setIsPaymentModalOpen(true)
-        }}
-        getStatusColor={getStatusColor}
-      />
+      {/* Tabla de Ventas */}
+      <div className="bg-card rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Total</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Pagado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="bg-card divide-y divide-border">
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">Cargando...</td>
+              </tr>
+            ) : sales.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-4 text-center text-muted-foreground">No hay ventas registradas</td>
+              </tr>
+            ) : (
+              sales.map((sale: Sale) => (
+                <tr key={sale.id} className="hover:bg-muted">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">{sale.folio}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    {sale.customer?.name || '-'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    ${((sale.total || 0)).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                    ${((sale.paidAmount || 0)).toLocaleString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(sale.status)}`}>
+                      {sale.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                    {new Date(sale.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => setViewingSale(sale)}
+                        className="text-primary hover:text-blue-900"
+                        title="Ver detalles"
+                      >
+                        <IconView />
+                      </button>
+                      {sale.status === 'PENDING' && sale.paidAmount < sale.total && (
+                        <button
+                          onClick={() => {
+                            setSelectedSale(sale)
+                            setPaymentForm({ amount: sale.total - sale.paidAmount, method: 'CASH', reference: '' })
+                            setIsPaymentModalOpen(true)
+                          }}
+                          className="text-green-600 hover:text-green-900 text-sm"
+                        >
+                          Agregar Pago
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
+      {/* Paginación */}
       {salesData && (salesData as any).pagination && (
-        <SalesPagination
-          page={page}
-          totalPages={(salesData as any).pagination.totalPages}
-          total={(salesData as any).pagination.total}
-          pageSize={20}
-          onPageChange={setPage}
-        />
+        <div className="flex items-center justify-between px-4 py-3 bg-card border-t border-border">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {((page - 1) * 20) + 1} a {Math.min(page * 20, (salesData as any).pagination.total)} de {(salesData as any).pagination.total} ventas
+          </div>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={page >= (salesData as any).pagination.totalPages}
+              className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-border rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Siguiente
+            </button>
+          </div>
+        </div>
       )}
 
-      <CreateSaleModal
-        isOpen={isCreateModalOpen}
-        form={saleForm}
-        customers={safeCustomers}
-        tickets={tickets}
-        products={products}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateSale}
-        onFormChange={setSaleForm}
-        onAddLine={handleAddLine}
-        onRemoveLine={handleRemoveLine}
-        onUpdateLine={handleUpdateLine}
-        calculateSubtotal={calculateSubtotal}
-        calculateTotal={calculateTotal}
-        isPending={createSale.isPending}
-      />
-
-      {isPaymentModalOpen && selectedSale && (
-        <PaymentModal
-          sale={selectedSale}
-          onClose={() => {
-            setIsPaymentModalOpen(false)
-            setSelectedSale(null)
-          }}
-          onSubmit={handleAddPaymentToSale}
-          isPending={addPayment.isPending}
-        />
-      )}
-
-      {viewingSale && (
-        <ViewSaleModal
-          sale={viewingSale}
-          onClose={() => setViewingSale(null)}
-          getStatusColor={getStatusColor}
-        />
-      )}
-
+      {/* Modal Crear Venta - CashRegister */}
       <CashRegister
-        isOpen={isCashRegisterOpen}
+        isOpen={isCreateModalOpen}
         form={cashRegisterForm}
         stockItems={stockItems}
         users={users}
-        customers={safeCustomers}
+        customers={customers}
         tickets={tickets}
         onFormChange={setCashRegisterForm}
-        onPay={handleCashRegisterPay}
-        onCancel={handleCashRegisterCancel}
+        onPay={handlePay}
+        onCancel={handleCancel}
         onCreateCustomer={handleCreateCustomer}
       />
+
+      {/* Modal Agregar Pago */}
+      {isPaymentModalOpen && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Agregar Pago</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Venta: {selectedSale.folio} - Total: ${((selectedSale.total || 0)).toLocaleString()} - 
+              Pendiente: ${((selectedSale.total || 0) - (selectedSale.paidAmount || 0)).toLocaleString()}
+            </p>
+            <form onSubmit={handleAddPaymentToSale} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Monto</label>
+                <input
+                  type="number"
+                  required
+                  min="0.01"
+                  max={selectedSale.total - selectedSale.paidAmount}
+                  step="0.01"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Método de Pago</label>
+                <select
+                  value={paymentForm.method}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethod })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                >
+                  <option value="CASH">Efectivo</option>
+                  <option value="CARD">Tarjeta</option>
+                  <option value="TRANSFER">Transferencia</option>
+                  <option value="OTHER">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Referencia (opcional)</label>
+                <input
+                  type="text"
+                  value={paymentForm.reference}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-md"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsPaymentModalOpen(false)
+                    setSelectedSale(null)
+                  }}
+                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={addPayment.isPending}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  {addPayment.isPending ? 'Guardando...' : 'Agregar Pago'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ver Detalles */}
+      {viewingSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+          <div className="bg-card rounded-lg p-6 w-full max-w-2xl my-8">
+            <h2 className="text-xl font-bold mb-4">Detalles de Venta</h2>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Folio</label>
+                  <p className="text-sm text-foreground">{viewingSale.folio}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Estado</label>
+                  <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(viewingSale.status)}`}>
+                    {viewingSale.status}
+                  </span>
+                </div>
+              </div>
+              {viewingSale.customer && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Cliente</label>
+                  <p className="text-sm text-foreground">{viewingSale.customer.name}</p>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Líneas de Venta</label>
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Descripción</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Cantidad</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Precio</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-card divide-y divide-border">
+                    {viewingSale.lines.map((line: SaleLine) => (
+                      <tr key={line.id}>
+                        <td className="px-4 py-2 text-sm">{line.description}</td>
+                        <td className="px-4 py-2 text-sm">{line.qty}</td>
+                        <td className="px-4 py-2 text-sm">${((line.unitPrice || 0)).toLocaleString()}</td>
+                        <td className="px-4 py-2 text-sm">${((line.subtotal || 0)).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="bg-muted p-4 rounded">
+                <div className="flex justify-between">
+                  <span className="font-bold">Total:</span>
+                  <span className="font-bold">${((viewingSale.total || 0)).toLocaleString()}</span>
+                </div>
+              </div>
+              {viewingSale.payments.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Pagos</label>
+                  <div className="space-y-2">
+                    {viewingSale.payments.map((payment: Payment) => (
+                      <div key={payment.id} className="flex justify-between text-sm">
+                        <span>{payment.method} - {payment.reference || 'Sin referencia'}</span>
+                        <span>${((payment.amount || 0)).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setViewingSale(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
+

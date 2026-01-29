@@ -112,12 +112,21 @@ export function CashRegister({
   const handleUpdateLine = (index: number, field: keyof SaleLineItem, value: any) => {
     const newLines = [...form.lines]
     const line = { ...newLines[index] }
-
+    const isRepairOrder = line.code.startsWith('TICKET-')
+    
+    // Si es una orden de reparación y se intenta cambiar la cantidad, no permitirlo
+    if (field === 'qty' && isRepairOrder) {
+      return // No permitir cambiar la cantidad de órdenes de reparación
+    }
+    
     if (field === 'qty') {
       const qty = Math.max(1, Number(value) || 1)
       const unitPrice = Number(line.unitPrice) || 0
       line.qty = qty
       line.amount = qty * unitPrice
+    } else if (field === 'advance') {
+      // El anticipo no se puede modificar, viene de la orden de reparación
+      return
     } else {
       // Solo permitir modificar cantidad, no precio
       (line as any)[field] = value
@@ -153,6 +162,8 @@ export function CashRegister({
 
     // Usar finalCost si existe, sino estimatedCost, sino 0
     const ticketPrice = ticket.finalCost || ticket.estimatedCost || 0
+    // Obtener el anticipo de la orden de reparación (si existe)
+    const advancePayment = ticket.advancePayment || 0
 
     const newLine: SaleLineItem = {
       variantId: undefined,
@@ -160,6 +171,7 @@ export function CashRegister({
       product: `Orden de Reparación ${ticket.folio} - ${ticket.device} (${ticket.customerName})`,
       qty: 1,
       unitPrice: ticketPrice,
+      advance: advancePayment,
       amount: ticketPrice,
     }
 
@@ -305,11 +317,12 @@ export function CashRegister({
 
             {/* Products Table Header */}
             <div className="bg-blue-600 text-white px-6 py-2">
-              <div className="grid grid-cols-5 gap-4 text-sm font-medium">
+              <div className="grid grid-cols-6 gap-4 text-sm font-medium">
                 <div>Cant</div>
                 <div>Código</div>
                 <div>Producto</div>
                 <div>Precio</div>
+                <div>Anticipo</div>
                 <div>Importe</div>
               </div>
             </div>
@@ -322,31 +335,55 @@ export function CashRegister({
                 </div>
               ) : (
                 <div className="divide-y">
-                  {form.lines.map((line, index) => (
-                    <div key={index} className="grid grid-cols-5 gap-4 px-6 py-3 hover:bg-gray-50">
+                  {form.lines.map((line, index) => {
+                    const isRepairOrder = line.code.startsWith('TICKET-')
+                    const advance = line.advance || 0
+                    const finalAmount = line.amount - advance
+                    return (
+                    <div key={index} className="grid grid-cols-6 gap-4 px-6 py-3 hover:bg-gray-50">
                       <input
                         type="number"
                         min="1"
                         value={line.qty}
                         onChange={(e) => {
+                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
                           const qty = parseInt(e.target.value) || 1
                           handleUpdateLine(index, 'qty', qty)
                         }}
                         onBlur={(e) => {
+                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
                           const qty = parseInt(e.target.value) || 1
                           if (qty < 1) {
                             handleUpdateLine(index, 'qty', 1)
                           }
                         }}
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        disabled={isRepairOrder}
+                        readOnly={isRepairOrder}
+                        className={`w-full px-2 py-1 border border-gray-300 rounded text-sm ${
+                          isRepairOrder ? 'bg-gray-100 cursor-not-allowed' : ''
+                        }`}
+                        title={isRepairOrder ? 'La cantidad de órdenes de reparación está fija en 1' : ''}
                       />
                       <div className="text-sm text-gray-700">{String(line.code || '')}</div>
                       <div className="text-sm text-gray-700">{String(line.product || '')}</div>
                       <div className="text-sm text-gray-700 font-medium">
                         ${(line.unitPrice || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </div>
+                      <div>
+                        {isRepairOrder ? (
+                          advance > 0 ? (
+                            <div className="text-sm text-gray-700 font-medium">
+                              ${advance.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </div>
+                          ) : (
+                            <div className="text-sm text-gray-400">-</div>
+                          )
+                        ) : (
+                          <div className="text-sm text-gray-400">-</div>
+                        )}
+                      </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">${(line.amount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-medium">${(finalAmount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         <button
                           onClick={() => handleRemoveLine(index)}
                           className="text-red-600 hover:text-red-800 text-sm font-bold"
@@ -356,7 +393,8 @@ export function CashRegister({
                         </button>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
