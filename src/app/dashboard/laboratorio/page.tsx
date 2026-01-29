@@ -97,9 +97,9 @@ interface StatusForm {
 }
 
 export default function TicketsPage() {
-  const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
-  const { data: branches = [] } = useBranches()
+  const user = useAuthStore((state) => state.user)
+  const { data: branches = [] } = useBranches({ enabled: can('canViewAllBranches') })
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(1)
@@ -444,7 +444,8 @@ export default function TicketsPage() {
                 setSelectedState(e.target.value as TicketState | '')
                 setPage(1)
               }}
-              className="w-full border border-border rounded-md px-3 py-2"
+              disabled={activeView === 'kanban'}
+              className={`w-full border border-border rounded-md px-3 py-2 ${activeView === 'kanban' ? 'bg-muted text-muted-foreground' : ''}`}
             >
               <option value="">Todos los estados</option>
               {allStates.map((state: TicketState) => (
@@ -463,14 +464,23 @@ export default function TicketsPage() {
                 setBranchId(value)
                 setPage(1)
               }}
-              className="w-full border border-border rounded-md px-3 py-2"
+              disabled={!can('canViewAllBranches')}
+              className={`w-full border border-border rounded-md px-3 py-2 ${!can('canViewAllBranches') ? 'bg-muted text-muted-foreground cursor-not-allowed' : ''}`}
             >
-              {branches.length > 1 && <option value="">Todas</option>}
-              {branches.map((branch: any) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
+              {branches.length > 1 && can('canViewAllBranches') && <option value="">Todas</option>}
+              {can('canViewAllBranches') ? (
+                branches.map((branch: any) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))
+              ) : (
+                <option value={user?.branchId || 1}>
+                  {/* Si no cargamos ramas, mostrar ID o nombre genérico, o confiar en que branches está vacío */}
+                  {/* Mejor: si no tiene permiso, branches estará vacio. Mostramos "Mi Sucursal" o el ID */}
+                  Sucursal {user?.branchId || 1}
                 </option>
-              ))}
+              )}
             </select>
           </div>
           <div>

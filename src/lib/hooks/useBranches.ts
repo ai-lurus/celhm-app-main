@@ -10,13 +10,14 @@ export interface Branch {
   isActive: boolean
 }
 
-export function useBranches() {
+export function useBranches(options: { enabled?: boolean } = {}) {
   return useQuery<Branch[]>({
     queryKey: ['branches'],
     queryFn: async () => {
       const response = await api.get<Branch[]>('/branches')
       return response.data
     },
+    enabled: options.enabled,
     retry: false,
   })
 }

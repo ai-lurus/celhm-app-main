@@ -66,7 +66,7 @@ export function Sidebar() {
 
   const adminNavItems: NavItem[] = [
     { label: 'Usuarios', href: '/dashboard/users', permission: 'canViewAllBranches' },
-    { label: 'Configuración de la Empresa', href: '/dashboard/settings', permission: undefined },
+    { label: 'Configuración de la Empresa', href: '/dashboard/settings', permission: 'canManageSettings' },
   ]
 
   const isActive = (href: string) => {
@@ -119,8 +119,8 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
-                ? 'bg-blue-600 text-white font-medium'
-                : 'text-blue-100 hover:bg-blue-800 hover:text-white'
+              ? 'bg-blue-600 text-white font-medium'
+              : 'text-blue-100 hover:bg-blue-800 hover:text-white'
               }`}
           >
             <span className="text-sm">{item.label}</span>
@@ -140,8 +140,8 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${isActive(item.href)
-                    ? 'bg-blue-600 text-white font-medium'
-                    : 'text-blue-100 hover:bg-blue-800 hover:text-white'
+                  ? 'bg-blue-600 text-white font-medium'
+                  : 'text-blue-100 hover:bg-blue-800 hover:text-white'
                   }`}
               >
                 <span className="text-sm">{item.label}</span>

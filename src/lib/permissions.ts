@@ -18,6 +18,7 @@ export const rolePermissions = {
     canEditPrices: true,
     canViewAllBranches: true,
     canUpdateTickets: true,
+    canManageSettings: true,
   },
   ADMON: {
     canViewReports: true,
@@ -32,6 +33,7 @@ export const rolePermissions = {
     canEditPrices: true,
     canViewAllBranches: true,
     canUpdateTickets: true,
+    canManageSettings: true,
   },
   LABORATORIO: {
     canViewReports: false,
@@ -40,17 +42,18 @@ export const rolePermissions = {
     canManageCash: false,
     canManageTickets: true,
     canManageCustomers: false,
-    canManageInventory: true,
-    canManageCatalog: true,
+    canManageInventory: false,
+    canManageCatalog: false,
     canDeleteOrders: false,
     canEditPrices: false,
     canViewAllBranches: false,
     canUpdateTickets: true,
+    canManageSettings: false,
   },
   RECEPCIONISTA: {
     canViewReports: false,
     canViewFinancialReports: false,
-    canManageSales: false,
+    canManageSales: true,
     canManageCash: false,
     canManageTickets: true, // Solo crear/ver tickets
     canManageCustomers: true,
@@ -60,6 +63,7 @@ export const rolePermissions = {
     canEditPrices: false,
     canViewAllBranches: false,
     canUpdateTickets: false,
+    canManageSettings: false,
   },
 } as const
 
