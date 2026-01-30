@@ -99,12 +99,13 @@ export default function CashPage(): ReactElement {
     }
 
     try {
-      await createCashRegister.mutateAsync({
+      const newRegister = await createCashRegister.mutateAsync({
         branchId,
         name: registerForm.name.trim(),
       })
       setIsCreateRegisterModalOpen(false)
       setRegisterForm({ name: '' })
+      setCutForm(prev => ({ ...prev, cashRegisterId: newRegister.id }))
     } catch (error) {
       console.error('Error al crear la caja:', error)
       alert('Error al crear la caja. Por favor, intenta nuevamente.')
