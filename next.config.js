@@ -17,7 +17,7 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.stories\.(tsx|ts|jsx|js)$/,
       use: {
-        loader: require.resolve('./webpack-ignore-loader.js'),
+        loader: require.resolve('./scripts/webpack-ignore-loader.js'),
       },
     });
     return config;
