@@ -92,8 +92,8 @@ interface StatusForm {
   state: TicketState
   diagnosis: string
   solution: string
-  estimatedCost: number
-  finalCost: number
+  estimatedCost: number | string
+  finalCost: number | string
   notes: string
 }
 
@@ -126,8 +126,8 @@ export default function TicketsPage() {
     state: 'RECIBIDO',
     diagnosis: '',
     solution: '',
-    estimatedCost: 0,
-    finalCost: 0,
+    estimatedCost: '0.00',
+    finalCost: '0.00',
     notes: '',
   })
 
@@ -196,8 +196,8 @@ export default function TicketsPage() {
       state: ticket.state,
       diagnosis: ticket.diagnosis || '',
       solution: ticket.solution || '',
-      estimatedCost: ticket.estimatedCost || 0,
-      finalCost: ticket.finalCost || 0,
+      estimatedCost: ticket.estimatedCost ? Number(ticket.estimatedCost).toFixed(2) : '0.00',
+      finalCost: ticket.finalCost ? Number(ticket.finalCost).toFixed(2) : (ticket.estimatedCost ? Number(ticket.estimatedCost).toFixed(2) : '0.00'),
       notes: '',
     })
     setIsStatusModalOpen(true)
@@ -288,6 +288,47 @@ export default function TicketsPage() {
     }
   }
 
+  const handleStatusPriceChange = (
+    field: keyof StatusForm,
+    value: string
+  ) => {
+    if (!/^\d*\.?\d*$/.test(value)) return
+
+    let newValue = value
+
+    if (statusForm[field] === '0.00' && value !== '0.00') {
+      if (value.startsWith('0.00') && value.length > 4) {
+        newValue = value.substring(4)
+      }
+    }
+
+    if (statusForm[field] === '0.00' && value.length > 4) {
+      newValue = value.replace('0.00', '')
+    }
+
+    if (newValue.length > 1 && newValue.startsWith('0') && newValue[1] !== '.') {
+      newValue = newValue.replace(/^0+/, '')
+    }
+
+    if (newValue === '') newValue = ''
+
+    setStatusForm({ ...statusForm, [field]: newValue })
+  }
+
+  const handleStatusPriceBlur = (field: keyof StatusForm) => {
+    const value = statusForm[field]
+    if (typeof value === 'string' && value !== '') {
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        setStatusForm({ ...statusForm, [field]: num.toFixed(2) })
+      } else {
+        setStatusForm({ ...statusForm, [field]: '0.00' })
+      }
+    } else if (value === '' || value === undefined) {
+      setStatusForm({ ...statusForm, [field]: '0.00' })
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.customerName || !formData.device || !formData.problem) {
@@ -373,13 +414,13 @@ export default function TicketsPage() {
     // Validación RF-ORD-08: No entregar si no está pagado
     if (statusForm.state === 'ENTREGADO') {
       const totalPaid = Number(statusTicket.advancePayment) || 0
-      const finalCost = Number(statusForm.finalCost || statusTicket.finalCost || statusTicket.estimatedCost) || 0
+      const currentFinalCost = (typeof statusForm.finalCost === 'string' ? parseFloat(statusForm.finalCost) : (statusForm.finalCost || statusTicket.finalCost || statusTicket.estimatedCost)) || 0
 
-      if (totalPaid < finalCost) {
+      if (totalPaid < currentFinalCost) {
         toast({
           variant: "destructive",
           title: "Pago pendiente",
-          description: `No se puede marcar como ENTREGADO. El ticket tiene un costo de $${finalCost.toLocaleString()} pero solo se ha pagado $${totalPaid.toLocaleString()}. Falta pagar $${(finalCost - totalPaid).toLocaleString()}.`,
+          description: `No se puede marcar como ENTREGADO. El ticket tiene un costo de $${Number(currentFinalCost).toLocaleString()} pero solo se ha pagado $${totalPaid.toLocaleString()}. Falta pagar $${(Number(currentFinalCost) - totalPaid).toLocaleString()}.`,
         })
         return
       }
@@ -392,8 +433,8 @@ export default function TicketsPage() {
           state: statusForm.state,
           diagnosis: statusForm.diagnosis || undefined,
           solution: statusForm.solution || undefined,
-          estimatedCost: statusForm.estimatedCost || undefined,
-          finalCost: statusForm.finalCost || undefined,
+          estimatedCost: statusForm.estimatedCost ? parseFloat(statusForm.estimatedCost.toString()) : undefined,
+          finalCost: statusForm.finalCost ? parseFloat(statusForm.finalCost.toString()) : undefined,
           notes: statusForm.notes || undefined,
         },
       })
@@ -940,28 +981,34 @@ export default function TicketsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
-                      <input
-                        type="text"
-                        value={formData.estimatedCost}
-                        onChange={(e) => handlePriceChange('estimatedCost', e.target.value)}
-                        onFocus={(e) => e.target.select()}
-                        onBlur={() => handlePriceBlur('estimatedCost')}
-                        className="w-full border border-border rounded-md px-3 py-2"
-                        placeholder="0.00"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <input
+                          type="text"
+                          value={formData.estimatedCost}
+                          onChange={(e) => handlePriceChange('estimatedCost', e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onBlur={() => handlePriceBlur('estimatedCost')}
+                          className="w-full border border-border rounded-md pl-7 pr-3 py-2"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
                     {editingTicket && (
                       <div>
                         <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
-                        <input
-                          type="text"
-                          value={formData.finalCost}
-                          onChange={(e) => handlePriceChange('finalCost', e.target.value)}
-                          onFocus={(e) => e.target.select()}
-                          onBlur={() => handlePriceBlur('finalCost')}
-                          className="w-full border border-border rounded-md px-3 py-2"
-                          placeholder="0.00"
-                        />
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                          <input
+                            type="text"
+                            value={formData.finalCost}
+                            onChange={(e) => handlePriceChange('finalCost', e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onBlur={() => handlePriceBlur('finalCost')}
+                            className="w-full border border-border rounded-md pl-7 pr-3 py-2"
+                            placeholder="0.00"
+                          />
+                        </div>
                       </div>
                     )}
                     <div>
@@ -976,14 +1023,17 @@ export default function TicketsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">Anticipo ($)</label>
-                      <input
-                        type="text"
-                        value={formData.advancePayment}
-                        onChange={(e) => handlePriceChange('advancePayment', e.target.value)}
-                        onBlur={() => handlePriceBlur('advancePayment')}
-                        className="w-full border border-border rounded-md px-3 py-2"
-                        placeholder="0.00"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <input
+                          type="text"
+                          value={formData.advancePayment}
+                          onChange={(e) => handlePriceChange('advancePayment', e.target.value)}
+                          onBlur={() => handlePriceBlur('advancePayment')}
+                          className="w-full border border-border rounded-md pl-7 pr-3 py-2"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">Notas Internas</label>
@@ -1068,25 +1118,31 @@ export default function TicketsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Costo Estimado ($)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={statusForm.estimatedCost}
-                    onChange={(e) => setStatusForm({ ...statusForm, estimatedCost: parseFloat(e.target.value) || 0 })}
-                    className="w-full border border-border rounded-md px-3 py-2"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      value={statusForm.estimatedCost}
+                      onChange={(e) => handleStatusPriceChange('estimatedCost', e.target.value)}
+                      onBlur={() => handleStatusPriceBlur('estimatedCost')}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full border border-border rounded-md pl-7 pr-3 py-2"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Costo Final ($)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={statusForm.finalCost}
-                    onChange={(e) => setStatusForm({ ...statusForm, finalCost: parseFloat(e.target.value) || 0 })}
-                    className="w-full border border-border rounded-md px-3 py-2"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      value={statusForm.finalCost}
+                      onChange={(e) => handleStatusPriceChange('finalCost', e.target.value)}
+                      onBlur={() => handleStatusPriceBlur('finalCost')}
+                      onFocus={(e) => e.target.select()}
+                      className="w-full border border-border rounded-md pl-7 pr-3 py-2"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
