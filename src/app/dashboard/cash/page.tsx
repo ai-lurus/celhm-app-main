@@ -37,9 +37,13 @@ export default function CashPage(): ReactElement {
   const registersArray: CashRegister[] = Array.isArray(registers) ? registers : []
   const selectedRegister = registersArray.length > 0 ? registersArray[0] : undefined
 
-  const [cutForm, setCutForm] = useState({
+  const [cutForm, setCutForm] = useState<{
+    cashRegisterId: number;
+    initialAmount: string | number;
+    notes: string;
+  }>({
     cashRegisterId: 0,
-    initialAmount: 0,
+    initialAmount: '0.00',
     notes: '',
   })
 
@@ -71,22 +75,22 @@ export default function CashPage(): ReactElement {
       await createCashCut.mutateAsync({
         branchId,
         cashRegisterId: cutForm.cashRegisterId,
-        initialAmount: cutForm.initialAmount,
+        initialAmount: typeof cutForm.initialAmount === 'string' ? parseFloat(cutForm.initialAmount) : cutForm.initialAmount,
         notes: cutForm.notes,
       })
       setIsCreateModalOpen(false)
-      setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
+      setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: '0.00', notes: '' })
       toast({
         variant: "success",
         title: "Corte creado",
         description: "El corte de caja se ha registrado exitosamente.",
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al crear el corte de caja:', error)
       toast({
         variant: "destructive",
         title: "Error al crear corte",
-        description: "Hubo un error al registrar el corte de caja.",
+        description: error?.message || "Hubo un error al registrar el corte de caja.",
       })
     }
   }
@@ -109,6 +113,42 @@ export default function CashPage(): ReactElement {
     } catch (error) {
       console.error('Error al crear la caja:', error)
       alert('Error al crear la caja. Por favor, intenta nuevamente.')
+    }
+  }
+
+  const handlePriceChange = (value: string) => {
+    if (!/^\d*\.?\d*$/.test(value)) return
+
+    let newValue = value
+
+    if (cutForm.initialAmount === '0.00' && value !== '0.00') {
+      if (value.startsWith('0.00') && value.length > 4) {
+        newValue = value.substring(4)
+      }
+    }
+
+    if (cutForm.initialAmount === '0.00' && value.length > 4) {
+      newValue = value.replace('0.00', '')
+    }
+
+    if (newValue.length > 1 && newValue.startsWith('0') && newValue[1] !== '.') {
+      newValue = newValue.replace(/^0+/, '')
+    }
+
+    setCutForm({ ...cutForm, initialAmount: newValue })
+  }
+
+  const handlePriceBlur = () => {
+    const value = cutForm.initialAmount
+    if (typeof value === 'string' && value !== '') {
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        setCutForm({ ...cutForm, initialAmount: num.toFixed(2) })
+      } else {
+        setCutForm({ ...cutForm, initialAmount: '0.00' })
+      }
+    } else if (value === '' || value === undefined) {
+      setCutForm({ ...cutForm, initialAmount: '0.00' })
     }
   }
 
@@ -293,15 +333,18 @@ export default function CashPage(): ReactElement {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Monto Inicial</label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={cutForm.initialAmount}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCutForm({ ...cutForm, initialAmount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                  <input
+                    type="text"
+                    required
+                    value={cutForm.initialAmount}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePriceChange(e.target.value)}
+                    onBlur={handlePriceBlur}
+                    onFocus={(e) => e.target.select()}
+                    className="w-full pl-7 pr-3 py-2 border border-border rounded-md"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Notas</label>

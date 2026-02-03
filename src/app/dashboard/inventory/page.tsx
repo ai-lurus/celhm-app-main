@@ -17,8 +17,8 @@ import { usePathname } from 'next/navigation'
 interface NewProductForm {
   name: string;
   brand: string;
-  price: number;
-  purchasePrice: number;
+  price: number | string;
+  purchasePrice: number | string;
   barcode: string;
   sku: string;
   initial_stock: number;
@@ -28,8 +28,8 @@ interface NewProductForm {
 const newProductInitialState: NewProductForm = {
   name: '',
   brand: '',
-  price: 0,
-  purchasePrice: 0,
+  price: '0.00',
+  purchasePrice: '0.00',
   barcode: '',
   sku: '',
   initial_stock: 10,
@@ -119,13 +119,59 @@ export default function InventoryPage() {
     setShowActionsDropdown(false);
   };
 
+  const handlePriceChange = (
+    field: keyof NewProductForm,
+    value: string
+  ) => {
+    // Permitir solo números y un punto decimal
+    if (!/^\d*\.?\d*$/.test(value)) return
+
+    let newValue = value
+
+    if (newProduct[field] === '0.00' && value !== '0.00') {
+      const lastChar = value.slice(-1)
+      if (value.length > 4 && /^\d$/.test(lastChar)) {
+        if (value.startsWith('0.00')) {
+          newValue = value.substring(4)
+        }
+      }
+    }
+
+    if (newProduct[field] === '0.00' && value.length > 4) {
+      newValue = value.replace('0.00', '')
+    }
+
+    // Evitar múltiples ceros a la izquierda excepto si es 0.
+    if (newValue.length > 1 && newValue.startsWith('0') && newValue[1] !== '.') {
+      newValue = newValue.replace(/^0+/, '')
+    }
+
+    if (newValue === '') newValue = ''
+
+    setNewProduct({ ...newProduct, [field]: newValue })
+  }
+
+  const handlePriceBlur = (field: keyof NewProductForm) => {
+    const value = newProduct[field]
+    if (typeof value === 'string' && value !== '') {
+      const num = parseFloat(value)
+      if (!isNaN(num)) {
+        setNewProduct({ ...newProduct, [field]: num.toFixed(2) })
+      } else {
+        setNewProduct({ ...newProduct, [field]: '0.00' })
+      }
+    } else if (value === '' || value === undefined) {
+      setNewProduct({ ...newProduct, [field]: '0.00' })
+    }
+  }
+
   const openEditModal = (item: InventoryItem) => {
     setItemToEdit(item);
     setNewProduct({
       name: item.name,
       brand: item.brand,
-      price: item.price,
-      purchasePrice: (item as any).purchasePrice || 0,
+      price: item.price.toFixed(2),
+      purchasePrice: (item as any).purchasePrice ? Number((item as any).purchasePrice).toFixed(2) : '0.00',
       barcode: (item as any).barcode || '',
       sku: item.sku,
       initial_stock: item.qty,
@@ -177,8 +223,8 @@ export default function InventoryPage() {
           data: {
             name: newProduct.name,
             brand: newProduct.brand,
-            price: newProduct.price,
-            purchasePrice: newProduct.purchasePrice || undefined,
+            price: typeof newProduct.price === 'string' ? parseFloat(newProduct.price) : newProduct.price,
+            purchasePrice: newProduct.purchasePrice ? (typeof newProduct.purchasePrice === 'string' ? parseFloat(newProduct.purchasePrice) : newProduct.purchasePrice) : undefined,
             barcode: newProduct.barcode || undefined,
             sku: newProduct.sku,
             initial_stock: newProduct.initial_stock,
@@ -198,8 +244,8 @@ export default function InventoryPage() {
           brand: newProduct.brand,
           model: 'Nuevo Modelo',
           sku: newProduct.sku || undefined,
-          price: newProduct.price,
-          purchasePrice: newProduct.purchasePrice || undefined,
+          price: typeof newProduct.price === 'string' ? parseFloat(newProduct.price) : newProduct.price,
+          purchasePrice: newProduct.purchasePrice ? (typeof newProduct.purchasePrice === 'string' ? parseFloat(newProduct.purchasePrice) : newProduct.purchasePrice) : undefined,
           barcode: newProduct.barcode || undefined,
           qty: newProduct.initial_stock,
           min: newProduct.min_stock,
@@ -736,8 +782,35 @@ export default function InventoryPage() {
                     ))}
                   </select>
                 </div>
-                <div><label className="block text-sm font-medium text-foreground">Precio de Venta</label><input type="number" step="0.01" min="0" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
-                <div><label className="block text-sm font-medium text-foreground">Precio de Compra</label><input type="number" step="0.01" min="0" value={newProduct.purchasePrice} onChange={e => setNewProduct({ ...newProduct, purchasePrice: parseFloat(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="Costo de adquisición" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Precio de Venta</label>
+                  <div className="relative mt-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      value={newProduct.price}
+                      onChange={e => handlePriceChange('price', e.target.value)}
+                      onBlur={() => handlePriceBlur('price')}
+                      onFocus={(e) => e.target.select()}
+                      className="block w-full border border-border rounded-md py-2 pl-7 pr-3"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">Precio de Compra</label>
+                  <div className="relative mt-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <input
+                      type="text"
+                      value={newProduct.purchasePrice}
+                      onChange={e => handlePriceChange('purchasePrice', e.target.value)}
+                      onBlur={() => handlePriceBlur('purchasePrice')}
+                      onFocus={(e) => e.target.select()}
+                      className="block w-full border border-border rounded-md py-2 pl-7 pr-3"
+                      placeholder="Costo de adquisición"
+                    />
+                  </div>
+                </div>
                 <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({ ...newProduct, barcode: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><label className="block text-sm font-medium text-foreground">Existencias {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
