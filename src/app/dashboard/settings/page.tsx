@@ -16,9 +16,9 @@ export default function CompanySettingsPage() {
     website: '',
     currency: '',
     timezone: '',
+    vatRate: 0,
   })
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
-  const [isSaved, setIsSaved] = useState(false)
 
   useEffect(() => {
     if (organization) {
@@ -31,6 +31,7 @@ export default function CompanySettingsPage() {
         website: organization.website || '',
         currency: organization.currency || '',
         timezone: organization.timezone || '',
+        vatRate: organization.vatRate || 0,
       })
       if (organization.logo) {
         setLogoPreview(organization.logo)
@@ -38,9 +39,8 @@ export default function CompanySettingsPage() {
     }
   }, [organization])
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
-    setIsSaved(false)
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,10 +52,22 @@ export default function CompanySettingsPage() {
         setLogoPreview(reader.result as string)
       }
       reader.readAsDataURL(file)
-      setIsSaved(false)
       // TODO: Subir a servidor y obtener URL
     }
   }
+
+  const hasChanges = organization ? (
+    formData.name !== (organization.name || '') ||
+    formData.address !== (organization.address || '') ||
+    formData.phone !== (organization.phone || '') ||
+    formData.email !== (organization.email || '') ||
+    formData.taxId !== (organization.taxId || '') ||
+    formData.website !== (organization.website || '') ||
+    formData.currency !== (organization.currency || '') ||
+    formData.timezone !== (organization.timezone || '') ||
+    formData.vatRate !== (organization.vatRate || 0) ||
+    logoPreview !== (organization.logo || null)
+  ) : false
 
   const { toast } = useToast()
 
@@ -65,8 +77,8 @@ export default function CompanySettingsPage() {
       await updateOrganization.mutateAsync({
         ...formData,
         logo: logoPreview || undefined,
+        vatRate: Number(formData.vatRate),
       })
-      setIsSaved(true)
       toast({
         variant: "success",
         title: "Configuración guardada",
@@ -239,20 +251,39 @@ export default function CompanySettingsPage() {
               value={formData.timezone}
               onChange={(e) => handleInputChange('timezone', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Mexico/Mexico_City"
+              placeholder="America/Mexico_City"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tasa de IVA (%)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.vatRate}
+              onChange={(e) => handleInputChange('vatRate', parseFloat(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="0.16"
             />
           </div>
         </div>
 
         {/* Estado y botón Guardar */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {isSaved ? 'All changes saved' : 'Unsaved changes'}
+          <p className="text-sm">
+            {hasChanges ? (
+              <span className="text-amber-600 dark:text-amber-400 font-medium">Hay cambios sin guardar</span>
+            ) : (
+              <span className="text-green-600 dark:text-green-400 font-medium">Todos los cambios guardados</span>
+            )}
           </p>
           <button
             type="submit"
-            disabled={updateOrganization.isPending}
-            className="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={updateOrganization.isPending || !hasChanges}
+            className={`inline-flex items-center px-4 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${hasChanges
+                ? 'bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+              }`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -268,7 +299,7 @@ export default function CompanySettingsPage() {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
               />
             </svg>
-            {updateOrganization.isPending ? 'Saving...' : 'Save Changes'}
+            {updateOrganization.isPending ? 'Guardando...' : 'Guardar Cambios'}
           </button>
         </div>
       </form>
