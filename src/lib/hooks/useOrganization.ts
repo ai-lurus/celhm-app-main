@@ -13,6 +13,7 @@ export interface Organization {
   website?: string
   currency?: string
   timezone?: string
+  vatRate?: number
   createdAt: string
   updatedAt: string
 }
@@ -27,6 +28,7 @@ export interface UpdateOrganizationRequest {
   website?: string
   currency?: string
   timezone?: string
+  vatRate?: number
 }
 
 export function useOrganization() {
@@ -48,6 +50,7 @@ export function useOrganization() {
         website: data.website || undefined,
         currency: data.currency || undefined,
         timezone: data.timezone || undefined,
+        vatRate: data.vatRate ? Number(data.vatRate) : undefined,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       }
