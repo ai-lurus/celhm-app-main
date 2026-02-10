@@ -16,6 +16,8 @@ import {
 } from './utils'
 import { CustomerSelector } from './CustomerSelector'
 import { useToast } from '../../../../hooks/use-toast'
+import { useCashRegisters } from '../../../../lib/hooks/useCash'
+import { useAuthStore } from '../../../../stores/auth'
 
 interface CashRegisterProps {
   isOpen: boolean
@@ -46,6 +48,8 @@ export function CashRegister({
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showTicketModal, setShowTicketModal] = useState(false)
   const [ticketSearch, setTicketSearch] = useState('')
+  const user = useAuthStore((state) => state.user)
+  const { data: cashRegisters = [] } = useCashRegisters(user?.branchId || 0)
 
   // Hotkeys setup
   const handlePayRef = useRef(onPay)
@@ -113,12 +117,12 @@ export function CashRegister({
     const newLines = [...form.lines]
     const line = { ...newLines[index] }
     const isRepairOrder = line.code.startsWith('TICKET-')
-    
+
     // Si es una orden de reparación y se intenta cambiar la cantidad, no permitirlo
     if (field === 'qty' && isRepairOrder) {
       return // No permitir cambiar la cantidad de órdenes de reparación
     }
-    
+
     if (field === 'qty') {
       const qty = Math.max(1, Number(value) || 1)
       const unitPrice = Number(line.unitPrice) || 0
@@ -278,6 +282,23 @@ export function CashRegister({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Caja:
+                  </label>
+                  <select
+                    value={form.cashRegisterId || ''}
+                    onChange={(e) => onFormChange({ ...form, cashRegisterId: e.target.value ? parseInt(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-md bg-white text-blue-800 font-medium"
+                  >
+                    <option value="">Seleccionar Caja...</option>
+                    {cashRegisters.map((register) => (
+                      <option key={register.id} value={register.id}>
+                        {register.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Vendedor:
                   </label>
                   <select
@@ -303,9 +324,11 @@ export function CashRegister({
                       onChange={(e) => onFormChange({ ...form, paymentMethod: e.target.value as PaymentMethod })}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white"
                     >
-                      <option value="CASH">Pago en una sola exhibición</option>
-                      <option value="CARD">Tarjeta</option>
-                      <option value="TRANSFER">Transferencia</option>
+                      <option value="EFECTIVO">Efectivo</option>
+                      <option value="TARJETA">Tarjeta</option>
+                      <option value="TRANSFERENCIA">Transferencia</option>
+                      <option value="CHEQUE">Cheque</option>
+                      <option value="OTRO">Otro</option>
                     </select>
                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -340,59 +363,58 @@ export function CashRegister({
                     const advance = line.advance || 0
                     const finalAmount = line.amount - advance
                     return (
-                    <div key={index} className="grid grid-cols-6 gap-4 px-6 py-3 hover:bg-gray-50">
-                      <input
-                        type="number"
-                        min="1"
-                        value={line.qty}
-                        onChange={(e) => {
-                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
-                          const qty = parseInt(e.target.value) || 1
-                          handleUpdateLine(index, 'qty', qty)
-                        }}
-                        onBlur={(e) => {
-                          if (isRepairOrder) return // No permitir cambios en órdenes de reparación
-                          const qty = parseInt(e.target.value) || 1
-                          if (qty < 1) {
-                            handleUpdateLine(index, 'qty', 1)
-                          }
-                        }}
-                        disabled={isRepairOrder}
-                        readOnly={isRepairOrder}
-                        className={`w-full px-2 py-1 border border-gray-300 rounded text-sm ${
-                          isRepairOrder ? 'bg-gray-100 cursor-not-allowed' : ''
-                        }`}
-                        title={isRepairOrder ? 'La cantidad de órdenes de reparación está fija en 1' : ''}
-                      />
-                      <div className="text-sm text-gray-700">{String(line.code || '')}</div>
-                      <div className="text-sm text-gray-700">{String(line.product || '')}</div>
-                      <div className="text-sm text-gray-700 font-medium">
-                        ${(line.unitPrice || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </div>
-                      <div>
-                        {isRepairOrder ? (
-                          advance > 0 ? (
-                            <div className="text-sm text-gray-700 font-medium">
-                              ${advance.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </div>
+                      <div key={index} className="grid grid-cols-6 gap-4 px-6 py-3 hover:bg-gray-50">
+                        <input
+                          type="number"
+                          min="1"
+                          value={line.qty}
+                          onChange={(e) => {
+                            if (isRepairOrder) return // No permitir cambios en órdenes de reparación
+                            const qty = parseInt(e.target.value) || 1
+                            handleUpdateLine(index, 'qty', qty)
+                          }}
+                          onBlur={(e) => {
+                            if (isRepairOrder) return // No permitir cambios en órdenes de reparación
+                            const qty = parseInt(e.target.value) || 1
+                            if (qty < 1) {
+                              handleUpdateLine(index, 'qty', 1)
+                            }
+                          }}
+                          disabled={isRepairOrder}
+                          readOnly={isRepairOrder}
+                          className={`w-full px-2 py-1 border border-gray-300 rounded text-sm ${isRepairOrder ? 'bg-gray-100 cursor-not-allowed' : ''
+                            }`}
+                          title={isRepairOrder ? 'La cantidad de órdenes de reparación está fija en 1' : ''}
+                        />
+                        <div className="text-sm text-gray-700">{String(line.code || '')}</div>
+                        <div className="text-sm text-gray-700">{String(line.product || '')}</div>
+                        <div className="text-sm text-gray-700 font-medium">
+                          ${(line.unitPrice || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                        <div>
+                          {isRepairOrder ? (
+                            advance > 0 ? (
+                              <div className="text-sm text-gray-700 font-medium">
+                                ${advance.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-400">-</div>
+                            )
                           ) : (
                             <div className="text-sm text-gray-400">-</div>
-                          )
-                        ) : (
-                          <div className="text-sm text-gray-400">-</div>
-                        )}
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">${(finalAmount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <button
+                            onClick={() => handleRemoveLine(index)}
+                            className="text-red-600 hover:text-red-800 text-sm font-bold"
+                            title="Eliminar producto"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">${(finalAmount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        <button
-                          onClick={() => handleRemoveLine(index)}
-                          className="text-red-600 hover:text-red-800 text-sm font-bold"
-                          title="Eliminar producto"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
                     )
                   })}
                 </div>

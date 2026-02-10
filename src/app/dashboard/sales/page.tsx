@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSales, useCreateSale, useAddPayment, Sale, CreateSaleLine, PaymentMethod, SaleLine, Payment } from '../../../lib/hooks/useSales'
+import { useToast } from '../../../hooks/use-toast'
 import { useCustomers, Customer, useCreateCustomer } from '../../../lib/hooks/useCustomers'
 import { useTickets } from '../../../lib/hooks/useTickets'
 import { Ticket } from '@celhm/types'
@@ -12,6 +13,9 @@ import { useUsers } from '../../../lib/hooks/useUsers'
 import { CashRegister } from './_components/CashRegister'
 import { CashRegisterForm, createInitialCashRegisterForm } from './_components/types'
 
+import { calculateCashRegisterTotal } from './_components/utils'
+import { PaymentModal } from './_components/PaymentModal'
+
 const IconView = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
@@ -20,6 +24,7 @@ const IconView = ({ className }: { className?: string }) => (
 )
 
 export default function SalesPage() {
+  const { toast } = useToast()
   const user = useAuthStore((state) => state.user)
   const [page, setPage] = useState(1)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -47,20 +52,33 @@ export default function SalesPage() {
   const users = Array.isArray(usersData) ? usersData : []
 
   // Form state - usando CashRegisterForm
-  const [cashRegisterForm, setCashRegisterForm] = useState<CashRegisterForm>(() => 
+  const [cashRegisterForm, setCashRegisterForm] = useState<CashRegisterForm>(() =>
     createInitialCashRegisterForm(user?.id?.toString() || '')
   )
 
   const [paymentForm, setPaymentForm] = useState({
     amount: 0,
-    method: 'CASH' as PaymentMethod,
+    method: 'EFECTIVO' as PaymentMethod,
     reference: '',
   })
 
   const handlePay = async () => {
     if (cashRegisterForm.lines.length === 0) {
-      alert('Agrega al menos un producto o orden de reparación')
-      return
+      toast({
+        variant: "destructive",
+        title: "Carrito vacío",
+        description: "Agrega al menos un producto o orden de reparación",
+      });
+      return;
+    }
+
+    if (!cashRegisterForm.cashRegisterId) {
+      toast({
+        variant: "destructive",
+        title: "Caja no seleccionada",
+        description: "Debes seleccionar una caja para realizar la venta",
+      });
+      return;
     }
 
     try {
@@ -68,13 +86,13 @@ export default function SalesPage() {
       const lines: CreateSaleLine[] = cashRegisterForm.lines.map(line => {
         // Si es una orden de reparación (code empieza con TICKET-)
         if (line.code.startsWith('TICKET-')) {
-          const ticketId = parseInt(line.code.replace('TICKET-', ''))
+          const ticketId = parseInt(line.code.replace('TICKET-', ''));
           return {
             ticketId,
             description: line.product,
             qty: line.qty,
             unitPrice: line.unitPrice,
-          }
+          };
         } else {
           // Es un producto normal
           return {
@@ -82,31 +100,44 @@ export default function SalesPage() {
             description: line.product,
             qty: line.qty,
             unitPrice: line.unitPrice,
-          }
+          };
         }
-      })
+      });
 
       await createSale.mutateAsync({
         branchId,
         customerId: cashRegisterForm.customerId ? parseInt(cashRegisterForm.customerId) : undefined,
         lines,
         discount: cashRegisterForm.discount,
-      })
+        payment: {
+          amount: calculateCashRegisterTotal(cashRegisterForm),
+          method: cashRegisterForm.paymentMethod,
+        },
+        cashRegisterId: cashRegisterForm.cashRegisterId,
+      });
 
       // Si hay un pago inicial, agregarlo
-      if (cashRegisterForm.paymentMethod === 'CASH' && cashRegisterForm.lines.length > 0) {
+      if (cashRegisterForm.paymentMethod === 'EFECTIVO' && cashRegisterForm.lines.length > 0) {
         // El pago se manejará después de crear la venta si es necesario
       }
 
-      setIsCreateModalOpen(false)
-      setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''))
+      setIsCreateModalOpen(false);
+      setCashRegisterForm(createInitialCashRegisterForm(user?.id?.toString() || ''));
       // Resetear a la página 1 para ver la nueva venta creada
-      setPage(1)
+      setPage(1);
       // Refrescar la lista de ventas para mostrar la nueva venta creada
-      await refetchSales()
+      await refetchSales();
+      toast({
+        title: "Venta creada",
+        description: "La venta se ha registrado exitosamente.",
+      });
     } catch (error) {
-      console.error('Error creating sale:', error)
-      alert('Error al crear la venta. Por favor, intenta de nuevo.')
+      console.error('Error creating sale:', error);
+      toast({
+        variant: "destructive",
+        title: "Error al crear venta",
+        description: "Por favor, intenta de nuevo.",
+      });
     }
   }
 
@@ -131,25 +162,31 @@ export default function SalesPage() {
           customerId: newCustomer.id.toString(),
           customerName: newCustomer.name,
         })
+        toast({
+          title: "Cliente creado",
+          description: `Se ha registrado a ${name} exitosamente.`,
+        })
       }
     } catch (error) {
       console.error('Error creating customer:', error)
-      alert('Error al crear el cliente. Por favor, intenta de nuevo.')
+      toast({
+        variant: "destructive",
+        title: "Error al crear cliente",
+        description: "Por favor, intenta de nuevo.",
+      })
     }
   }
 
-  const handleAddPaymentToSale = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handlePaymentSubmit = async (data: { amount: number; method: PaymentMethod; reference: string }) => {
     if (!selectedSale) return
 
     try {
       await addPayment.mutateAsync({
         saleId: selectedSale.id,
-        data: paymentForm,
+        data,
       })
       setIsPaymentModalOpen(false)
       setSelectedSale(null)
-      setPaymentForm({ amount: 0, method: 'CASH', reference: '' })
       // Refrescar la lista de ventas para mostrar el pago agregado
       await refetchSales()
     } catch (error) {
@@ -242,7 +279,6 @@ export default function SalesPage() {
                         <button
                           onClick={() => {
                             setSelectedSale(sale)
-                            setPaymentForm({ amount: sale.total - sale.paidAmount, method: 'CASH', reference: '' })
                             setIsPaymentModalOpen(true)
                           }}
                           className="text-green-600 hover:text-green-900 text-sm"
@@ -300,71 +336,15 @@ export default function SalesPage() {
 
       {/* Modal Agregar Pago */}
       {isPaymentModalOpen && selectedSale && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Agregar Pago</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Venta: {selectedSale.folio} - Total: ${((selectedSale.total || 0)).toLocaleString()} - 
-              Pendiente: ${((selectedSale.total || 0) - (selectedSale.paidAmount || 0)).toLocaleString()}
-            </p>
-            <form onSubmit={handleAddPaymentToSale} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Monto</label>
-                <input
-                  type="number"
-                  required
-                  min="0.01"
-                  max={selectedSale.total - selectedSale.paidAmount}
-                  step="0.01"
-                  value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Método de Pago</label>
-                <select
-                  value={paymentForm.method}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value as PaymentMethod })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
-                >
-                  <option value="CASH">Efectivo</option>
-                  <option value="CARD">Tarjeta</option>
-                  <option value="TRANSFER">Transferencia</option>
-                  <option value="OTHER">Otro</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Referencia (opcional)</label>
-                <input
-                  type="text"
-                  value={paymentForm.reference}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-md"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPaymentModalOpen(false)
-                    setSelectedSale(null)
-                  }}
-                  className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={addPayment.isPending}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-                >
-                  {addPayment.isPending ? 'Guardando...' : 'Agregar Pago'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <PaymentModal
+          sale={selectedSale}
+          onClose={() => {
+            setIsPaymentModalOpen(false)
+            setSelectedSale(null)
+          }}
+          onSubmit={handlePaymentSubmit}
+          isPending={addPayment.isPending}
+        />
       )}
 
       {/* Modal Ver Detalles */}

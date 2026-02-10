@@ -23,6 +23,7 @@ export interface CashRegisterForm {
   productSearch: string
   productDetails: string
   ticketDetails: string
+  cashRegisterId?: number
 }
 
 export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegisterForm => ({
@@ -31,7 +32,8 @@ export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegist
   customerName: 'CLIENTE DE MOSTRADOR',
   requestInvoice: false,
   sellerId,
-  paymentMethod: 'CASH',
+  cashRegisterId: undefined,
+  paymentMethod: 'EFECTIVO',
   lines: [],
   discount: 0,
   discountPercent: false,
