@@ -1,14 +1,8 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
-import { useTickets } from '../../lib/hooks/useTickets'
-import { useStock } from '../../lib/hooks/useStock'
-import { useSales } from '../../lib/hooks/useSales'
-import { useCustomers } from '../../lib/hooks/useCustomers'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuthStore } from '../../stores/auth'
-import { Ticket } from '@celhm/types'
 import { MetricCard } from '../../components/MetricCard'
 import { SalesChart } from '../../components/SalesChart'
 import { TopProducts } from '../../components/TopProducts'
@@ -17,150 +11,56 @@ import { RecentActivity } from '../../components/RecentActivity'
 export default function DashboardPage() {
   const user = useAuthStore((state) => state.user)
 
-  // Get tickets for stats
-  const { data: ticketsData, error: ticketsError } = useTickets({ page: 1, pageSize: 100 })
-  const tickets = Array.isArray((ticketsData as any)?.data) ? (ticketsData as any).data : []
-
-  // Get sales data
-  const { data: salesData } = useSales({ page: 1, pageSize: 100 })
-  const sales = Array.isArray((salesData as any)?.data) ? (salesData as any).data : []
-
-  // Get customers
-  const { data: customersData } = useCustomers({ page: 1, pageSize: 100 })
-  const customers = Array.isArray((customersData as any)?.data) ? (customersData as any).data : []
-
-  // Get low stock alerts
-  const { data: lowStockAlerts = [], error: stockAlertsError } = useQuery<any[]>({
-    queryKey: ['stock', 'alerts'],
+  // Get summary metrics
+  const { data: summary, isLoading: isLoadingSummary } = useQuery({
+    queryKey: ['dashboard', 'summary'],
     queryFn: async () => {
-      const response = await api.get('/stock/alerts')
+      const response = await api.get('/dashboard/summary')
       return response.data
     },
     enabled: !!user,
-    retry: false,
   })
-  
-  // Get all stock to calculate total value
-  const { data: stockData, error: stockError } = useStock({ page: 1, pageSize: 1000 })
-  const stockItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : []
-  
-  // Log errors but don't render them
-  useEffect(() => {
-    if (ticketsError) {
-      console.error('Error loading tickets:', ticketsError)
-    }
-    if (stockError) {
-      console.error('Error loading stock:', stockError)
-    }
-    if (stockAlertsError) {
-      console.error('Error loading stock alerts:', stockAlertsError)
-    }
-  }, [ticketsError, stockError, stockAlertsError])
 
-  // Calculate metrics
-  const totalRevenue = useMemo(() => {
-    return sales.reduce((sum: number, sale: any) => sum + (Number(sale.total) || 0), 0)
-  }, [sales])
+  // Get sales chart data
+  const { data: salesChartData, isLoading: isLoadingChart } = useQuery({
+    queryKey: ['dashboard', 'chart'],
+    queryFn: async () => {
+      const response = await api.get('/dashboard/chart')
+      return response.data
+    },
+    enabled: !!user,
+  })
 
-  const totalClients = customers.length
-  const totalSales = sales.length
-  const inventoryItems = stockItems.length
+  // Get top products
+  const { data: topProducts, isLoading: isLoadingTopProducts } = useQuery({
+    queryKey: ['dashboard', 'top-products'],
+    queryFn: async () => {
+      const response = await api.get('/dashboard/top-products')
+      return response.data
+    },
+    enabled: !!user,
+  })
 
-  // Generate sales chart data (last 6 months)
-  const salesChartData = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-    const now = new Date()
-    const data = months.map((month, index) => {
-      // Calculate month index (0-5 for last 6 months)
-      const monthIndex = (now.getMonth() - (5 - index) + 12) % 12
-      const year = now.getFullYear() - (now.getMonth() < monthIndex ? 1 : 0)
-      
-      // Filter sales for this month
-      const monthSales = sales.filter((sale: any) => {
-        const saleDate = new Date(sale.createdAt)
-        return saleDate.getMonth() === monthIndex && saleDate.getFullYear() === year
-      })
-      
-      const monthRevenue = monthSales.reduce((sum: number, sale: any) => sum + (Number(sale.total) || 0), 0)
-      return { month, value: monthRevenue || Math.random() * 60000 + 20000 } // Fallback to mock data
-    })
-    return data
-  }, [sales])
+  // Get recent activity
+  const { data: recentActivity, isLoading: isLoadingActivity } = useQuery({
+    queryKey: ['dashboard', 'recent'],
+    queryFn: async () => {
+      const response = await api.get('/dashboard/recent')
+      return response.data
+    },
+    enabled: !!user,
+  })
 
-  // Generate top products (mock for now, can be enhanced with real data)
-  const topProducts = useMemo(() => {
-    // Aggregate products from sales lines
-    const productMap = new Map<string, { units: number; revenue: number }>()
-    
-    sales.forEach((sale: any) => {
-      sale.lines?.forEach((line: any) => {
-        const productName = line.variant?.product?.name || line.description || 'Unknown Product'
-        const existing = productMap.get(productName) || { units: 0, revenue: 0 }
-        productMap.set(productName, {
-          units: existing.units + (line.qty || 0),
-          revenue: existing.revenue + (Number(line.subtotal) || 0),
-        })
-      })
-    })
-
-    // Convert to array and sort by revenue
-    const products = Array.from(productMap.entries())
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5)
-
-    // If no products, return mock data
-    if (products.length === 0) {
-      return [
-        { name: 'iPhone 15 Pro', units: 145, revenue: 145000 },
-        { name: 'Samsung Galaxy S24', units: 132, revenue: 118800 },
-        { name: 'Google Pixel 8', units: 98, revenue: 68600 },
-        { name: 'OnePlus 12', units: 76, revenue: 53200 },
-        { name: 'Xiaomi 14', units: 64, revenue: 38400 },
-      ]
-    }
-
-    return products
-  }, [sales])
-
-  // Generate recent activity
-  const recentActivity = useMemo(() => {
-    const activities: Array<{ type: 'sale' | 'ticket' | 'stock' | 'client'; message: string; time: string }> = []
-    
-    // Recent sales
-    sales.slice(0, 3).forEach((sale: any) => {
-      const saleDate = new Date(sale.createdAt)
-      const minutesAgo = Math.floor((Date.now() - saleDate.getTime()) / 60000)
-      activities.push({
-        type: 'sale',
-        message: `New sale: ${sale.lines?.[0]?.description || 'Product'} - $${Number(sale.total).toLocaleString()}`,
-        time: minutesAgo < 60 ? `${minutesAgo} minutes ago` : `${Math.floor(minutesAgo / 60)} hours ago`,
-      })
-    })
-
-    // Recent tickets
-    tickets.slice(0, 2).forEach((ticket: Ticket) => {
-      const ticketDate = new Date(ticket.createdAt)
-      const minutesAgo = Math.floor((Date.now() - ticketDate.getTime()) / 60000)
-      activities.push({
-        type: 'ticket',
-        message: `New ticket: Customer support request #${ticket.folio}`,
-        time: minutesAgo < 60 ? `${minutesAgo} minutes ago` : `${Math.floor(minutesAgo / 60)} hours ago`,
-      })
-    })
-
-    // Stock alerts
-    lowStockAlerts.slice(0, 1).forEach((alert: any) => {
-      activities.push({
-        type: 'stock',
-        message: `Low stock alert: ${alert.variant?.name || 'Product'} - Only ${alert.qty} units left`,
-        time: '1 hour ago',
-      })
-    })
-
-    // Sort by time (most recent first) and limit to 4
-    return activities.slice(0, 4)
-  }, [sales, tickets, lowStockAlerts])
+  if (isLoadingSummary || isLoadingChart || isLoadingTopProducts || isLoadingActivity) {
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground animate-pulse">Cargando dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -177,17 +77,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           title="Total Revenue"
-          value={`$${totalRevenue.toLocaleString()}`}
+          value={`$${(summary?.totalRevenue || 0).toLocaleString()}`}
           icon={
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
               <span className="text-2xl">$</span>
             </div>
           }
-          trend={{ value: '+12.5%', isPositive: true }}
+        // trend={{ value: '+12.5%', isPositive: true }} // TODO: Implement trend calculation
         />
         <MetricCard
           title="Total Clients"
-          value={totalClients.toLocaleString()}
+          value={(summary?.totalClients || 0).toLocaleString()}
           icon={
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg
@@ -206,11 +106,11 @@ export default function DashboardPage() {
               </svg>
             </div>
           }
-          trend={{ value: '+8.2%', isPositive: true }}
+        // trend={{ value: '+8.2%', isPositive: true }}
         />
         <MetricCard
           title="Total Sales"
-          value={totalSales.toLocaleString()}
+          value={(summary?.totalSales || 0).toLocaleString()}
           icon={
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
               <svg
@@ -229,11 +129,11 @@ export default function DashboardPage() {
               </svg>
             </div>
           }
-          trend={{ value: '+15.3%', isPositive: true }}
+        // trend={{ value: '+15.3%', isPositive: true }}
         />
         <MetricCard
           title="Inventory Items"
-          value={inventoryItems.toLocaleString()}
+          value={(summary?.inventoryItems || 0).toLocaleString()}
           icon={
             <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
               <svg
@@ -252,22 +152,20 @@ export default function DashboardPage() {
               </svg>
             </div>
           }
-          trend={{ value: '-2.4%', isPositive: false }}
+        // trend={{ value: '-2.4%', isPositive: false }}
         />
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SalesChart data={salesChartData} />
-        <TopProducts products={topProducts} />
+        <SalesChart data={salesChartData || []} />
+        <TopProducts products={topProducts || []} />
       </div>
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <RecentActivity activities={recentActivity} />
+        <RecentActivity activities={recentActivity || []} />
       </div>
     </div>
   )
 }
-
-
