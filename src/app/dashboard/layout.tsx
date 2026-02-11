@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../../stores/auth'
 import { Sidebar } from '../../components/Sidebar'
+import { NotificationBell } from '../../components/NotificationBell'
 
 export default function DashboardLayout({
   children,
@@ -37,11 +38,23 @@ export default function DashboardLayout({
   return (
     <div className="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto h-full">
-        <div className="p-6">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Header */}
+        <header className="bg-white dark:bg-gray-800 shadow-sm z-10 p-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
+            {/* Page title could go here, or just welcome message */}
+            Panel de Control
+          </h2>
+          <div className="flex items-center space-x-4">
+            <NotificationBell />
+            {/* User dropdown or other header items could go here */}
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-6">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }
