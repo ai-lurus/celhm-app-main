@@ -50,6 +50,10 @@ export interface Sale {
     id: number
     folio: string
   }
+  cashRegister?: {
+    code: string
+    name: string
+  }
 }
 
 export interface CreateSaleLine {

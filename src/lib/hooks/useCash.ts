@@ -18,6 +18,7 @@ export interface CashCut {
   initialAmount: number
   finalAmount: number
   expectedAmount: number
+  declaredAmount: number
   difference: number
   salesByMethod: {
     method: string
@@ -33,6 +34,8 @@ export interface CashCut {
 export interface CreateCashCutRequest {
   branchId: number
   cashRegisterId: number
+  date: string
+  declaredAmount: number
   initialAmount: number
   notes?: string
 }

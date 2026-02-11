@@ -39,11 +39,11 @@ export default function CashPage(): ReactElement {
 
   const [cutForm, setCutForm] = useState<{
     cashRegisterId: number;
-    initialAmount: string | number;
+    declaredAmount: string | number;
     notes: string;
   }>({
     cashRegisterId: 0,
-    initialAmount: '0.00',
+    declaredAmount: '0.00',
     notes: '',
   })
 
@@ -75,11 +75,13 @@ export default function CashPage(): ReactElement {
       await createCashCut.mutateAsync({
         branchId,
         cashRegisterId: cutForm.cashRegisterId,
-        initialAmount: typeof cutForm.initialAmount === 'string' ? parseFloat(cutForm.initialAmount) : cutForm.initialAmount,
+        date: new Date().toISOString(),
+        declaredAmount: typeof cutForm.declaredAmount === 'string' ? parseFloat(cutForm.declaredAmount) : cutForm.declaredAmount,
+        initialAmount: 0,
         notes: cutForm.notes,
       })
       setIsCreateModalOpen(false)
-      setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: '0.00', notes: '' })
+      setCutForm({ cashRegisterId: selectedRegister?.id || 0, declaredAmount: '0.00', notes: '' })
       toast({
         variant: "success",
         title: "Corte creado",
@@ -121,13 +123,13 @@ export default function CashPage(): ReactElement {
 
     let newValue = value
 
-    if (cutForm.initialAmount === '0.00' && value !== '0.00') {
+    if (cutForm.declaredAmount === '0.00' && value !== '0.00') {
       if (value.startsWith('0.00') && value.length > 4) {
         newValue = value.substring(4)
       }
     }
 
-    if (cutForm.initialAmount === '0.00' && value.length > 4) {
+    if (cutForm.declaredAmount === '0.00' && value.length > 4) {
       newValue = value.replace('0.00', '')
     }
 
@@ -135,20 +137,20 @@ export default function CashPage(): ReactElement {
       newValue = newValue.replace(/^0+/, '')
     }
 
-    setCutForm({ ...cutForm, initialAmount: newValue })
+    setCutForm({ ...cutForm, declaredAmount: newValue })
   }
 
   const handlePriceBlur = () => {
-    const value = cutForm.initialAmount
+    const value = cutForm.declaredAmount
     if (typeof value === 'string' && value !== '') {
       const num = parseFloat(value)
       if (!isNaN(num)) {
-        setCutForm({ ...cutForm, initialAmount: num.toFixed(2) })
+        setCutForm({ ...cutForm, declaredAmount: num.toFixed(2) })
       } else {
-        setCutForm({ ...cutForm, initialAmount: '0.00' })
+        setCutForm({ ...cutForm, declaredAmount: '0.00' })
       }
     } else if (value === '' || value === undefined) {
-      setCutForm({ ...cutForm, initialAmount: '0.00' })
+      setCutForm({ ...cutForm, declaredAmount: '0.00' })
     }
   }
 
@@ -177,7 +179,7 @@ export default function CashPage(): ReactElement {
           </button>
           <button
             onClick={() => {
-              setCutForm({ cashRegisterId: selectedRegister?.id || 0, initialAmount: 0, notes: '' })
+              setCutForm({ cashRegisterId: selectedRegister?.id || 0, declaredAmount: 0, notes: '' })
               setIsCreateModalOpen(true)
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
@@ -208,67 +210,69 @@ export default function CashPage(): ReactElement {
       </div>
 
       {/* Tabla de Cortes */}
-      <div className="bg-card rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Caja</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Inicial</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Ventas</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Esperado</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Final</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Diferencia</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="bg-card divide-y divide-border">
-            {isLoading ? (
+      <div className="bg-card rounded-lg shadow border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-muted">
               <tr>
-                <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">Cargando...</td>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Caja</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Inicial</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Ventas</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Esperado</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Final</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase">Diferencia</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase">Acciones</th>
               </tr>
-            ) : cuts.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">No hay cortes registrados</td>
-              </tr>
-            ) : (
-              cuts.map((cut: CashCut) => (
-                <tr key={cut.id} className="hover:bg-muted">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    {new Date(cut.date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {cut.cashRegister?.name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${((cut.initialAmount || 0)).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${((cut.totalSales || 0)).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${((cut.expectedAmount || 0)).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                    ${((cut.finalAmount || 0)).toLocaleString()}
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}>
-                    ${((cut.difference || 0)).toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setViewingCut(cut)}
-                      className="text-primary hover:text-blue-900"
-                      title="Ver detalles"
-                    >
-                      <IconView />
-                    </button>
-                  </td>
+            </thead>
+            <tbody className="bg-card divide-y divide-border">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">Cargando...</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : cuts.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-4 text-center text-muted-foreground">No hay cortes registrados</td>
+                </tr>
+              ) : (
+                cuts.map((cut: CashCut) => (
+                  <tr key={cut.id} className="hover:bg-muted">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {new Date(cut.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                      {cut.cashRegister?.name || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      ${((cut.initialAmount || 0)).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      ${((cut.totalSales || 0)).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      ${((cut.expectedAmount || 0)).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                      ${((cut.finalAmount || 0)).toLocaleString()}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}>
+                      ${((cut.difference || 0)).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => setViewingCut(cut)}
+                        className="text-primary hover:text-blue-900"
+                        title="Ver detalles"
+                      >
+                        <IconView />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal Agregar Caja */}
@@ -331,21 +335,29 @@ export default function CashPage(): ReactElement {
                   ))}
                 </select>
               </div>
+
+              <div className="bg-muted p-3 rounded-md mb-2">
+                <p className="text-xs text-muted-foreground mb-1">Nota: El sistema calculará el monto esperado basándose en el saldo anterior y las ventas del día.</p>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Monto Inicial</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Efectivo en Caja (Contado)</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <input
                     type="text"
                     required
-                    value={cutForm.initialAmount}
+                    value={cutForm.declaredAmount}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePriceChange(e.target.value)}
                     onBlur={handlePriceBlur}
                     onFocus={(e) => e.target.select()}
-                    className="w-full pl-7 pr-3 py-2 border border-border rounded-md"
+                    className="w-full pl-7 pr-3 py-2 border border-border rounded-md font-bold text-lg"
+                    placeholder="0.00"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">Ingresa la cantidad total de efectivo que contaste físicamente en la caja.</p>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
                 <textarea
@@ -353,6 +365,7 @@ export default function CashPage(): ReactElement {
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCutForm({ ...cutForm, notes: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-border rounded-md"
+                  placeholder="Observaciones sobre sobrantes/faltantes..."
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-4">
@@ -368,7 +381,7 @@ export default function CashPage(): ReactElement {
                   disabled={createCashCut.isPending}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {createCashCut.isPending ? 'Guardando...' : 'Crear Corte'}
+                  {createCashCut.isPending ? 'Guardando...' : 'Realizar Corte'}
                 </button>
               </div>
             </form>
@@ -395,24 +408,24 @@ export default function CashPage(): ReactElement {
 
               <div className="bg-muted p-4 rounded space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Monto Inicial:</span>
+                  <span className="text-sm text-foreground">Saldo Inicial (Día Anterior):</span>
                   <span className="text-sm font-medium">${((viewingCut.initialAmount || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Total Ventas:</span>
-                  <span className="text-sm font-medium">${((viewingCut.totalSales || 0)).toLocaleString()}</span>
+                  <span className="text-sm text-foreground">Ventas en Efectivo:</span>
+                  <span className="text-sm font-medium">${((viewingCut.salesByMethod?.find(m => m.method === 'EFECTIVO')?.amount || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Total Pagos:</span>
-                  <span className="text-sm font-medium">${((viewingCut.totalPayments || 0)).toLocaleString()}</span>
+                  <span className="text-sm text-foreground">Ajustes:</span>
+                  <span className="text-sm font-medium">${0}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">
-                  <span className="text-sm font-medium">Monto Esperado:</span>
-                  <span className="text-sm font-medium">${((viewingCut.expectedAmount || 0)).toLocaleString()}</span>
+                  <span className="text-sm font-bold">Efectivo Esperado (Sistema):</span>
+                  <span className="text-sm font-bold">${((viewingCut.expectedAmount || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium">Monto Final:</span>
-                  <span className="text-sm font-medium">${((viewingCut.finalAmount || 0)).toLocaleString()}</span>
+                  <span className="text-sm font-bold">Efectivo Declarado (Real):</span>
+                  <span className="text-sm font-bold">${((viewingCut.declaredAmount || viewingCut.finalAmount || 0)).toLocaleString()}</span>
                 </div>
                 <div className={`flex justify-between pt-2 border-t ${getDifferenceColor(viewingCut.difference)}`}>
                   <span className="text-sm font-bold">Diferencia:</span>
@@ -422,14 +435,18 @@ export default function CashPage(): ReactElement {
 
               {viewingCut.salesByMethod && viewingCut.salesByMethod.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Ventas por Método de Pago</label>
-                  <div className="space-y-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">Resumen de Ventas por Método</label>
+                  <div className="space-y-2 border rounded p-3">
                     {viewingCut.salesByMethod.map((item: { method: string; amount: number }, index: number) => (
                       <div key={index} className="flex justify-between text-sm">
                         <span>{item.method}:</span>
                         <span>${((item.amount || 0)).toLocaleString()}</span>
                       </div>
                     ))}
+                    <div className="flex justify-between text-sm font-bold pt-2 border-t">
+                      <span>Total Ventas:</span>
+                      <span>${((viewingCut.totalSales || 0)).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               )}
