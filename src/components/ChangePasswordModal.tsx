@@ -51,7 +51,7 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
               required
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-md"
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               placeholder="Mínimo 8 caracteres"
             />
           </div>
@@ -64,7 +64,7 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
               required
               value={form.confirm}
               onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-md"
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               placeholder="Repite la contraseña"
             />
           </div>
