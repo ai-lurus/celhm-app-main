@@ -64,6 +64,15 @@ export function useCreateUser() {
   })
 }
 
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (password: string) => {
+      const response = await api.patch('/auth/change-password', { password })
+      return response.data
+    },
+  })
+}
+
 // Note: Los siguientes hooks requieren endpoints en el backend que aún no existen
 // Endpoints necesarios:
 // - POST /orgs/members - Crear nuevo usuario/membresía

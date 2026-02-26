@@ -7,7 +7,8 @@ import { usePermissions } from '../lib/hooks/usePermissions'
 import { PermissionKey } from '../lib/permissions'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, KeyRound } from 'lucide-react'
+import { ChangePasswordModal } from './ChangePasswordModal'
 
 function SidebarThemeToggle() {
   const { resolvedTheme, theme, setTheme } = useTheme()
@@ -53,6 +54,7 @@ export function Sidebar() {
   const pathname = usePathname() || ''
   const user = useAuthStore((state) => state.user)
   const { can } = usePermissions()
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   const mainNavItems: NavItem[] = [
     { label: 'Dashboard', href: '/dashboard', permission: undefined },
@@ -167,10 +169,22 @@ export function Sidebar() {
               </p>
             </div>
           </div>
-          <div className="px-2">
+          <div className="px-2 flex gap-2">
             <SidebarThemeToggle />
+            <button
+              type="button"
+              onClick={() => setShowChangePassword(true)}
+              className="flex-1 inline-flex items-center justify-center rounded-md border border-blue-600 bg-blue-800 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              title="Cambiar contraseña"
+            >
+              <KeyRound className="h-4 w-4" />
+            </button>
           </div>
         </div>
+      )}
+
+      {showChangePassword && (
+        <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
       )}
     </div>
   )
