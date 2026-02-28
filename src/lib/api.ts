@@ -25,8 +25,10 @@ api.interceptors.response.use(
   async (error) => {
     const config = error.config;
 
-    // Retry logic for network errors or 5xx status codes
-    if (config && (!config._retryCount || config._retryCount < 3)) {
+    // Retry logic only for GET requests on network errors or 5xx status codes
+    // Non-GET requests (POST, PATCH, DELETE) are not retried to avoid side effects
+    const isGetRequest = !config?.method || config.method.toLowerCase() === 'get'
+    if (isGetRequest && config && (!config._retryCount || config._retryCount < 3)) {
       const isNetworkError = !error.response;
       const isServerError = error.response && error.response.status >= 500 && error.response.status < 600;
 

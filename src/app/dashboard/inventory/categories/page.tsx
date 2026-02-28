@@ -153,10 +153,11 @@ export default function CategoriesPage() {
       }
       closeCategoryModal()
     } catch (error: any) {
+      const rawMsg = error.response?.data?.message
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: error.response?.data?.message || error.message || 'Error al guardar categoría',
+        description: typeof rawMsg === 'string' ? rawMsg : (error.message || 'Error al guardar categoría'),
       })
     }
   }
@@ -182,7 +183,8 @@ export default function CategoriesPage() {
         })
         closeDeleteCategoryModal()
       } catch (error: any) {
-        const errorMessage = error.response?.data?.message || error.message || 'Error al eliminar'
+        const rawDeleteMsg = error.response?.data?.message
+        const errorMessage = typeof rawDeleteMsg === 'string' ? rawDeleteMsg : (error.message || 'Error al eliminar')
         if (errorMessage.includes('items') || errorMessage.includes('productos') || errorMessage.includes('asignados')) {
           toast({
             variant: "destructive",

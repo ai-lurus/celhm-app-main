@@ -88,10 +88,12 @@ export default function BrandsPage() {
       }
       closeBrandModal()
     } catch (error: any) {
+      const rawMsg = error.response?.data?.message
+      const description = typeof rawMsg === 'string' ? rawMsg : (error.message || 'Error al guardar marca')
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: error.response?.data?.message || error.message || 'Error al guardar marca',
+        description,
       })
     }
   }
@@ -117,10 +119,11 @@ export default function BrandsPage() {
         })
         closeDeleteBrandModal()
       } catch (error: any) {
+        const rawMsg = error.response?.data?.message
         toast({
           variant: "destructive",
           title: "Error al eliminar",
-          description: error.response?.data?.message || error.message || 'Error al eliminar marca',
+          description: typeof rawMsg === 'string' ? rawMsg : (error.message || 'Error al eliminar marca'),
         })
       }
     }
