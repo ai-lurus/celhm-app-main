@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { AuthUser, LoginRequest } from '@celhm/types'
 import { api } from '../lib/api'
-import { supabase } from '../lib/supabase'
 
 interface AuthState {
   user: AuthUser | null
@@ -35,100 +34,38 @@ export const useAuthStore = create<AuthState>()(
       login: async (credentials: LoginRequest) => {
         set({ isLoading: true, error: null })
         try {
-          // 1. Authenticate with Supabase
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: credentials.email,
-            password: credentials.password
-          })
-
-          if (error) throw error
-          if (!data.session) throw new Error('No session returned from Supabase')
-
-          const accessToken = data.session.access_token
-
-          // 2. Set token temporarily so API interceptor can use it
-          set({ token: accessToken })
-
-          // 3. Get Internal User details from backend
-          const response = await api.get<AuthUser>('/auth/me')
-          const user = response.data
+          const { data } = await api.post<{ access_token: string; user: AuthUser }>('/auth/login', credentials)
 
           set({
-            user,
-            token: accessToken,
+            user: data.user,
+            token: data.access_token,
             isLoading: false,
-            error: null
+            error: null,
           })
         } catch (error: any) {
-          console.error('Login error:', error)
-          let errorMessage = 'Error al iniciar sesión'
+          const status = error?.response?.status
+          const errorMessage =
+            status === 401 ? 'Credenciales inválidas' : 'Error al iniciar sesión'
 
-          if (error?.message) {
-            errorMessage = error.message
-            if (errorMessage === 'Invalid login credentials') {
-              errorMessage = 'Credenciales inválidas'
-            }
-          }
-
-          // Reset state on failure
-          set({
-            user: null,
-            token: null,
-            error: errorMessage,
-            isLoading: false
-          })
-
+          set({ user: null, token: null, error: errorMessage, isLoading: false })
           throw new Error(errorMessage)
         }
       },
 
       checkSession: async () => {
         set({ isCheckingSession: true })
-
         try {
-          // 1. Check Supabase Session
-          const { data: { session }, error } = await supabase.auth.getSession()
-
-          if (error || !session) {
-            throw new Error('No active Supabase session')
-          }
-
-          const accessToken = session.access_token
-
-          // 2. Update token if it changed (or was null)
-          set({ token: accessToken })
-
-          // 3. Verify backend session and get fresh user data
           const response = await api.get<AuthUser>('/auth/me')
-          const user = response.data
-
-          set({
-            user,
-            token: accessToken,
-            isCheckingSession: false
-          })
-
+          set({ user: response.data, isCheckingSession: false })
           return true
-        } catch (error: any) {
-          // Token is invalid, expired, or user not found
-          console.log('Session check failed:', error.message)
-
-          // Ensure clear state
+        } catch {
           get().logout()
-
-          set({
-            isCheckingSession: false
-          })
+          set({ isCheckingSession: false })
           return false
         }
       },
 
       logout: async () => {
-        try {
-          await supabase.auth.signOut()
-        } catch (error) {
-          console.error('Error signing out from Supabase:', error)
-        }
         set({ user: null, token: null, error: null })
       },
 
@@ -141,10 +78,9 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
-        token: state.token
+        token: state.token,
       }),
       onRehydrateStorage: () => (state) => {
-        // Mark as hydrated after rehydration
         if (state) {
           state.setHydrated()
         }
@@ -152,4 +88,3 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 )
-
