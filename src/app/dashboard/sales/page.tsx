@@ -136,16 +136,16 @@ export default function SalesPage() {
           return {
             ticketId,
             description: line.product,
-            qty: line.qty,
-            unitPrice: line.unitPrice,
+            qty: Number(line.qty),
+            unitPrice: Number(line.unitPrice),
           };
         } else {
           // Es un producto normal
           return {
             variantId: line.variantId,
             description: line.product,
-            qty: line.qty,
-            unitPrice: line.unitPrice,
+            qty: Number(line.qty),
+            unitPrice: Number(line.unitPrice),
           };
         }
       });

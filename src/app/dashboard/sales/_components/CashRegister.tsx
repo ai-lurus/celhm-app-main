@@ -200,12 +200,20 @@ export function CashRegister({
     });
   };
 
-  const filteredTickets = tickets.filter(
-    (ticket) =>
-      ticket.folio.toLowerCase().includes(ticketSearch.toLowerCase()) ||
-      ticket.customerName.toLowerCase().includes(ticketSearch.toLowerCase()) ||
-      ticket.device.toLowerCase().includes(ticketSearch.toLowerCase())
-  );
+  const filteredTickets = tickets
+    .filter(
+      (ticket) =>
+        ticket.folio.toLowerCase().includes(ticketSearch.toLowerCase()) ||
+        ticket.customerName
+          .toLowerCase()
+          .includes(ticketSearch.toLowerCase()) ||
+        ticket.device.toLowerCase().includes(ticketSearch.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.state === "REPARADO" && b.state !== "REPARADO") return -1;
+      if (a.state !== "REPARADO" && b.state === "REPARADO") return 1;
+      return 0;
+    });
 
   const filteredStockItems = stockItems.filter(
     (item) =>
@@ -470,13 +478,22 @@ export function CashRegister({
                           )}
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">
-                            $
-                            {(finalAmount || 0).toLocaleString("es-MX", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </span>
+                          {isRepairOrder && finalAmount <= 0 ? (
+                            <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                              Cubierto por anticipo
+                            </span>
+                          ) : (
+                            <span className="text-sm font-medium">
+                              $
+                              {(Math.max(0, finalAmount) || 0).toLocaleString(
+                                "es-MX",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </span>
+                          )}
                           <button
                             onClick={() => handleRemoveLine(index)}
                             className="text-red-600 hover:text-red-800 text-sm font-bold"
@@ -722,6 +739,12 @@ export function CashRegister({
                       })}
                     </span>
                   </div>
+                  {total === 0 &&
+                    form.lines.some((l) => (l.advance || 0) > 0) && (
+                      <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 mt-1 text-right">
+                        Saldo cubierto por anticipo
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -887,7 +910,9 @@ export function CashRegister({
                         className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
                           isAlreadyAdded
                             ? "bg-gray-100 opacity-60 cursor-not-allowed"
-                            : ""
+                            : ticket.state === "REPARADO"
+                              ? "bg-green-50 border-l-4 border-green-500"
+                              : ""
                         }`}
                       >
                         <div className="flex justify-between items-start">
@@ -896,6 +921,11 @@ export function CashRegister({
                               <span className="font-bold text-blue-600">
                                 Folio: {ticket.folio}
                               </span>
+                              {ticket.state === "REPARADO" && (
+                                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                                  LISTO
+                                </span>
+                              )}
                               {isAlreadyAdded && (
                                 <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
                                   Ya agregado
