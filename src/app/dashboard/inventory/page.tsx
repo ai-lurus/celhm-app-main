@@ -1,15 +1,29 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useStock, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem, InventoryItem } from '../../../lib/hooks/useStock'
-import { useToast } from '../../../hooks/use-toast'
-import { useCreateMovement } from '../../../lib/hooks/useMovements'
-import { useCategories, useBrands } from '../../../lib/hooks/useCatalog'
-import { useAuthStore } from '../../../stores/auth'
-import { usePermissions } from '../../../lib/hooks/usePermissions'
-import { IconEdit, IconMovement, IconDelete, IconUpload, IconDownload, IconPlus, IconChevronDown } from './_components/icons'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from "react";
+import {
+  useStock,
+  useCreateInventoryItem,
+  useUpdateInventoryItem,
+  useDeleteInventoryItem,
+  InventoryItem,
+} from "../../../lib/hooks/useStock";
+import { useToast } from "../../../hooks/use-toast";
+import { useCreateMovement } from "../../../lib/hooks/useMovements";
+import { useCategories, useBrands } from "../../../lib/hooks/useCatalog";
+import { useAuthStore } from "../../../stores/auth";
+import { usePermissions } from "../../../lib/hooks/usePermissions";
+import {
+  IconEdit,
+  IconMovement,
+  IconDelete,
+  IconUpload,
+  IconDownload,
+  IconPlus,
+  IconChevronDown,
+} from "./_components/icons";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 //-----------------
 // TIPOS DE DATOS
@@ -26,17 +40,18 @@ interface NewProductForm {
 }
 
 const newProductInitialState: NewProductForm = {
-  name: '',
-  brand: '',
-  price: '0.00',
-  purchasePrice: '0.00',
-  barcode: '',
-  sku: '',
+  name: "",
+  brand: "",
+  price: "0.00",
+  purchasePrice: "0.00",
+  barcode: "",
+  sku: "",
   initial_stock: 10,
   min_stock: 5,
 };
 
-const CSV_TEMPLATE_HEADERS = "sku,name,brand,model,qty,min,max,price,status,categoryId";
+const CSV_TEMPLATE_HEADERS =
+  "sku,name,brand,model,qty,min,max,price,status,categoryId";
 
 export default function InventoryPage() {
   const user = useAuthStore((state) => state.user);
@@ -44,18 +59,27 @@ export default function InventoryPage() {
   const pathname = usePathname();
 
   // --- estados de filtros y paginacion ---
-  const [selectedBrand, setSelectedBrand] = useState<string>('');
-  const [modelSearch, setModelSearch] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<'normal' | 'low' | 'critical' | ''>('');
-  const [filterCategory, setFilterCategory] = useState<string>('');
+  const [selectedBrand, setSelectedBrand] = useState<string>("");
+  const [modelSearch, setModelSearch] = useState<string>("");
+  const [nameSearch, setNameSearch] = useState<string>("");
+  const [selectedStatus, setSelectedStatus] = useState<
+    "normal" | "low" | "critical" | ""
+  >("");
+  const [filterCategory, setFilterCategory] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [itemsPerPage, setItemsPerPage] = useState<number>(20);
 
   // API hooks
-  const { toast } = useToast()
-  const { data: stockData, isLoading, error, refetch } = useStock({
+  const { toast } = useToast();
+  const {
+    data: stockData,
+    isLoading,
+    error,
+    refetch,
+  } = useStock({
     marca: selectedBrand || undefined,
     modelo: modelSearch || undefined,
+    q: nameSearch || undefined,
     estado: selectedStatus || undefined,
     categoriaId: filterCategory || undefined,
     page: currentPage,
@@ -72,39 +96,62 @@ export default function InventoryPage() {
   const { data: brands = [] } = useBrands();
 
   // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
-  const flatCategories = categories.filter(cat => !cat.parentId);
+  const flatCategories = categories.filter((cat) => !cat.parentId);
 
   // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
-  const flatBrands = brands.filter(brand => brand.id !== 0 && brand.id !== undefined);
+  const flatBrands = brands.filter(
+    (brand) => brand.id !== 0 && brand.id !== undefined
+  );
 
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [newProduct, setNewProduct] = useState<NewProductForm>(newProductInitialState);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [newProduct, setNewProduct] = useState<NewProductForm>(
+    newProductInitialState
+  );
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
 
-  const [isMovementModalOpen, setIsMovementModalOpen] = useState<boolean>(false);
-  const [itemForMovement, setItemForMovement] = useState<InventoryItem | null>(null);
-  const [movementType, setMovementType] = useState<'entrada' | 'salida'>('entrada');
+  const [isMovementModalOpen, setIsMovementModalOpen] =
+    useState<boolean>(false);
+  const [itemForMovement, setItemForMovement] = useState<InventoryItem | null>(
+    null
+  );
+  const [movementType, setMovementType] = useState<"entrada" | "salida">(
+    "entrada"
+  );
   const [movementQuantity, setMovementQuantity] = useState<number>(1);
 
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [importStatus, setImportStatus] = useState<string>('');
+  const [importStatus, setImportStatus] = useState<string>("");
 
   // --- estado para el Dropdown del boton "acciones" ---
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
   // Obtener items de inventario desde la API
-  const inventoryItems = Array.isArray((stockData as any)?.data) ? (stockData as any).data : [];
-  const pagination = (stockData as any)?.pagination || { page: 1, pageSize: 20, total: 0, totalPages: 1 };
+  const inventoryItems = Array.isArray((stockData as any)?.data)
+    ? (stockData as any).data
+    : [];
+  const pagination = (stockData as any)?.pagination || {
+    page: 1,
+    pageSize: 20,
+    total: 0,
+    totalPages: 1,
+  };
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedBrand, modelSearch, selectedStatus, filterCategory, itemsPerPage]);
+  }, [
+    selectedBrand,
+    modelSearch,
+    nameSearch,
+    selectedStatus,
+    filterCategory,
+    itemsPerPage,
+  ]);
 
   //---------------------
   // LOGICA DE FUNCIONES
@@ -114,70 +161,73 @@ export default function InventoryPage() {
   const openAddModal = () => {
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategory('');
+    setSelectedCategory("");
     setIsModalOpen(true);
     setShowActionsDropdown(false);
   };
 
-  const handlePriceChange = (
-    field: keyof NewProductForm,
-    value: string
-  ) => {
+  const handlePriceChange = (field: keyof NewProductForm, value: string) => {
     // Permitir solo números y un punto decimal
-    if (!/^\d*\.?\d*$/.test(value)) return
+    if (!/^\d*\.?\d*$/.test(value)) return;
 
-    let newValue = value
+    let newValue = value;
 
-    if (newProduct[field] === '0.00' && value !== '0.00') {
-      const lastChar = value.slice(-1)
+    if (newProduct[field] === "0.00" && value !== "0.00") {
+      const lastChar = value.slice(-1);
       if (value.length > 4 && /^\d$/.test(lastChar)) {
-        if (value.startsWith('0.00')) {
-          newValue = value.substring(4)
+        if (value.startsWith("0.00")) {
+          newValue = value.substring(4);
         }
       }
     }
 
-    if (newProduct[field] === '0.00' && value.length > 4) {
-      newValue = value.replace('0.00', '')
+    if (newProduct[field] === "0.00" && value.length > 4) {
+      newValue = value.replace("0.00", "");
     }
 
     // Evitar múltiples ceros a la izquierda excepto si es 0.
-    if (newValue.length > 1 && newValue.startsWith('0') && newValue[1] !== '.') {
-      newValue = newValue.replace(/^0+/, '')
+    if (
+      newValue.length > 1 &&
+      newValue.startsWith("0") &&
+      newValue[1] !== "."
+    ) {
+      newValue = newValue.replace(/^0+/, "");
     }
 
-    if (newValue === '') newValue = ''
+    if (newValue === "") newValue = "";
 
-    setNewProduct({ ...newProduct, [field]: newValue })
-  }
+    setNewProduct({ ...newProduct, [field]: newValue });
+  };
 
   const handlePriceBlur = (field: keyof NewProductForm) => {
-    const value = newProduct[field]
-    if (typeof value === 'string' && value !== '') {
-      const num = parseFloat(value)
+    const value = newProduct[field];
+    if (typeof value === "string" && value !== "") {
+      const num = parseFloat(value);
       if (!isNaN(num)) {
-        setNewProduct({ ...newProduct, [field]: num.toFixed(2) })
+        setNewProduct({ ...newProduct, [field]: num.toFixed(2) });
       } else {
-        setNewProduct({ ...newProduct, [field]: '0.00' })
+        setNewProduct({ ...newProduct, [field]: "0.00" });
       }
-    } else if (value === '' || value === undefined) {
-      setNewProduct({ ...newProduct, [field]: '0.00' })
+    } else if (value === "" || value === undefined) {
+      setNewProduct({ ...newProduct, [field]: "0.00" });
     }
-  }
+  };
 
   const openEditModal = (item: InventoryItem) => {
     setItemToEdit(item);
     setNewProduct({
       name: item.name,
       brand: item.brand,
-      price: item.price.toFixed(2),
-      purchasePrice: (item as any).purchasePrice ? Number((item as any).purchasePrice).toFixed(2) : '0.00',
-      barcode: (item as any).barcode || '',
+      price: Number(item.price ?? 0).toFixed(2),
+      purchasePrice: (item as any).purchasePrice
+        ? Number((item as any).purchasePrice).toFixed(2)
+        : "0.00",
+      barcode: (item as any).barcode || "",
       sku: item.sku,
       initial_stock: item.qty,
       min_stock: item.min,
     });
-    setSelectedCategory('');
+    setSelectedCategory("");
     setIsModalOpen(true);
   };
 
@@ -185,22 +235,41 @@ export default function InventoryPage() {
     setIsModalOpen(false);
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategory('');
+    setSelectedCategory("");
   };
 
   const renderCategorySelectors = () => {
     return (
       <div>
-        <label className="block text-sm font-medium text-foreground">Categoría</label>
+        <label className="block text-sm font-medium text-foreground">
+          Categoría
+        </label>
         <select
-          onChange={(e) => setSelectedCategory(e.target.value)}
           value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
           className="mt-1 block w-full border border-border rounded-md p-2"
         >
           <option value="">Selecciona una categoría</option>
-          {categories.map((cat) => (
-            <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
-          ))}
+          {categories.map((cat) => {
+            const subs = cat.children ?? [];
+            if (subs.length > 0) {
+              return (
+                <optgroup key={cat.id} label={cat.name}>
+                  <option value={cat.name}>{cat.name} (general)</option>
+                  {subs.map((sub) => (
+                    <option key={sub.id} value={sub.name}>
+                      {sub.name}
+                    </option>
+                  ))}
+                </optgroup>
+              );
+            }
+            return (
+              <option key={cat.id} value={cat.name}>
+                {cat.name}
+              </option>
+            );
+          })}
         </select>
       </div>
     );
@@ -212,7 +281,7 @@ export default function InventoryPage() {
         variant: "destructive",
         title: "Nombre requerido",
         description: "Por favor, completa el nombre del producto.",
-      })
+      });
       return;
     }
 
@@ -223,8 +292,15 @@ export default function InventoryPage() {
           data: {
             name: newProduct.name,
             brand: newProduct.brand,
-            price: typeof newProduct.price === 'string' ? parseFloat(newProduct.price) : newProduct.price,
-            purchasePrice: newProduct.purchasePrice ? (typeof newProduct.purchasePrice === 'string' ? parseFloat(newProduct.purchasePrice) : newProduct.purchasePrice) : undefined,
+            price:
+              typeof newProduct.price === "string"
+                ? parseFloat(newProduct.price)
+                : newProduct.price,
+            purchasePrice: newProduct.purchasePrice
+              ? typeof newProduct.purchasePrice === "string"
+                ? parseFloat(newProduct.purchasePrice)
+                : newProduct.purchasePrice
+              : undefined,
             barcode: newProduct.barcode || undefined,
             sku: newProduct.sku,
             initial_stock: newProduct.initial_stock,
@@ -236,16 +312,23 @@ export default function InventoryPage() {
           variant: "success",
           title: "Producto actualizado",
           description: "El producto se ha actualizado correctamente.",
-        })
+        });
       } else {
         await createItem.mutateAsync({
           branchId: user?.branchId,
           name: newProduct.name,
           brand: newProduct.brand,
-          model: 'Nuevo Modelo',
+          model: "Nuevo Modelo",
           sku: newProduct.sku || undefined,
-          price: typeof newProduct.price === 'string' ? parseFloat(newProduct.price) : newProduct.price,
-          purchasePrice: newProduct.purchasePrice ? (typeof newProduct.purchasePrice === 'string' ? parseFloat(newProduct.purchasePrice) : newProduct.purchasePrice) : undefined,
+          price:
+            typeof newProduct.price === "string"
+              ? parseFloat(newProduct.price)
+              : newProduct.price,
+          purchasePrice: newProduct.purchasePrice
+            ? typeof newProduct.purchasePrice === "string"
+              ? parseFloat(newProduct.purchasePrice)
+              : newProduct.purchasePrice
+            : undefined,
           barcode: newProduct.barcode || undefined,
           qty: newProduct.initial_stock,
           min: newProduct.min_stock,
@@ -255,15 +338,18 @@ export default function InventoryPage() {
           variant: "success",
           title: "Producto creado",
           description: "El producto se ha creado correctamente.",
-        })
+        });
       }
       closeModal();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: error.response?.data?.message || error.message || 'Error al guardar el producto',
-      })
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          "Error al guardar el producto",
+      });
     }
   };
 
@@ -284,14 +370,17 @@ export default function InventoryPage() {
           variant: "success",
           title: "Producto eliminado",
           description: "El producto se ha eliminado correctamente.",
-        })
+        });
         closeDeleteModal();
       } catch (error: any) {
         toast({
           variant: "destructive",
           title: "Error al eliminar",
-          description: error.response?.data?.message || error.message || 'Error al eliminar el producto',
-        })
+          description:
+            error.response?.data?.message ||
+            error.message ||
+            "Error al eliminar el producto",
+        });
       }
     }
   };
@@ -300,7 +389,7 @@ export default function InventoryPage() {
   const openMovementModal = (item: InventoryItem) => {
     setItemForMovement(item);
     setMovementQuantity(1);
-    setMovementType('entrada');
+    setMovementType("entrada");
     setIsMovementModalOpen(true);
   };
   const closeMovementModal = () => {
@@ -313,7 +402,7 @@ export default function InventoryPage() {
         variant: "destructive",
         title: "Cantidad inválida",
         description: "La cantidad debe ser mayor a 0.",
-      })
+      });
       return;
     }
     if (!itemForMovement || !user?.branchId) {
@@ -321,17 +410,21 @@ export default function InventoryPage() {
         variant: "destructive",
         title: "Error",
         description: "No se puede registrar el movimiento.",
-      })
+      });
       return;
     }
 
     // Check if salida would result in negative stock
-    if (movementType === 'salida' && itemForMovement.qty - movementQuantity < 0) {
+    if (
+      movementType === "salida" &&
+      itemForMovement.qty - movementQuantity < 0
+    ) {
       toast({
         variant: "destructive",
         title: "Stock insuficiente",
-        description: "No se puede registrar una salida que deje el stock en negativo.",
-      })
+        description:
+          "No se puede registrar una salida que deje el stock en negativo.",
+      });
       return;
     }
 
@@ -346,29 +439,64 @@ export default function InventoryPage() {
         variant: "success",
         title: "Movimiento registrado",
         description: `Se registró una ${movementType} de ${movementQuantity} unidades.`,
-      })
+      });
       closeMovementModal();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error al registrar movimiento",
-        description: error.response?.data?.message || error.message || 'Error al registrar movimiento',
-      })
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          "Error al registrar movimiento",
+      });
     }
   };
 
   // --- exportar csv ---
   const handleExportCSV = () => {
-    const headers = ["id", "sku", "name", "brand", "model", "qty", "min", "max", "reserved", "price", "status", "categoryId"];
-    const data = inventoryItems.map((item: InventoryItem) => [
-      item.id, item.sku, `"${item.name.replace(/"/g, '""')}"`,
-      item.brand, item.model, item.qty, item.min, item.max, item.reserved, item.price, item.status, item.categoryId
-    ].join(','));
-    const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + data.join('\n');
+    const headers = [
+      "id",
+      "sku",
+      "name",
+      "brand",
+      "model",
+      "qty",
+      "min",
+      "max",
+      "reserved",
+      "price",
+      "status",
+      "categoryId",
+    ];
+    const data = inventoryItems.map((item: InventoryItem) =>
+      [
+        item.id,
+        item.sku,
+        `"${item.name.replace(/"/g, '""')}"`,
+        item.brand,
+        item.model,
+        item.qty,
+        item.min,
+        item.max,
+        item.reserved,
+        item.price,
+        item.status,
+        item.categoryId,
+      ].join(",")
+    );
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      headers.join(",") +
+      "\n" +
+      data.join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `inventario_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `inventario_${new Date().toISOString().split("T")[0]}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -379,14 +507,14 @@ export default function InventoryPage() {
   const openImportModal = () => {
     setIsImportModalOpen(true);
     setCsvFile(null);
-    setImportStatus('');
+    setImportStatus("");
     setShowActionsDropdown(false);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setCsvFile(e.target.files[0]);
-      setImportStatus('');
+      setImportStatus("");
     }
   };
 
@@ -403,31 +531,36 @@ export default function InventoryPage() {
 
   const handleProcessImport = () => {
     if (!csvFile) {
-      setImportStatus('Error: No se ha seleccionado ningún archivo.');
+      setImportStatus("Error: No se ha seleccionado ningún archivo.");
       return;
     }
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim() !== '');
-        if (lines.length <= 1) throw new Error("El archivo está vacío o no tiene datos.");
-        const headers = lines[0].split(',').map(h => h.trim());
-        const requiredHeaders = CSV_TEMPLATE_HEADERS.split(',');
+        const lines = text.split("\n").filter((line) => line.trim() !== "");
+        if (lines.length <= 1)
+          throw new Error("El archivo está vacío o no tiene datos.");
+        const headers = lines[0].split(",").map((h) => h.trim());
+        const requiredHeaders = CSV_TEMPLATE_HEADERS.split(",");
         for (const header of requiredHeaders) {
-          if (!headers.includes(header)) throw new Error(`Error: Falta columna "${header}".`);
+          if (!headers.includes(header))
+            throw new Error(`Error: Falta columna "${header}".`);
         }
 
         const newItems: InventoryItem[] = [];
-        let maxId = Math.max(0, ...inventoryItems.map((i: InventoryItem) => i.id));
+        let maxId = Math.max(
+          0,
+          ...inventoryItems.map((i: InventoryItem) => i.id)
+        );
 
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split(',');
+          const values = lines[i].split(",");
           if (values.length !== headers.length) continue;
 
           const obj: any = {};
           headers.forEach((header, index) => {
-            obj[header] = values[index].trim().replace(/"/g, '');
+            obj[header] = values[index].trim().replace(/"/g, "");
           });
 
           const qty = parseInt(obj.qty) || 0;
@@ -444,7 +577,7 @@ export default function InventoryPage() {
             max: parseInt(obj.max) || 100,
             reserved: parseInt(obj.reserved) || 0,
             price: parseFloat(obj.price) || 0,
-            status: qty <= min ? (qty <= 0 ? 'critical' : 'low') : 'normal',
+            status: qty <= min ? (qty <= 0 ? "critical" : "low") : "normal",
             categoryId: parseInt(obj.categoryId) || 0,
           };
           if (newItem.name && newItem.categoryId) newItems.push(newItem);
@@ -466,14 +599,16 @@ export default function InventoryPage() {
             });
             successCount++;
           } catch (err) {
-            console.error('Error creating item:', err);
+            console.error("Error creating item:", err);
           }
         }
 
         // Refrescar inventario para mostrar nuevos items
         await refetch();
 
-        setImportStatus(`¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`);
+        setImportStatus(
+          `¡Éxito! Se importaron ${successCount} de ${newItems.length} productos.`
+        );
         setCsvFile(null);
         setIsImportModalOpen(false);
       } catch (error: any) {
@@ -492,11 +627,12 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-
       {/* --- encabezado --- */}
       <div>
         <h1 className="text-2xl font-bold text-foreground">Catálogo</h1>
-        <p className="text-muted-foreground">Gestión de existencias por sucursal</p>
+        <p className="text-muted-foreground">
+          Gestión de existencias por sucursal
+        </p>
       </div>
 
       {/* --- tabs de navegación --- */}
@@ -505,37 +641,41 @@ export default function InventoryPage() {
           <nav className="-mb-px flex space-x-8 flex-1">
             <Link
               href="/dashboard/inventory"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === "/dashboard/inventory"
+                  ? "border-blue-500 text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
             >
               Inventario
             </Link>
             <Link
               href="/dashboard/catalog"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/catalog'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === "/dashboard/catalog"
+                  ? "border-blue-500 text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
             >
               Catálogo
             </Link>
             <Link
               href="/dashboard/inventory/categories"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/categories'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === "/dashboard/inventory/categories"
+                  ? "border-blue-500 text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
             >
               Categorías
             </Link>
             <Link
               href="/dashboard/inventory/brands"
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === '/dashboard/inventory/brands'
-                ? 'border-blue-500 text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
+                pathname === "/dashboard/inventory/brands"
+                  ? "border-blue-500 text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              }`}
             >
               Marcas
             </Link>
@@ -593,22 +733,53 @@ export default function InventoryPage() {
 
       {/* --- Filtros en la parte superior --- */}
       <div className="bg-card p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-foreground">Categoría</label>
+            <label className="block text-sm font-medium text-foreground">
+              Buscar
+            </label>
+            <input
+              type="text"
+              placeholder="Nombre del producto..."
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+              className="w-full border border-border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-foreground">
+              Categoría
+            </label>
             <select
               onChange={(e) => setFilterCategory(e.target.value)}
               value={filterCategory}
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todas las categorías</option>
-              {flatCategories.map((cat) => (
-                <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
-              ))}
+              {categories.map((cat) =>
+                cat.children && cat.children.length > 0 ? (
+                  <optgroup key={cat.id} label={cat.name}>
+                    <option value={cat.id.toString()}>
+                      — Todas en {cat.name}
+                    </option>
+                    {cat.children.map((sub) => (
+                      <option key={sub.id} value={sub.id.toString()}>
+                        {sub.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : (
+                  <option key={cat.id} value={cat.id.toString()}>
+                    {cat.name}
+                  </option>
+                )
+              )}
             </select>
           </div>
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-foreground">Marca</label>
+            <label className="block text-sm font-medium text-foreground">
+              Marca
+            </label>
             <select
               value={selectedBrand}
               onChange={(e) => setSelectedBrand(e.target.value)}
@@ -616,12 +787,16 @@ export default function InventoryPage() {
             >
               <option value="">Todas las marcas</option>
               {brands.map((brand) => (
-                <option key={brand.id} value={brand.name}>{brand.name}</option>
+                <option key={brand.id} value={brand.name}>
+                  {brand.name}
+                </option>
               ))}
             </select>
           </div>
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-foreground">Modelo</label>
+            <label className="block text-sm font-medium text-foreground">
+              Modelo
+            </label>
             <input
               value={modelSearch}
               onChange={(e) => setModelSearch(e.target.value)}
@@ -631,10 +806,16 @@ export default function InventoryPage() {
             />
           </div>
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-foreground">Estado</label>
+            <label className="block text-sm font-medium text-foreground">
+              Estado
+            </label>
             <select
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as 'normal' | 'low' | 'critical' | '')}
+              onChange={(e) =>
+                setSelectedStatus(
+                  e.target.value as "normal" | "low" | "critical" | ""
+                )
+              }
               className="w-full border border-border rounded-md px-3 py-2 text-sm"
             >
               <option value="">Todos los estados</option>
@@ -650,19 +831,20 @@ export default function InventoryPage() {
       <div className="w-full">
         <div className="bg-card rounded-lg shadow overflow-hidden">
           {isLoading && (
-            <div className="p-8 text-center text-muted-foreground">Cargando catálogo...</div>
+            <div className="p-8 text-center text-muted-foreground">
+              Cargando catálogo...
+            </div>
           )}
           {error && (
             <div className="p-8 text-center text-red-500">
-              Error al cargar catálogo: {
-                error instanceof Error
-                  ? error.message
-                  : (error as any)?.response?.data?.message
-                    ? (error as any).response.data.message
-                    : (error as any)?.message
-                      ? (error as any).message
-                      : 'Error desconocido'
-              }
+              Error al cargar catálogo:{" "}
+              {error instanceof Error
+                ? error.message
+                : (error as any)?.response?.data?.message
+                  ? (error as any).response.data.message
+                  : (error as any)?.message
+                    ? (error as any).message
+                    : "Error desconocido"}
             </div>
           )}
           {!isLoading && !error && (
@@ -670,21 +852,42 @@ export default function InventoryPage() {
               <table className="min-w-full divide-y divide-border">
                 <thead className="bg-muted">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Producto</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">SKU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Modelo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stock</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Reservado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mín/Máx</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Precio</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Estado</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Acciones</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Producto
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      SKU
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Modelo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Reservado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Mín/Máx
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Precio
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Estado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-card divide-y divide-border">
                   {paginatedInventory.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-4 text-center text-muted-foreground">
+                      <td
+                        colSpan={9}
+                        className="px-6 py-4 text-center text-muted-foreground"
+                      >
                         No hay artículos en el inventario
                       </td>
                     </tr>
@@ -693,34 +896,76 @@ export default function InventoryPage() {
                       <tr key={item.id} className="hover:bg-muted">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-foreground">{item.name}</div>
-                            <div className="text-sm text-muted-foreground">{item.brand}</div>
+                            <div className="text-sm font-medium text-foreground">
+                              {item.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {item.brand}
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.sku}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.model}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-foreground">{item.qty}</div>
-                          <div className="text-sm text-muted-foreground">Disp: {item.qty - item.reserved}</div>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {item.sku}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.reserved}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{item.min} / {item.max}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">${item.price.toLocaleString()}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {item.model}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === 'critical' ? 'bg-red-100 text-red-800' : item.status === 'low' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
-                            {item.status === 'critical' ? 'Crítico' : item.status === 'low' ? 'Bajo' : 'Normal'}
+                          <div className="text-sm font-medium text-foreground">
+                            {item.qty}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Disp: {item.qty - item.reserved}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {item.reserved}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          {item.min} / {item.max}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
+                          ${item.price.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${item.status === "critical" ? "bg-red-100 text-red-800" : item.status === "low" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}`}
+                          >
+                            {item.status === "critical"
+                              ? "Crítico"
+                              : item.status === "low"
+                                ? "Bajo"
+                                : "Normal"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-3">
-                            {can('canEditPrices') && (
-                              <button onClick={() => openEditModal(item)} title="Editar" className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"><IconEdit className="w-5 h-5" /></button>
+                            {can("canEditPrices") && (
+                              <button
+                                onClick={() => openEditModal(item)}
+                                title="Editar"
+                                className="p-1 rounded-md text-primary hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                              >
+                                <IconEdit className="w-5 h-5" />
+                              </button>
                             )}
-                            {can('canManageInventory') && (
-                              <button onClick={() => openMovementModal(item)} title="Movimiento" className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"><IconMovement className="w-5 h-5" /></button>
+                            {can("canManageInventory") && (
+                              <button
+                                onClick={() => openMovementModal(item)}
+                                title="Movimiento"
+                                className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                              >
+                                <IconMovement className="w-5 h-5" />
+                              </button>
                             )}
-                            {can('canDeleteOrders') && (
-                              <button onClick={() => openDeleteModal(item)} title="Eliminar" className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"><IconDelete className="w-5 h-5" /></button>
+                            {can("canDeleteOrders") && (
+                              <button
+                                onClick={() => openDeleteModal(item)}
+                                title="Eliminar"
+                                className="p-1 rounded-md text-red-600 hover:bg-red-100 hover:text-red-800 transition-colors"
+                              >
+                                <IconDelete className="w-5 h-5" />
+                              </button>
                             )}
                           </div>
                         </td>
@@ -735,27 +980,77 @@ export default function InventoryPage() {
           {/* --- paginacion --- */}
           <div className="bg-card px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
-              <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Anterior</button>
-              <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || isLoading} className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50">Siguiente</button>
+              <button
+                onClick={() => setCurrentPage((p) => p - 1)}
+                disabled={currentPage === 1 || isLoading}
+                className="relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={currentPage === totalPages || isLoading}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md text-foreground bg-card hover:bg-muted disabled:opacity-50"
+              >
+                Siguiente
+              </button>
             </div>
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-foreground">
-                  Mostrando <span className="font-medium">{totalItems > 0 ? startIndex + 1 : 0}</span> a <span className="font-medium">{Math.min(endIndex, totalItems)}</span> de <span className="font-medium">{totalItems}</span> resultados
+                  Mostrando{" "}
+                  <span className="font-medium">
+                    {totalItems > 0 ? startIndex + 1 : 0}
+                  </span>{" "}
+                  a{" "}
+                  <span className="font-medium">
+                    {Math.min(endIndex, totalItems)}
+                  </span>{" "}
+                  de <span className="font-medium">{totalItems}</span>{" "}
+                  resultados
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <label htmlFor="itemsPerPage" className="text-sm text-foreground">Artículos por pág:</label>
-                <select id="itemsPerPage" value={itemsPerPage} onChange={(e) => setItemsPerPage(Number(e.target.value))} className="border border-border rounded-md px-2 py-1 text-sm">
+                <label
+                  htmlFor="itemsPerPage"
+                  className="text-sm text-foreground"
+                >
+                  Artículos por pág:
+                </label>
+                <select
+                  id="itemsPerPage"
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="border border-border rounded-md px-2 py-1 text-sm"
+                >
                   <option value={20}>20</option>
                   <option value={50}>50</option>
                 </select>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Anterior</button>
+                <nav
+                  className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                  aria-label="Pagination"
+                >
+                  <button
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    disabled={currentPage === 1 || isLoading}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
                   <span className="relative inline-flex items-center px-4 py-2 border border-border bg-card text-sm font-medium text-foreground">
                     Pág {pagination.page} de {totalPages || 1}
                   </span>
-                  <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages || totalPages === 0 || isLoading} className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50">Siguiente</button>
+                  <button
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    disabled={
+                      currentPage === totalPages ||
+                      totalPages === 0 ||
+                      isLoading
+                    }
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-border bg-card text-sm font-medium text-muted-foreground hover:bg-muted disabled:opacity-50"
+                  >
+                    Siguiente
+                  </button>
                 </nav>
               </div>
             </div>
@@ -769,63 +1064,161 @@ export default function InventoryPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-8 rounded-lg shadow-2xl w-full max-w-4xl max-h-full overflow-y-auto space-y-6">
-            <h2 className="text-2xl font-bold text-foreground">{itemToEdit ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              {itemToEdit ? "Editar Producto" : "Agregar Nuevo Producto"}
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div className="space-y-4">
-                <div><label className="block text-sm font-medium text-foreground">Nombre</label><input type="text" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground">Marca</label>
-                  <select value={newProduct.brand} onChange={e => setNewProduct({ ...newProduct, brand: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2">
+                  <label className="block text-sm font-medium text-foreground">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    value={newProduct.name}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, name: e.target.value })
+                    }
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Marca
+                  </label>
+                  <select
+                    value={newProduct.brand}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, brand: e.target.value })
+                    }
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                  >
                     <option value="">Selecciona una marca</option>
                     {brands.map((brand) => (
-                      <option key={brand.id} value={brand.name}>{brand.name}</option>
+                      <option key={brand.id} value={brand.name}>
+                        {brand.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground">Precio de Venta</label>
+                  <label className="block text-sm font-medium text-foreground">
+                    Precio de Venta
+                  </label>
                   <div className="relative mt-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      $
+                    </span>
                     <input
                       type="text"
                       value={newProduct.price}
-                      onChange={e => handlePriceChange('price', e.target.value)}
-                      onBlur={() => handlePriceBlur('price')}
+                      onChange={(e) =>
+                        handlePriceChange("price", e.target.value)
+                      }
+                      onBlur={() => handlePriceBlur("price")}
                       onFocus={(e) => e.target.select()}
                       className="block w-full border border-border rounded-md py-2 pl-7 pr-3"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-foreground">Precio de Compra</label>
+                  <label className="block text-sm font-medium text-foreground">
+                    Precio de Compra
+                  </label>
                   <div className="relative mt-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      $
+                    </span>
                     <input
                       type="text"
                       value={newProduct.purchasePrice}
-                      onChange={e => handlePriceChange('purchasePrice', e.target.value)}
-                      onBlur={() => handlePriceBlur('purchasePrice')}
+                      onChange={(e) =>
+                        handlePriceChange("purchasePrice", e.target.value)
+                      }
+                      onBlur={() => handlePriceBlur("purchasePrice")}
                       onFocus={(e) => e.target.select()}
                       className="block w-full border border-border rounded-md py-2 pl-7 pr-3"
                       placeholder="Costo de adquisición"
                     />
                   </div>
                 </div>
-                <div><label className="block text-sm font-medium text-foreground">Código de Barras</label><input type="text" value={newProduct.barcode} onChange={e => setNewProduct({ ...newProduct, barcode: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" placeholder="EAN, UPC, etc." /></div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="block text-sm font-medium text-foreground">Existencias {itemToEdit ? 'Actual' : 'Inicial'}</label><input type="number" value={newProduct.initial_stock} onChange={e => setNewProduct({ ...newProduct, initial_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
-                  <div><label className="block text-sm font-medium text-foreground">Existencias Mínimas</label><input type="number" value={newProduct.min_stock} onChange={e => setNewProduct({ ...newProduct, min_stock: parseInt(e.target.value) || 0 })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Código de Barras
+                  </label>
+                  <input
+                    type="text"
+                    value={newProduct.barcode}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, barcode: e.target.value })
+                    }
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                    placeholder="EAN, UPC, etc."
+                  />
                 </div>
-                <div><label className="block text-sm font-medium text-foreground">SKU</label><input type="text" value={newProduct.sku} onChange={e => setNewProduct({ ...newProduct, sku: e.target.value })} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground">
+                      Existencias {itemToEdit ? "Actual" : "Inicial"}
+                    </label>
+                    <input
+                      type="number"
+                      value={newProduct.initial_stock}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          initial_stock: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className="mt-1 block w-full border border-border rounded-md p-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground">
+                      Existencias Mínimas
+                    </label>
+                    <input
+                      type="number"
+                      value={newProduct.min_stock}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          min_stock: parseInt(e.target.value) || 0,
+                        })
+                      }
+                      className="mt-1 block w-full border border-border rounded-md p-2"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    SKU
+                  </label>
+                  <input
+                    type="text"
+                    value={newProduct.sku}
+                    onChange={(e) =>
+                      setNewProduct({ ...newProduct, sku: e.target.value })
+                    }
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                  />
+                </div>
               </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium text-foreground border-b pb-2">Clasificación</h3>
-                {renderCategorySelectors()}
-              </div>
+              <div className="space-y-4">{renderCategorySelectors()}</div>
             </div>
             <div className="flex justify-end space-x-4 pt-4">
-              <button onClick={closeModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
-              <button onClick={handleSaveProduct} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">{itemToEdit ? 'Actualizar' : 'Guardar'}</button>
+              <button
+                onClick={closeModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveProduct}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+              >
+                {itemToEdit ? "Actualizar" : "Guardar"}
+              </button>
             </div>
           </div>
         </div>
@@ -835,11 +1228,26 @@ export default function InventoryPage() {
       {isDeleteModalOpen && itemToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-foreground">Confirmar Eliminación</h2>
-            <p className="text-muted-foreground mt-4">¿Estás seguro de que deseas eliminar: <span className="font-medium">{itemToDelete.name}</span>?</p>
+            <h2 className="text-xl font-bold text-foreground">
+              Confirmar Eliminación
+            </h2>
+            <p className="text-muted-foreground mt-4">
+              ¿Estás seguro de que deseas eliminar:{" "}
+              <span className="font-medium">{itemToDelete.name}</span>?
+            </p>
             <div className="flex justify-end space-x-4 mt-6">
-              <button onClick={closeDeleteModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
-              <button onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md">Eliminar</button>
+              <button
+                onClick={closeDeleteModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-md"
+              >
+                Eliminar
+              </button>
             </div>
           </div>
         </div>
@@ -849,15 +1257,59 @@ export default function InventoryPage() {
       {isMovementModalOpen && itemForMovement && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-foreground">Registrar Movimiento</h2>
-            <div className="mt-4"><p className="font-medium">{itemForMovement.name}</p><p className="text-sm text-muted-foreground">Existencias Actuales: {itemForMovement.qty}</p></div>
+            <h2 className="text-xl font-bold text-foreground">
+              Registrar Movimiento
+            </h2>
+            <div className="mt-4">
+              <p className="font-medium">{itemForMovement.name}</p>
+              <p className="text-sm text-muted-foreground">
+                Existencias Actuales: {itemForMovement.qty}
+              </p>
+            </div>
             <div className="space-y-4 mt-6">
-              <div><label className="block text-sm font-medium text-foreground">Tipo</label><select value={movementType} onChange={(e) => setMovementType(e.target.value as 'entrada' | 'salida')} className="mt-1 block w-full border border-border rounded-md p-2"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div>
-              <div><label className="block text-sm font-medium text-foreground">Cantidad</label><input type="number" min="1" value={movementQuantity} onChange={(e) => setMovementQuantity(parseInt(e.target.value) || 0)} className="mt-1 block w-full border border-border rounded-md p-2" /></div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Tipo
+                </label>
+                <select
+                  value={movementType}
+                  onChange={(e) =>
+                    setMovementType(e.target.value as "entrada" | "salida")
+                  }
+                  className="mt-1 block w-full border border-border rounded-md p-2"
+                >
+                  <option value="entrada">Entrada</option>
+                  <option value="salida">Salida</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Cantidad
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={movementQuantity}
+                  onChange={(e) =>
+                    setMovementQuantity(parseInt(e.target.value) || 0)
+                  }
+                  className="mt-1 block w-full border border-border rounded-md p-2"
+                />
+              </div>
             </div>
             <div className="flex justify-end space-x-4 mt-6">
-              <button onClick={closeMovementModal} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
-              <button onClick={handleSaveMovement} className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md">Registrar</button>
+              <button
+                onClick={closeMovementModal}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveMovement}
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
+              >
+                Registrar
+              </button>
             </div>
           </div>
         </div>
@@ -867,22 +1319,60 @@ export default function InventoryPage() {
       {isImportModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
           <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-lg">
-            <h2 className="text-2xl font-bold text-foreground">Importar Productos desde CSV</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              Importar Productos desde CSV
+            </h2>
             <div className="mt-6 space-y-4">
-              <p className="text-sm text-muted-foreground">Sube un archivo CSV. Columnas requeridas:</p>
-              <code className="block text-xs bg-gray-100 p-2 rounded">{CSV_TEMPLATE_HEADERS}</code>
-              <button onClick={handleDownloadTemplate} className="text-sm text-primary hover:underline flex items-center space-x-1"><IconDownload className="w-4 h-4" /><span>Descargar plantilla</span></button>
-              <div><label className="block text-sm font-medium text-foreground">Archivo</label><input type="file" accept=".csv" onChange={handleFileSelect} className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-blue-700 hover:file:bg-blue-100" /></div>
-              {importStatus && <p className={`text-sm ${importStatus.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>{importStatus}</p>}
+              <p className="text-sm text-muted-foreground">
+                Sube un archivo CSV. Columnas requeridas:
+              </p>
+              <code className="block text-xs bg-gray-100 p-2 rounded">
+                {CSV_TEMPLATE_HEADERS}
+              </code>
+              <button
+                onClick={handleDownloadTemplate}
+                className="text-sm text-primary hover:underline flex items-center space-x-1"
+              >
+                <IconDownload className="w-4 h-4" />
+                <span>Descargar plantilla</span>
+              </button>
+              <div>
+                <label className="block text-sm font-medium text-foreground">
+                  Archivo
+                </label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="mt-1 block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              </div>
+              {importStatus && (
+                <p
+                  className={`text-sm ${importStatus.startsWith("Error") ? "text-red-600" : "text-green-600"}`}
+                >
+                  {importStatus}
+                </p>
+              )}
             </div>
             <div className="flex justify-end space-x-4 mt-8">
-              <button onClick={() => setIsImportModalOpen(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md">Cancelar</button>
-              <button onClick={handleProcessImport} disabled={!csvFile} className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md disabled:opacity-50">Procesar</button>
+              <button
+                onClick={() => setIsImportModalOpen(false)}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleProcessImport}
+                disabled={!csvFile}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+              >
+                Procesar
+              </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
-  )
+  );
 }

@@ -1,130 +1,184 @@
-import { useQuery } from '@tanstack/react-query'
-import { api } from '../api'
-import { TicketState } from '@celhm/types'
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../api";
+import { TicketState } from "@celhm/types";
 
 export interface SalesReport {
-  totalSales: number
+  totalSales: number;
   totalByPaymentMethod: {
-    method: string
-    amount: number
-    count: number
-  }[]
+    method: string;
+    amount: number;
+    count: number;
+  }[];
   totalByServiceType: {
-    type: string
-    amount: number
-    count: number
-  }[]
-  sales: any[]
+    type: string;
+    amount: number;
+    count: number;
+  }[];
+  sales: any[];
   period: {
-    startDate: string
-    endDate: string
-    branchId?: number
-  }
+    startDate: string;
+    endDate: string;
+    branchId?: number;
+  };
 }
 
 export interface TicketsReport {
-  totalTickets: number
+  totalTickets: number;
   ticketsByState: {
-    state: TicketState
-    count: number
-  }[]
+    state: TicketState;
+    count: number;
+  }[];
   closedTickets: {
-    count: number
-    totalRevenue: number
-  }
-  tickets: any[]
+    count: number;
+    totalRevenue: number;
+  };
+  tickets: any[];
   period: {
-    startDate?: string
-    endDate?: string
-    branchId?: number
-    state?: TicketState
-  }
+    startDate?: string;
+    endDate?: string;
+    branchId?: number;
+    state?: TicketState;
+  };
 }
 
 export interface InventoryReport {
   lowStockItems: {
-    id: number
-    variantId: number
-    branchId: number
-    qty: number
-    min: number
+    id: number;
+    variantId: number;
+    branchId: number;
+    qty: number;
+    min: number;
     variant: {
-      id: number
-      name: string
-      sku: string
-    }
+      id: number;
+      name: string;
+      sku: string;
+    };
     branch: {
-      id: number
-      name: string
-    }
-  }[]
-  totalValue: number
-  totalItems: number
-  branchId?: number
+      id: number;
+      name: string;
+    };
+  }[];
+  totalValue: number;
+  totalItems: number;
+  branchId?: number;
 }
 
 interface GetSalesReportParams {
-  branchId?: number
-  startDate: string
-  endDate: string
+  branchId?: number;
+  startDate: string;
+  endDate: string;
 }
 
 interface GetTicketsReportParams {
-  branchId?: number
-  startDate?: string
-  endDate?: string
-  state?: TicketState
+  branchId?: number;
+  startDate?: string;
+  endDate?: string;
+  state?: TicketState;
 }
 
 interface GetInventoryReportParams {
-  branchId?: number
+  branchId?: number;
+}
+
+export interface MovementsReport {
+  total: number;
+  period: { startDate: string; endDate: string };
+  byType: { type: string; count: number; qty: number }[];
+  movements: {
+    id: number;
+    folio: string | null;
+    type: string;
+    qty: number;
+    reason: string | null;
+    createdAt: string;
+    variant: { id: number; name: string; sku: string };
+    product: { id: number; name: string; brand: string | null };
+    user: { id: number; name: string } | null;
+    branch: { id: number; name: string };
+  }[];
+}
+
+interface GetMovementsReportParams {
+  branchId?: number;
+  startDate: string;
+  endDate: string;
+  type?: string;
 }
 
 export function useSalesReport(params: GetSalesReportParams) {
   return useQuery<SalesReport>({
-    queryKey: ['reports', 'sales', params],
+    queryKey: ["reports", "sales", params],
     queryFn: async () => {
-      const queryParams = new URLSearchParams()
-      queryParams.append('startDate', params.startDate)
-      queryParams.append('endDate', params.endDate)
-      if (params.branchId) queryParams.append('branchId', params.branchId.toString())
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
 
-      const response = await api.get<SalesReport>(`/reports/sales?${queryParams.toString()}`)
-      return response.data
+      const response = await api.get<SalesReport>(
+        `/reports/sales?${queryParams.toString()}`
+      );
+      return response.data;
     },
     enabled: !!params.startDate && !!params.endDate,
     retry: false,
-  })
+  });
 }
 
 export function useTicketsReport(params: GetTicketsReportParams = {}) {
   return useQuery<TicketsReport>({
-    queryKey: ['reports', 'tickets', params],
+    queryKey: ["reports", "tickets", params],
     queryFn: async () => {
-      const queryParams = new URLSearchParams()
-      if (params.branchId) queryParams.append('branchId', params.branchId.toString())
-      if (params.startDate) queryParams.append('startDate', params.startDate)
-      if (params.endDate) queryParams.append('endDate', params.endDate)
-      if (params.state) queryParams.append('state', params.state)
+      const queryParams = new URLSearchParams();
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+      if (params.startDate) queryParams.append("startDate", params.startDate);
+      if (params.endDate) queryParams.append("endDate", params.endDate);
+      if (params.state) queryParams.append("state", params.state);
 
-      const response = await api.get<TicketsReport>(`/reports/tickets?${queryParams.toString()}`)
-      return response.data
+      const response = await api.get<TicketsReport>(
+        `/reports/tickets?${queryParams.toString()}`
+      );
+      return response.data;
     },
     retry: false,
-  })
+  });
+}
+
+export function useMovementsReport(params: GetMovementsReportParams) {
+  return useQuery<MovementsReport>({
+    queryKey: ["reports", "movements", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+      if (params.type) queryParams.append("type", params.type);
+
+      const response = await api.get<MovementsReport>(
+        `/reports/movements?${queryParams.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!params.startDate && !!params.endDate,
+    retry: false,
+  });
 }
 
 export function useInventoryReport(params: GetInventoryReportParams = {}) {
   return useQuery<InventoryReport>({
-    queryKey: ['reports', 'inventory', params],
+    queryKey: ["reports", "inventory", params],
     queryFn: async () => {
-      const queryParams = new URLSearchParams()
-      if (params.branchId) queryParams.append('branchId', params.branchId.toString())
+      const queryParams = new URLSearchParams();
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
 
-      const response = await api.get<InventoryReport>(`/reports/inventory?${queryParams.toString()}`)
-      return response.data
+      const response = await api.get<InventoryReport>(
+        `/reports/inventory?${queryParams.toString()}`
+      );
+      return response.data;
     },
     retry: false,
-  })
+  });
 }
-
