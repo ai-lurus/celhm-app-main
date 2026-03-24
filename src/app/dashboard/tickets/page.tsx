@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, useTicket } from '../../../lib/hooks/useTickets'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
+import { useCreateCustomer } from '../../../lib/hooks/useCustomers'
+import { useToast } from '../../../hooks/use-toast'
 import { Ticket, TicketState } from '@celhm/types'
 import dynamic from 'next/dynamic'
 import { TicketReceiptDocument } from '../../../components/tickets/TicketReceipt'
@@ -96,6 +98,8 @@ interface StatusForm {
 
 export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
+  const { toast } = useToast()
+  const createCustomer = useCreateCustomer()
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
@@ -121,6 +125,67 @@ export default function TicketsPage() {
     finalCost: 0,
     notes: '',
   })
+
+  // Quick-create customer modal
+  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false)
+  const [newCustName, setNewCustName] = useState('')
+  const [newCustPhone, setNewCustPhone] = useState('')
+  const [newCustEmail, setNewCustEmail] = useState('')
+  const [newCustNotes, setNewCustNotes] = useState('')
+  const newCustNameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (isQuickCreateOpen) setTimeout(() => newCustNameRef.current?.focus(), 50)
+  }, [isQuickCreateOpen])
+
+  const handleOpenQuickCreate = () => {
+    setNewCustName(formData.customerName)
+    setNewCustPhone(formData.customerPhone)
+    setNewCustEmail(formData.customerEmail)
+    setNewCustNotes('')
+    setIsQuickCreateOpen(true)
+  }
+
+  const handleCloseQuickCreate = () => {
+    setIsQuickCreateOpen(false)
+    setNewCustName('')
+    setNewCustPhone('')
+    setNewCustEmail('')
+    setNewCustNotes('')
+  }
+
+  const handleSaveQuickCustomer = async () => {
+    if (!newCustName.trim()) {
+      toast({ variant: 'destructive', title: 'Nombre requerido', description: 'El nombre del cliente es requerido.' })
+      return
+    }
+    if (!newCustPhone.trim()) {
+      toast({ variant: 'destructive', title: 'Teléfono requerido', description: 'El teléfono del cliente es requerido.' })
+      return
+    }
+    if (!newCustEmail.trim()) {
+      toast({ variant: 'destructive', title: 'Email requerido', description: 'El email del cliente es requerido.' })
+      return
+    }
+    try {
+      await createCustomer.mutateAsync({
+        name: newCustName.trim(),
+        phone: newCustPhone.trim(),
+        email: newCustEmail.trim() || undefined,
+        notes: newCustNotes.trim() || undefined,
+      })
+      setFormData({
+        ...formData,
+        customerName: newCustName.trim(),
+        customerPhone: newCustPhone.trim(),
+        customerEmail: newCustEmail.trim(),
+      })
+      handleCloseQuickCreate()
+      toast({ variant: 'success', title: 'Cliente creado', description: `${newCustName.trim()} se ha registrado correctamente.` })
+    } catch {
+      toast({ variant: 'destructive', title: 'Error al crear', description: 'Hubo un error al crear el cliente.' })
+    }
+  }
 
   // API hooks
   const { data: ticketsData, isLoading } = useTickets({
@@ -572,9 +637,21 @@ export default function TicketsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      Nombre del Cliente *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-foreground">
+                        Nombre del Cliente *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleOpenQuickCreate}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Crear cliente</span>
+                      </button>
+                    </div>
                     <input
                       type="text"
                       required
@@ -784,6 +861,108 @@ export default function TicketsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Crear Cliente Rápido */}
+      {isQuickCreateOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-[60] flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-md">
+            {/* Header */}
+            <div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <h2 className="text-lg font-bold">Nuevo Cliente</h2>
+              </div>
+              <button onClick={handleCloseQuickCreate} className="text-white/70 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Nombre <span className="text-red-500">*</span>
+                </label>
+                <input
+                  ref={newCustNameRef}
+                  type="text"
+                  value={newCustName}
+                  onChange={(e) => setNewCustName(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="Nombre completo del cliente"
+                  onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Teléfono <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  value={newCustPhone}
+                  onChange={(e) => setNewCustPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="Número de teléfono"
+                  onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={newCustEmail}
+                  onChange={(e) => setNewCustEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="correo@ejemplo.com"
+                  onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Notas</label>
+                <textarea
+                  value={newCustNotes}
+                  onChange={(e) => setNewCustNotes(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground resize-none"
+                  placeholder="Notas adicionales (opcional)"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 pb-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={handleCloseQuickCreate}
+                className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveQuickCustomer}
+                disabled={createCustomer.isPending}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {createCustomer.isPending ? (
+                  <span className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16 8 8 0 01-8-8z" />
+                    </svg>
+                    <span>Guardando...</span>
+                  </span>
+                ) : 'Guardar y continuar'}
+              </button>
+            </div>
           </div>
         </div>
       )}
