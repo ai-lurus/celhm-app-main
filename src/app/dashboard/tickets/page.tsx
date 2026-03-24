@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, useTicket } from '../../../lib/hooks/useTickets'
 import { useBranches } from '../../../lib/hooks/useBranches'
+import { useBrands, useDeviceModels } from '../../../lib/hooks/useCatalog'
 import { useAuthStore } from '../../../stores/auth'
 import { Ticket, TicketState } from '@celhm/types'
 import dynamic from 'next/dynamic'
@@ -50,6 +51,7 @@ interface TicketForm {
   device: string
   brand: string
   model: string
+  deviceId?: number
   serialNumber: string
   problem: string
   diagnosis: string
@@ -71,6 +73,7 @@ const initialFormState: TicketForm = {
   device: '',
   brand: '',
   model: '',
+  deviceId: undefined,
   serialNumber: '',
   problem: '',
   diagnosis: '',
@@ -98,6 +101,11 @@ export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
+
+  // Catalog data for brand/model autocomplete
+  const { data: brands = [] } = useBrands()
+  const [selectedBrandId, setSelectedBrandId] = useState<number | undefined>(undefined)
+  const { data: deviceModels = [] } = useDeviceModels(selectedBrandId)
 
   const [selectedState, setSelectedState] = useState<TicketState | ''>('')
   const [searchTerm, setSearchTerm] = useState('')
@@ -146,6 +154,9 @@ export default function TicketsPage() {
 
   const handleOpenEdit = (ticket: Ticket) => {
     setEditingTicket(ticket)
+    // Restore brand selection for autocomplete
+    const matchedBrand = brands.find((b) => b.name === ticket.brand)
+    setSelectedBrandId(matchedBrand?.id)
     setFormData({
       customerName: ticket.customerName,
       customerPhone: ticket.customerPhone || '',
@@ -153,6 +164,7 @@ export default function TicketsPage() {
       device: ticket.device,
       brand: ticket.brand || '',
       model: ticket.model || '',
+      deviceId: (ticket as any).deviceId || undefined,
       serialNumber: ticket.serialNumber || '',
       problem: ticket.problem,
       diagnosis: ticket.diagnosis || '',
@@ -191,6 +203,7 @@ export default function TicketsPage() {
     setIsModalOpen(false)
     setEditingTicket(null)
     setFormData(initialFormState)
+    setSelectedBrandId(undefined)
   }
 
   const handleCloseStatusModal = () => {
@@ -221,6 +234,7 @@ export default function TicketsPage() {
             device: formData.device,
             brand: formData.brand || undefined,
             model: formData.model || undefined,
+            deviceId: formData.deviceId || undefined,
             serialNumber: formData.serialNumber || undefined,
             problem: formData.problem,
             diagnosis: formData.diagnosis || undefined,
@@ -232,7 +246,7 @@ export default function TicketsPage() {
             accessories: formData.accessories || undefined,
             risk: formData.risk || undefined,
             warrantyDays: formData.warrantyDays || undefined,
-          },
+          } as any,
         })
       } else {
         await createTicket.mutateAsync({
@@ -243,6 +257,7 @@ export default function TicketsPage() {
           device: formData.device,
           brand: formData.brand || undefined,
           model: formData.model || undefined,
+          deviceId: formData.deviceId || undefined,
           serialNumber: formData.serialNumber || undefined,
           problem: formData.problem,
           diagnosis: formData.diagnosis || undefined,
@@ -254,7 +269,7 @@ export default function TicketsPage() {
           accessories: formData.accessories || undefined,
           risk: formData.risk || undefined,
           warrantyDays: formData.warrantyDays || undefined,
-        })
+        } as any)
       }
       handleCloseModal()
     } catch (error: any) {
@@ -614,23 +629,39 @@ export default function TicketsPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Marca</label>
-                    <input
-                      type="text"
-                      value={formData.brand}
-                      onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    <select
+                      value={selectedBrandId ?? ''}
+                      onChange={(e) => {
+                        const brandId = e.target.value ? parseInt(e.target.value, 10) : undefined
+                        const brand = brands.find((b) => b.id === brandId)
+                        setSelectedBrandId(brandId)
+                        setFormData({ ...formData, brand: brand?.name ?? '', model: '', deviceId: undefined })
+                      }}
                       className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: Apple"
-                    />
+                    >
+                      <option value="">Selecciona una marca</option>
+                      {brands.map((b) => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Modelo</label>
-                    <input
-                      type="text"
-                      value={formData.model}
-                      onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
-                      placeholder="Ej: A2403"
-                    />
+                    <select
+                      value={formData.deviceId ?? ''}
+                      onChange={(e) => {
+                        const modelId = e.target.value ? parseInt(e.target.value, 10) : undefined
+                        const m = deviceModels.find((dm) => dm.id === modelId)
+                        setFormData({ ...formData, model: m?.name ?? '', deviceId: modelId })
+                      }}
+                      disabled={!selectedBrandId}
+                      className="w-full border border-border rounded-md px-3 py-2 disabled:opacity-50"
+                    >
+                      <option value="">{selectedBrandId ? 'Selecciona un modelo' : 'Primero selecciona una marca'}</option>
+                      {deviceModels.map((m) => (
+                        <option key={m.id} value={m.id}>{m.name}{m.deviceType ? ` (${m.deviceType})` : ''}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Número de Serie / IMEI</label>
