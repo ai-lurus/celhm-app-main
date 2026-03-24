@@ -267,3 +267,66 @@ export function useDeleteBrand() {
   })
 }
 
+// ─── Device Models ─────────────────────────────────────────────────────────────
+
+export interface DeviceModel {
+  id: number
+  brandId: number
+  name: string
+  deviceType?: string | null
+  brand?: { id: number; name: string }
+}
+
+export function useDeviceModels(brandId?: number) {
+  return useQuery<DeviceModel[]>({
+    queryKey: ['catalog', 'device-models', brandId],
+    queryFn: async (): Promise<DeviceModel[]> => {
+      const params = brandId ? `?brandId=${brandId}` : ''
+      const response = await api.get<DeviceModel[]>(`/catalog/device-models${params}`)
+      return response.data
+    },
+  })
+}
+
+export function useCreateDeviceModel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: { brandId: number; name: string; deviceType?: string }) => {
+      const response = await api.post<DeviceModel>('/catalog/device-models', data)
+      return response.data
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'device-models'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'device-models', variables.brandId] })
+    },
+  })
+}
+
+export function useUpdateDeviceModel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { name?: string; deviceType?: string } }) => {
+      const response = await api.patch<DeviceModel>(`/catalog/device-models/${id}`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'device-models'] })
+    },
+  })
+}
+
+export function useDeleteDeviceModel() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await api.delete(`/catalog/device-models/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['catalog', 'device-models'] })
+    },
+  })
+}
