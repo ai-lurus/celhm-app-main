@@ -104,10 +104,8 @@ export function CustomerSelector({
         notes: newCustomerNotes.trim() || undefined,
       })
 
-      // Notify parent to refetch customer list (fire-and-forget)
-      onCreateCustomer(newCustomerName.trim(), newCustomerPhone.trim()).catch(() => null)
-
       // Auto-select using the returned customer data
+      // (useCreateCustomer.onSuccess already invalidates the customers query cache)
       onSelect(created.id.toString(), created.name)
 
       handleCloseCreateModal()
