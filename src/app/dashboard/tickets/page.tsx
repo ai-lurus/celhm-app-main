@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTickets, useCreateTicket, useUpdateTicket, useUpdateTicketState, useTicket } from '../../../lib/hooks/useTickets'
 import { useBranches } from '../../../lib/hooks/useBranches'
 import { useAuthStore } from '../../../stores/auth'
-import { useCreateCustomer } from '../../../lib/hooks/useCustomers'
+import { useCreateCustomer, useCustomers } from '../../../lib/hooks/useCustomers'
 import { useToast } from '../../../hooks/use-toast'
 import { Ticket, TicketState } from '@celhm/types'
 import dynamic from 'next/dynamic'
@@ -100,6 +100,10 @@ export default function TicketsPage() {
   const user = useAuthStore((state) => state.user)
   const { toast } = useToast()
   const createCustomer = useCreateCustomer()
+  const { data: existingCustomersData } = useCustomers({ page: 1, pageSize: 500 })
+  const existingCustomers = Array.isArray((existingCustomersData as any)?.data)
+    ? (existingCustomersData as any).data
+    : []
   const { data: branches = [] } = useBranches()
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1)
 
@@ -133,10 +137,41 @@ export default function TicketsPage() {
   const [newCustEmail, setNewCustEmail] = useState('')
   const [newCustNotes, setNewCustNotes] = useState('')
   const newCustNameRef = useRef<HTMLInputElement>(null)
+  const customerSearchRef = useRef<HTMLDivElement>(null)
+
+  // Customer search combobox
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false)
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('')
+
+  const filteredCustomers = existingCustomers.filter((c: any) =>
+    c.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    (c.phone && c.phone.includes(customerSearchTerm))
+  )
+
+  const handleSelectExistingCustomer = (c: any) => {
+    setFormData({
+      ...formData,
+      customerName: c.name,
+      customerPhone: c.phone || '',
+      customerEmail: c.email || '',
+    })
+    setCustomerSearchOpen(false)
+    setCustomerSearchTerm('')
+  }
 
   useEffect(() => {
     if (isQuickCreateOpen) setTimeout(() => newCustNameRef.current?.focus(), 50)
   }, [isQuickCreateOpen])
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(e.target as Node)) {
+        setCustomerSearchOpen(false)
+      }
+    }
+    if (customerSearchOpen) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [customerSearchOpen])
 
   const handleOpenQuickCreate = () => {
     setNewCustName(formData.customerName)
@@ -167,6 +202,27 @@ export default function TicketsPage() {
       toast({ variant: 'destructive', title: 'Email requerido', description: 'El email del cliente es requerido.' })
       return
     }
+
+    // Duplicate check
+    const normalizePhone = (p: string) => p.replace(/\D/g, '')
+    const normalizeEmail = (e: string) => e.trim().toLowerCase()
+    const phoneNorm = normalizePhone(newCustPhone)
+    const emailNorm = normalizeEmail(newCustEmail)
+    const dupPhone = phoneNorm
+      ? existingCustomers.find((c: any) => normalizePhone(c.phone) === phoneNorm)
+      : undefined
+    const dupEmail = emailNorm
+      ? existingCustomers.find((c: any) => c.email && normalizeEmail(c.email) === emailNorm)
+      : undefined
+    if (dupPhone) {
+      toast({ variant: 'destructive', title: 'Teléfono duplicado', description: `Ya existe un cliente con este teléfono: ${dupPhone.name}.` })
+      return
+    }
+    if (dupEmail) {
+      toast({ variant: 'destructive', title: 'Email duplicado', description: `Ya existe un cliente con este email: ${dupEmail.name}.` })
+      return
+    }
+
     try {
       await createCustomer.mutateAsync({
         name: newCustName.trim(),
@@ -636,7 +692,7 @@ export default function TicketsPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div>
+                  <div className="relative" ref={customerSearchRef}>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-sm font-medium text-foreground">
                         Nombre del Cliente *
@@ -655,10 +711,38 @@ export default function TicketsPage() {
                     <input
                       type="text"
                       required
-                      value={formData.customerName}
-                      onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                      className="w-full border border-border rounded-md px-3 py-2"
+                      value={customerSearchOpen ? customerSearchTerm : formData.customerName}
+                      onChange={(e) => {
+                        setCustomerSearchTerm(e.target.value)
+                        setFormData({ ...formData, customerName: e.target.value })
+                        setCustomerSearchOpen(true)
+                      }}
+                      onFocus={() => {
+                        setCustomerSearchTerm('')
+                        setCustomerSearchOpen(true)
+                      }}
+                      placeholder="Buscar o escribir nombre..."
+                      className="w-full border border-border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                     />
+                    {customerSearchOpen && (
+                      <div className="absolute z-20 mt-1 w-full bg-card border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
+                        {filteredCustomers.length > 0 ? (
+                          filteredCustomers.slice(0, 8).map((c: any) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => handleSelectExistingCustomer(c)}
+                              className="w-full px-4 py-2 text-left hover:bg-muted text-sm"
+                            >
+                              <div className="font-medium text-foreground">{c.name}</div>
+                              <div className="text-xs text-muted-foreground">{c.phone}{c.email ? ` · ${c.email}` : ''}</div>
+                            </button>
+                          ))
+                        ) : customerSearchTerm ? (
+                          <div className="px-4 py-2 text-sm text-muted-foreground">No se encontraron clientes</div>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">Teléfono</label>

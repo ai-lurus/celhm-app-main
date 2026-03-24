@@ -81,6 +81,10 @@ export function CustomerSelector({
     resetCreateForm()
   }
 
+  // Normalize helpers for duplicate detection
+  const normalizePhone = (p: string) => p.replace(/\D/g, '')
+  const normalizeEmail = (e: string) => e.trim().toLowerCase()
+
   const handleCreateCustomer = async () => {
     if (!newCustomerName.trim()) {
       toast({ variant: 'destructive', title: 'Nombre requerido', description: 'El nombre del cliente es requerido.' })
@@ -92,6 +96,34 @@ export function CustomerSelector({
     }
     if (!newCustomerEmail.trim()) {
       toast({ variant: 'destructive', title: 'Email requerido', description: 'El email del cliente es requerido.' })
+      return
+    }
+
+    // Duplicate check against loaded customers list
+    const phoneNorm = normalizePhone(newCustomerPhone)
+    const emailNorm = normalizeEmail(newCustomerEmail)
+
+    const duplicateByPhone = phoneNorm
+      ? customers.find((c) => normalizePhone(c.phone) === phoneNorm)
+      : undefined
+    const duplicateByEmail = emailNorm
+      ? customers.find((c) => c.email && normalizeEmail(c.email) === emailNorm)
+      : undefined
+
+    if (duplicateByPhone) {
+      toast({
+        variant: 'destructive',
+        title: 'Teléfono duplicado',
+        description: `Ya existe un cliente con este teléfono: ${duplicateByPhone.name}.`,
+      })
+      return
+    }
+    if (duplicateByEmail) {
+      toast({
+        variant: 'destructive',
+        title: 'Email duplicado',
+        description: `Ya existe un cliente con este email: ${duplicateByEmail.name}.`,
+      })
       return
     }
 
