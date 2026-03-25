@@ -1142,34 +1142,41 @@ export default function TicketsPage() {
                       </div>
                       <input
                         type="text"
-                        required
                         value={customerSearchOpen ? customerSearchTerm : formData.customerName}
-                        onChange={(e) => {
-                          setCustomerSearchTerm(e.target.value);
-                          setFormData({ ...formData, customerName: e.target.value });
+                        onFocus={() => {
+                          setCustomerSearchTerm("");
                           setCustomerSearchOpen(true);
                         }}
-                        onFocus={() => { setCustomerSearchTerm(""); setCustomerSearchOpen(true); }}
-                        placeholder="Buscar o escribir nombre..."
-                        className="w-full border border-border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        onBlur={() => {
+                          // Small delay so click on select option fires first
+                          setTimeout(() => setCustomerSearchOpen(false), 150);
+                        }}
+                        onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                        placeholder="Buscar por nombre o teléfono..."
+                        className="w-full border border-border rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground text-sm"
+                        autoComplete="off"
                       />
+                      {/* Hidden input to enforce required validation */}
+                      <input type="hidden" required value={formData.customerName} />
                       {customerSearchOpen && (
-                        <div className="absolute z-20 mt-1 w-full bg-card border border-border rounded-md shadow-lg max-h-52 overflow-y-auto">
-                          {filteredCustomers.length > 0 ? (
-                            filteredCustomers.slice(0, 8).map((c: any) => (
-                              <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => handleSelectExistingCustomer(c)}
-                                className="w-full px-4 py-2 text-left hover:bg-muted text-sm"
-                              >
-                                <div className="font-medium text-foreground">{c.name}</div>
-                                <div className="text-xs text-muted-foreground">{c.phone}{c.email ? ` · ${c.email}` : ""}</div>
-                              </button>
-                            ))
-                          ) : customerSearchTerm ? (
+                        <div className="absolute z-20 left-0 right-0 bg-card border border-border rounded-md shadow-lg mt-1 max-h-52 overflow-y-auto">
+                          {filteredCustomers.length > 0 ? filteredCustomers.map((c: any) => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onMouseDown={() => {
+                                handleSelectExistingCustomer(c);
+                                setCustomerSearchOpen(false);
+                                setCustomerSearchTerm("");
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-muted text-sm"
+                            >
+                              <div className="font-medium text-foreground">{c.name}</div>
+                              {c.phone && <div className="text-xs text-muted-foreground">{c.phone}</div>}
+                            </button>
+                          )) : (
                             <div className="px-4 py-2 text-sm text-muted-foreground">No se encontraron clientes</div>
-                          ) : null}
+                          )}
                         </div>
                       )}
                     </div>
