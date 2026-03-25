@@ -309,11 +309,11 @@ export default function TicketsPage() {
     : [];
   const pagination = (ticketsData as any)?.pagination as
     | {
-        page: number;
-        pageSize: number;
-        total: number;
-        totalPages: number;
-      }
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    }
     | undefined;
 
   const handleOpenCreate = () => {
@@ -605,8 +605,8 @@ export default function TicketsPage() {
         (typeof statusForm.finalCost === "string"
           ? parseFloat(statusForm.finalCost)
           : statusForm.finalCost ||
-            statusTicket.finalCost ||
-            statusTicket.estimatedCost) || 0;
+          statusTicket.finalCost ||
+          statusTicket.estimatedCost) || 0;
 
       if (totalPaid < currentFinalCost) {
         toast({
@@ -805,21 +805,19 @@ export default function TicketsPage() {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveView("kanban")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeView === "kanban"
-                  ? "border-blue-500 text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === "kanban"
+                ? "border-blue-500 text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
             >
               Vista Kanban
             </button>
             <button
               onClick={() => setActiveView("table")}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeView === "table"
-                  ? "border-blue-500 text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
-              }`}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${activeView === "table"
+                ? "border-blue-500 text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
             >
               Lista
             </button>
@@ -835,7 +833,7 @@ export default function TicketsPage() {
             No hay notas registradas
           </div>
         ) : activeView === "kanban" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-border bg-card rounded-lg shadow overflow-hidden">
             {(
               [
                 "RECIBIDO",
@@ -849,7 +847,7 @@ export default function TicketsPage() {
                 (ticket: Ticket) => ticket.state === state
               );
               return (
-                <div key={state} className="bg-muted rounded-lg p-4">
+                <div key={state} className="flex-1 min-w-0 p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-medium text-foreground">
                       {formatState(state as TicketState)}
@@ -864,15 +862,10 @@ export default function TicketsPage() {
                         key={ticket.id}
                         className="bg-card p-4 rounded-lg shadow-sm border border-gray-200"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="text-sm font-medium text-foreground">
+                        <div className="flex items-end justify-end mb-2">
+                          <div className="text-sm text-gray-400 font-medium text-foreground">
                             {ticket.folio}
                           </div>
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStateColor(ticket.state)}`}
-                          >
-                            {formatState(ticket.state)}
-                          </span>
                         </div>
                         <div className="space-y-2">
                           <div>
