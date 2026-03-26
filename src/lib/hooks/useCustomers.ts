@@ -6,6 +6,8 @@ export interface Customer {
   id: number
   name: string
   phone: string
+  phoneAlt?: string
+  rfc?: string
   email?: string
   notes?: string
   branchId?: number
@@ -20,6 +22,8 @@ export interface Customer {
 export interface CreateCustomerRequest {
   name: string
   phone: string
+  phoneAlt?: string
+  rfc?: string
   email?: string
   notes?: string
   branchId?: number
@@ -30,6 +34,8 @@ export interface CreateCustomerRequest {
 export interface UpdateCustomerRequest {
   name?: string
   phone?: string
+  phoneAlt?: string
+  rfc?: string
   email?: string
   notes?: string
   branchId?: number

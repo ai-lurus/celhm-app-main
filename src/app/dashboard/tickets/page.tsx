@@ -142,6 +142,8 @@ export default function TicketsPage() {
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false)
   const [newCustName, setNewCustName] = useState('')
   const [newCustPhone, setNewCustPhone] = useState('')
+  const [newCustPhoneAlt, setNewCustPhoneAlt] = useState('')
+  const [newCustRFC, setNewCustRFC] = useState('')
   const [newCustEmail, setNewCustEmail] = useState('')
   const [newCustNotes, setNewCustNotes] = useState('')
   const newCustNameRef = useRef<HTMLInputElement>(null)
@@ -184,6 +186,8 @@ export default function TicketsPage() {
   const handleOpenQuickCreate = () => {
     setNewCustName(formData.customerName)
     setNewCustPhone(formData.customerPhone)
+    setNewCustPhoneAlt('')
+    setNewCustRFC('')
     setNewCustEmail(formData.customerEmail)
     setNewCustNotes('')
     setIsQuickCreateOpen(true)
@@ -193,6 +197,8 @@ export default function TicketsPage() {
     setIsQuickCreateOpen(false)
     setNewCustName('')
     setNewCustPhone('')
+    setNewCustPhoneAlt('')
+    setNewCustRFC('')
     setNewCustEmail('')
     setNewCustNotes('')
   }
@@ -235,6 +241,8 @@ export default function TicketsPage() {
       await createCustomer.mutateAsync({
         name: newCustName.trim(),
         phone: newCustPhone.trim(),
+        phoneAlt: newCustPhoneAlt.trim() || undefined,
+        rfc: newCustRFC.trim() || undefined,
         email: newCustEmail.trim() || undefined,
         notes: newCustNotes.trim() || undefined,
       })
@@ -1025,6 +1033,32 @@ export default function TicketsPage() {
                   onChange={(e) => setNewCustPhone(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
                   placeholder="Número de teléfono"
+                  onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Teléfono de Respaldo
+                </label>
+                <input
+                  type="tel"
+                  value={newCustPhoneAlt}
+                  onChange={(e) => setNewCustPhoneAlt(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="Número de respaldo"
+                  onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  RFC
+                </label>
+                <input
+                  type="text"
+                  value={newCustRFC}
+                  onChange={(e) => setNewCustRFC(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="RFC (Tax ID)"
                   onKeyDown={(e) => { if (e.key === 'Escape') handleCloseQuickCreate() }}
                 />
               </div>

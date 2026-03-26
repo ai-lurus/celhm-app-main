@@ -28,6 +28,8 @@ const IconView = ({ className }: { className?: string }) => (
 interface CustomerForm {
   name: string
   phone: string
+  phoneAlt: string
+  rfc: string
   email: string
   notes: string
 }
@@ -60,6 +62,8 @@ export default function CustomersPage() {
   const [formData, setFormData] = useState<CustomerForm>({
     name: '',
     phone: '',
+    phoneAlt: '',
+    rfc: '',
     email: '',
     notes: '',
   })
@@ -130,7 +134,7 @@ export default function CustomersPage() {
 
   const handleOpenCreate = () => {
     setEditingCustomer(null)
-    setFormData({ name: '', phone: '', email: '', notes: '' })
+    setFormData({ name: '', phone: '', phoneAlt: '', rfc: '', email: '', notes: '' })
     setIsModalOpen(true)
   }
 
@@ -139,6 +143,8 @@ export default function CustomersPage() {
     setFormData({
       name: customer.name,
       phone: customer.phone,
+      phoneAlt: customer.phoneAlt || '',
+      rfc: customer.rfc || '',
       email: customer.email || '',
       notes: customer.notes || '',
     })
@@ -153,7 +159,7 @@ export default function CustomersPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false)
     setEditingCustomer(null)
-    setFormData({ name: '', phone: '', email: '', notes: '' })
+    setFormData({ name: '', phone: '', phoneAlt: '', rfc: '', email: '', notes: '' })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -396,6 +402,28 @@ export default function CustomersPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
+                    Teléfono de Respaldo
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phoneAlt}
+                    onChange={(e) => setFormData({ ...formData, phoneAlt: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">
+                    RFC
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.rfc}
+                    onChange={(e) => setFormData({ ...formData, rfc: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Email *
                   </label>
                   <input
@@ -452,8 +480,17 @@ export default function CustomersPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground">Teléfono</label>
-                  <p className="mt-1 text-sm text-foreground">{viewingCustomer.phone}</p>
+                  <p className="mt-1 text-sm text-foreground">
+                    {viewingCustomer.phone}
+                    {viewingCustomer.phoneAlt && ` / ${viewingCustomer.phoneAlt}`}
+                  </p>
                 </div>
+                {viewingCustomer.rfc && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground">RFC</label>
+                    <p className="mt-1 text-sm text-foreground">{viewingCustomer.rfc}</p>
+                  </div>
+                )}
                 {viewingCustomer.email && (
                   <div>
                     <label className="block text-sm font-medium text-foreground">Email</label>
