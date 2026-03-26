@@ -24,6 +24,8 @@ export function CustomerSelector({
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newCustomerName, setNewCustomerName] = useState('')
   const [newCustomerPhone, setNewCustomerPhone] = useState('')
+  const [newCustomerPhoneAlt, setNewCustomerPhoneAlt] = useState('')
+  const [newCustomerRFC, setNewCustomerRFC] = useState('')
   const [newCustomerEmail, setNewCustomerEmail] = useState('')
   const [newCustomerNotes, setNewCustomerNotes] = useState('')
   const createCustomer = useCreateCustomer()
@@ -72,6 +74,8 @@ export function CustomerSelector({
   const resetCreateForm = () => {
     setNewCustomerName('')
     setNewCustomerPhone('')
+    setNewCustomerPhoneAlt('')
+    setNewCustomerRFC('')
     setNewCustomerEmail('')
     setNewCustomerNotes('')
   }
@@ -132,6 +136,8 @@ export function CustomerSelector({
       const created = await createCustomer.mutateAsync({
         name: newCustomerName.trim(),
         phone: newCustomerPhone.trim(),
+        phoneAlt: newCustomerPhoneAlt.trim() || undefined,
+        rfc: newCustomerRFC.trim() || undefined,
         email: newCustomerEmail.trim() || undefined,
         notes: newCustomerNotes.trim() || undefined,
       })
@@ -265,6 +271,34 @@ export function CustomerSelector({
                   onChange={(e) => setNewCustomerPhone(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
                   placeholder="Número de teléfono"
+                />
+              </div>
+
+              {/* Phone Alt */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  Teléfono de Respaldo
+                </label>
+                <input
+                  type="tel"
+                  value={newCustomerPhoneAlt}
+                  onChange={(e) => setNewCustomerPhoneAlt(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="Número de respaldo"
+                />
+              </div>
+
+              {/* RFC */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  RFC
+                </label>
+                <input
+                  type="text"
+                  value={newCustomerRFC}
+                  onChange={(e) => setNewCustomerRFC(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="RFC (Tax ID)"
                 />
               </div>
 
