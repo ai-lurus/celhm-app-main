@@ -13,6 +13,7 @@ import { useBranches } from "../../../lib/hooks/useBranches";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useCreateCustomer, useCustomers } from "../../../lib/hooks/useCustomers";
+import { useBrands, useDeviceModels } from "../../../lib/hooks/useCatalog";
 import { Ticket, TicketState } from "@celhm/types";
 import { DateRangePicker } from "../../../components/ui/DateRangePicker";
 import dynamic from "next/dynamic";
@@ -190,6 +191,11 @@ export default function TicketsPage() {
     ? (existingCustomersData as any).data
     : [];
 
+  // Device Brand / Model selects
+  const [selectedBrandId, setSelectedBrandId] = useState<number | "">("" );
+  const { data: deviceBrands = [] } = useBrands();
+  const { data: deviceModels = [] } = useDeviceModels(selectedBrandId !== "" ? selectedBrandId : undefined);
+
   // Customer search combobox
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
   const [customerSearchTerm, setCustomerSearchTerm] = useState("");
@@ -319,11 +325,17 @@ export default function TicketsPage() {
   const handleOpenCreate = () => {
     setEditingTicket(null);
     setFormData(initialFormState);
+    setSelectedBrandId("");
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (ticket: Ticket) => {
     setEditingTicket(ticket);
+    // Restore selectedBrandId from deviceModel relation or by matching brand name
+    const matchedBrand = (deviceBrands as any[]).find(
+      (b: any) => b.name === ticket.brand
+    );
+    setSelectedBrandId(matchedBrand ? matchedBrand.id : "");
     setFormData({
       customerName: ticket.customerName,
       customerPhone: ticket.customerPhone || "",
@@ -381,6 +393,7 @@ export default function TicketsPage() {
     setIsModalOpen(false);
     setEditingTicket(null);
     setFormData(initialFormState);
+    setSelectedBrandId("");
   };
 
   const handleCloseStatusModal = () => {
@@ -506,15 +519,17 @@ export default function TicketsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.customerName || !formData.device || !formData.problem) {
+    if (!formData.customerName || !formData.brand || !formData.problem) {
       toast({
         variant: "destructive",
         title: "Campos faltantes",
         description:
-          "Por favor, completa Nombre del Cliente, Dispositivo y Problema.",
+          "Por favor, completa Nombre del Cliente, Marca y Problema.",
       });
       return;
     }
+    // Use model name as device (fallback to brand if no model selected)
+    const composedDevice = formData.model || formData.brand;
 
     try {
       if (editingTicket) {
@@ -524,7 +539,7 @@ export default function TicketsPage() {
             customerName: formData.customerName,
             customerPhone: formData.customerPhone || undefined,
             customerEmail: formData.customerEmail || undefined,
-            device: formData.device,
+            device: composedDevice,
             brand: formData.brand || undefined,
             model: formData.model || undefined,
             serialNumber: formData.serialNumber || undefined,
@@ -558,7 +573,7 @@ export default function TicketsPage() {
           customerName: formData.customerName,
           customerPhone: formData.customerPhone || undefined,
           customerEmail: formData.customerEmail || undefined,
-          device: formData.device,
+          device: composedDevice,
           brand: formData.brand || undefined,
           model: formData.model || undefined,
           serialNumber: formData.serialNumber || undefined,
@@ -1183,46 +1198,48 @@ export default function TicketsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">
-                        Dispositivo *
+                        Marca *
                       </label>
-                      <input
-                        type="text"
+                      <select
                         required
-                        value={formData.device}
-                        onChange={(e) =>
-                          setFormData({ ...formData, device: e.target.value })
-                        }
-                        className="w-full border border-border rounded-md px-3 py-2"
-                        placeholder="Ej: iPhone 12"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">
-                        Marca
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.brand}
-                        onChange={(e) =>
-                          setFormData({ ...formData, brand: e.target.value })
-                        }
-                        className="w-full border border-border rounded-md px-3 py-2"
-                        placeholder="Ej: Apple"
-                      />
+                        value={selectedBrandId}
+                        onChange={(e) => {
+                          const brandId = e.target.value === "" ? "" : parseInt(e.target.value);
+                          setSelectedBrandId(brandId);
+                          const brand = (deviceBrands as any[]).find((b: any) => b.id === brandId);
+                          setFormData({
+                            ...formData,
+                            brand: brand ? brand.name : "",
+                            model: "",
+                          });
+                        }}
+                        className="w-full border border-border rounded-md px-3 py-2 bg-background text-foreground"
+                      >
+                        <option value="">-- Selecciona una marca --</option>
+                        {(deviceBrands as any[]).map((b: any) => (
+                          <option key={b.id} value={b.id}>{b.name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">
                         Modelo
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={formData.model}
-                        onChange={(e) =>
-                          setFormData({ ...formData, model: e.target.value })
-                        }
-                        className="w-full border border-border rounded-md px-3 py-2"
-                        placeholder="Ej: A2403"
-                      />
+                        disabled={selectedBrandId === ""}
+                        onChange={(e) => {
+                          setFormData({ ...formData, model: e.target.value });
+                        }}
+                        className={`w-full border border-border rounded-md px-3 py-2 bg-background text-foreground ${
+                          selectedBrandId === "" ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <option value="">{selectedBrandId === "" ? "Selecciona una marca primero" : "-- Selecciona un modelo --"}</option>
+                        {(deviceModels as any[]).map((m: any) => (
+                          <option key={m.id} value={m.name}>{m.name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">
