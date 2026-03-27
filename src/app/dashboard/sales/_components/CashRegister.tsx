@@ -203,17 +203,15 @@ export function CashRegister({
   const filteredTickets = tickets
     .filter(
       (ticket) =>
-        ticket.folio.toLowerCase().includes(ticketSearch.toLowerCase()) ||
-        ticket.customerName
-          .toLowerCase()
-          .includes(ticketSearch.toLowerCase()) ||
-        ticket.device.toLowerCase().includes(ticketSearch.toLowerCase())
+        ticket.state === "REPARADO" && (
+          ticket.folio.toLowerCase().includes(ticketSearch.toLowerCase()) ||
+          ticket.customerName
+            .toLowerCase()
+            .includes(ticketSearch.toLowerCase()) ||
+          ticket.device.toLowerCase().includes(ticketSearch.toLowerCase())
+        )
     )
-    .sort((a, b) => {
-      if (a.state === "REPARADO" && b.state !== "REPARADO") return -1;
-      if (a.state !== "REPARADO" && b.state === "REPARADO") return 1;
-      return 0;
-    });
+    .sort((a, b) => a.folio.localeCompare(b.folio));
 
   const filteredStockItems = stockItems.filter(
     (item) =>
