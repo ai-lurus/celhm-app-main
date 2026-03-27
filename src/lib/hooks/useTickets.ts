@@ -94,3 +94,33 @@ export function useUpdateTicketState() {
   })
 }
 
+export function useAddTicketPart() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ ticketId, data }: { ticketId: number; data: { variantId: number; qty: number } }) => {
+      const response = await api.post(`/tickets/${ticketId}/piezas`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tickets', variables.ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['stock'] })
+    },
+  })
+}
+
+export function useRemoveTicketPart() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ ticketId, partId }: { ticketId: number; partId: number }) => {
+      const response = await api.delete(`/tickets/${ticketId}/piezas/${partId}`)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tickets', variables.ticketId] })
+      queryClient.invalidateQueries({ queryKey: ['stock'] })
+    },
+  })
+}
+

@@ -7,6 +7,8 @@ import {
   useUpdateTicket,
   useUpdateTicketState,
   useTicket,
+  useAddTicketPart,
+  useRemoveTicketPart,
 } from "../../../lib/hooks/useTickets";
 import { useToast } from "../../../hooks/use-toast";
 import { useBranches } from "../../../lib/hooks/useBranches";
@@ -14,6 +16,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useCreateCustomer, useCustomers } from "../../../lib/hooks/useCustomers";
 import { useBrands, useDeviceModels } from "../../../lib/hooks/useCatalog";
+import { useStock } from "../../../lib/hooks/useStock";
 import { Ticket, TicketState } from "@celhm/types";
 import { DateRangePicker } from "../../../components/ui/DateRangePicker";
 import dynamic from "next/dynamic";
@@ -173,6 +176,11 @@ export default function TicketsPage() {
   const [statusTicket, setStatusTicket] = useState<Ticket | null>(null);
   const [viewingTicketId, setViewingTicketId] = useState<number | null>(null);
 
+  // Parts search state
+  const [partSearchTerm, setPartSearchTerm] = useState("");
+  const [isPartSearchOpen, setIsPartSearchOpen] = useState(false);
+  const partSearchRef = useRef<HTMLDivElement>(null);
+
   const [formData, setFormData] = useState<TicketForm>(initialFormState);
   const [statusForm, setStatusForm] = useState<StatusForm>({
     state: "RECIBIDO",
@@ -315,6 +323,15 @@ export default function TicketsPage() {
   const createTicket = useCreateTicket();
   const updateTicket = useUpdateTicket();
   const updateTicketState = useUpdateTicketState();
+  const addTicketPart = useAddTicketPart();
+  const removeTicketPart = useRemoveTicketPart();
+
+  const { data: stockData } = useStock({
+    q: partSearchTerm,
+    pageSize: 5,
+    sucursal: typeof branchId === "number" ? branchId : undefined,
+  });
+  const stockItems = stockData?.data || [];
 
   const tickets = Array.isArray((ticketsData as any)?.data)
     ? (ticketsData as any).data
@@ -1789,6 +1806,127 @@ export default function TicketsPage() {
                   <span className="font-medium text-foreground">
                     {new Date(viewingTicket.createdAt).toLocaleString()}
                   </span>
+                </div>
+
+                {/* Piezas Section */}
+                <div className="pt-4 border-t mt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-lg text-foreground">Piezas / Refacciones</h3>
+                  </div>
+
+                  {can("canUpdateTickets") && (
+                    <div className="relative mb-4" ref={partSearchRef}>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type="text"
+                            placeholder="Buscar pieza por nombre o SKU..."
+                            className="w-full border border-border rounded-md px-3 py-2 text-sm"
+                            value={partSearchTerm}
+                            onFocus={() => setIsPartSearchOpen(true)}
+                            onChange={(e) => {
+                              setPartSearchTerm(e.target.value);
+                              setIsPartSearchOpen(true);
+                            }}
+                          />
+                          {isPartSearchOpen && partSearchTerm.length > 0 && (
+                            <div className="absolute z-50 left-0 right-0 bg-card border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                              {stockItems.length > 0 ? (
+                                stockItems.map((item) => (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={async () => {
+                                      try {
+                                        await addTicketPart.mutateAsync({
+                                          ticketId: viewingTicket.id,
+                                          data: { variantId: item.variantId, qty: 1 },
+                                        });
+                                        setPartSearchTerm("");
+                                        setIsPartSearchOpen(false);
+                                        toast({
+                                          variant: "success",
+                                          title: "Pieza añadida",
+                                          description: `${item.name} se añadió al ticket.`,
+                                        });
+                                      } catch (err: any) {
+                                        toast({
+                                          variant: "destructive",
+                                          title: "Error",
+                                          description: err.message || "No se pudo añadir la pieza.",
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-4 py-2 text-left hover:bg-muted text-sm border-b border-border last:border-0"
+                                  >
+                                    <div className="font-medium text-foreground">{item.name}</div>
+                                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                      <span>SKU: {item.sku}</span>
+                                      <span>Stock: <span className={item.qty <= 0 ? "text-red-500 font-bold" : ""}>{item.qty}</span></span>
+                                    </div>
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                                  No se encontraron resultados
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {viewingTicket.parts && viewingTicket.parts.length > 0 ? (
+                      viewingTicket.parts.map((part: any) => (
+                        <div key={part.id} className="flex items-center justify-between bg-muted/50 p-3 rounded-lg border border-border">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-foreground">
+                              {part.variant?.name || part.variant?.product?.name || "Pieza desconocida"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {part.qty} unidad(es) • {part.variant?.sku}
+                            </div>
+                          </div>
+                          {can("canUpdateTickets") && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await removeTicketPart.mutateAsync({
+                                    ticketId: viewingTicket.id,
+                                    partId: part.id,
+                                  });
+                                  toast({
+                                    variant: "success",
+                                    title: "Pieza removida",
+                                    description: "La pieza se ha devuelto al inventario.",
+                                  });
+                                } catch (err: any) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Error",
+                                    description: err.message || "No se pudo remover la pieza.",
+                                  });
+                                }
+                              }}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                              title="Remover pieza"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground text-center py-4 bg-muted/30 rounded-lg border border-dashed border-border">
+                        No hay piezas añadidas a este ticket.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
