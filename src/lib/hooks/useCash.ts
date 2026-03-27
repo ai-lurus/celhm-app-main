@@ -16,6 +16,11 @@ export interface CashCut {
   cashRegisterId: number
   date: string
   initialAmount: number
+  salesCash: number
+  salesDebitCard: number
+  salesCreditCard: number
+  salesTransfer: number
+  adjustments: number
   finalAmount: number
   expectedAmount: number
   declaredAmount: number

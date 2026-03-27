@@ -364,7 +364,8 @@ export function CashRegister({
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-white"
                     >
                       <option value="EFECTIVO">Efectivo</option>
-                      <option value="TARJETA">Tarjeta</option>
+                      <option value="TARJETA_DEBITO">Tarjeta Débito</option>
+                      <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
                       <option value="TRANSFERENCIA">Transferencia</option>
                       <option value="CHEQUE">Cheque</option>
                       <option value="OTRO">Otro</option>

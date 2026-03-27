@@ -3,7 +3,7 @@ import { api } from '../api'
 import { ApiResponse } from '@celhm/types'
 
 export type SaleStatus = 'PENDING' | 'PAID' | 'CANCELLED'
-export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CHEQUE' | 'OTRO'
+export type PaymentMethod = 'EFECTIVO' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'TRANSFERENCIA' | 'CHEQUE' | 'OTRO'
 
 export interface SaleLine {
   id: number

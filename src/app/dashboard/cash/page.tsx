@@ -341,9 +341,7 @@ export default function CashPage(): ReactElement {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       ${(cut.finalAmount || 0).toLocaleString()}
                     </td>
-                    <td
-                      className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}
-                    >
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${getDifferenceColor(cut.difference)}`}>
                       ${(cut.difference || 0).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -545,17 +543,38 @@ export default function CashPage(): ReactElement {
                     Ventas en Efectivo:
                   </span>
                   <span className="text-sm font-medium">
-                    $
-                    {(
-                      viewingCut.salesByMethod?.find(
-                        (m) => m.method === "EFECTIVO"
-                      )?.amount || 0
-                    ).toLocaleString()}
+                    ${(viewingCut.salesCash || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">
+                    Ventas con Tarjeta (Débito):
+                  </span>
+                  <span className="text-sm font-medium">
+                    ${(viewingCut.salesDebitCard || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">
+                    Ventas con Tarjeta (Crédito):
+                  </span>
+                  <span className="text-sm font-medium">
+                    ${(viewingCut.salesCreditCard || 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-foreground">
+                    Ventas por Transferencia:
+                  </span>
+                  <span className="text-sm font-medium">
+                    ${(viewingCut.salesTransfer || 0).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-foreground">Ajustes:</span>
-                  <span className="text-sm font-medium">${0}</span>
+                  <span className="text-sm font-medium">
+                    ${(viewingCut.adjustments || 0).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between pt-2 border-t">
                   <span className="text-sm font-bold">
