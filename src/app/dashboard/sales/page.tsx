@@ -157,20 +157,14 @@ export default function SalesPage() {
           : undefined,
         lines,
         discount: cashRegisterForm.discount,
-        payment: {
-          amount: calculateCashRegisterTotal(cashRegisterForm),
-          method: cashRegisterForm.paymentMethod,
-        },
+        payments: cashRegisterForm.payments.filter(p => p.amount > 0).map((p) => ({
+          amount: p.amount,
+          method: p.method,
+        })),
         cashRegisterId: cashRegisterForm.cashRegisterId,
       });
 
-      // Si hay un pago inicial, agregarlo
-      if (
-        cashRegisterForm.paymentMethod === "EFECTIVO" &&
-        cashRegisterForm.lines.length > 0
-      ) {
-        // El pago se manejará después de crear la venta si es necesario
-      }
+      // El pago se manejó en la creación de la venta
 
       setIsCreateModalOpen(false);
       setCashRegisterForm(

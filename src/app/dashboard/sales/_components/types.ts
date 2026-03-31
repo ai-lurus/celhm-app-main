@@ -16,7 +16,7 @@ export interface CashRegisterForm {
   customerName: string
   requestInvoice: boolean
   sellerId: string
-  paymentMethod: PaymentMethod
+  payments: { method: PaymentMethod; amount: number }[]
   lines: SaleLineItem[]
   discount: number
   discountPercent: boolean
@@ -33,7 +33,7 @@ export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegist
   requestInvoice: false,
   sellerId,
   cashRegisterId: undefined,
-  paymentMethod: 'EFECTIVO',
+  payments: [{ method: 'EFECTIVO', amount: 0 }],
   lines: [],
   discount: 0,
   discountPercent: false,

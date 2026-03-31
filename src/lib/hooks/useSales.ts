@@ -72,11 +72,11 @@ export interface CreateSaleRequest {
   lines: CreateSaleLine[]
   discount?: number
   cashRegisterId?: number
-  payment?: {
+  payments?: {
     amount: number
     method: PaymentMethod
     reference?: string
-  }
+  }[]
 }
 
 export interface AddPaymentRequest {

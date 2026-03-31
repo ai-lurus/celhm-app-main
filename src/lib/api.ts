@@ -56,8 +56,15 @@ api.interceptors.response.use(
       if (typeof errorData === 'string') {
         errorMessage = errorData
       } else if (typeof errorData === 'object') {
-        if (errorData.message && typeof errorData.message === 'string') {
-          errorMessage = errorData.message
+        // Fix for class-validator which returns array of strings in message
+        if (errorData.message) {
+          if (Array.isArray(errorData.message)) {
+            errorMessage = errorData.message.join(', ')
+          } else if (typeof errorData.message === 'string') {
+            errorMessage = errorData.message
+          } else {
+            errorMessage = JSON.stringify(errorData.message)
+          }
         } else if (errorData.error && typeof errorData.error === 'string') {
           errorMessage = errorData.error
         } else {
