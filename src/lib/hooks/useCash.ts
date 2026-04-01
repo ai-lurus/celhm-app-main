@@ -14,26 +14,35 @@ export interface CashCut {
   id: number
   branchId: number
   cashRegisterId: number
+  status: 'OPEN' | 'CLOSED'
   date: string
+  openedAt: string
+  closedAt?: string
   initialAmount: number
   salesCash: number
   salesDebitCard: number
   salesCreditCard: number
   salesTransfer: number
+  advances: number
   adjustments: number
   finalAmount: number
   expectedAmount: number
   declaredAmount: number
+  declaredDebitCard?: number
+  declaredCreditCard?: number
+  declaredTransfer?: number
+  totalIncome: number
   difference: number
-  salesByMethod: {
+  salesByMethod?: {
     method: string
     amount: number
   }[]
-  totalSales: number
-  totalPayments: number
+  totalSales?: number
+  totalPayments?: number
   notes?: string
   createdAt: string
   cashRegister?: CashRegister
+  sales?: any[]
 }
 
 export interface CreateCashCutRequest {
@@ -41,6 +50,13 @@ export interface CreateCashCutRequest {
   cashRegisterId: number
   date: string
   declaredAmount: number
+  notes?: string
+}
+
+export interface OpenCashSessionRequest {
+  branchId: number
+  cashRegisterId: number
+  date: string
   initialAmount: number
   notes?: string
 }
@@ -109,6 +125,20 @@ export function useCreateCashCut() {
   return useMutation({
     mutationFn: async (data: CreateCashCutRequest) => {
       const response = await api.post<CashCut>('/cash/cuts', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash'] })
+    },
+  })
+}
+
+export function useOpenCashSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data: OpenCashSessionRequest) => {
+      const response = await api.post<CashCut>('/cash/open', data)
       return response.data
     },
     onSuccess: () => {
