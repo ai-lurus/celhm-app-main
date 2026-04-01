@@ -49,6 +49,8 @@ export function CashRegister({
   const cashRegisterRef = useRef<HTMLDivElement>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [showCashModal, setShowCashModal] = useState(false);
+  const [cashReceived, setCashReceived] = useState<string>("");
   const [ticketSearch, setTicketSearch] = useState("");
   const user = useAuthStore((state) => state.user);
   const { data: cashRegisters = [] } = useCashRegisters(user?.branchId || 0);
@@ -56,6 +58,28 @@ export function CashRegister({
   // Hotkeys setup
   const handlePayRef = useRef(onPay);
   const handleCancelRef = useRef(onCancel);
+
+  const hasCashPayment = form.payments.some((p) => p.method === "EFECTIVO");
+
+  const handlePayClick = () => {
+    if (hasCashPayment) {
+      setCashReceived("");
+      setShowCashModal(true);
+    } else {
+      onPay();
+    }
+  };
+
+  const cashAmount = form.payments
+    .filter((p) => p.method === "EFECTIVO")
+    .reduce((sum, p) => sum + p.amount, 0);
+
+  const cashReceivedNum = parseFloat(cashReceived) || 0;
+
+  const handleConfirmCashPayment = () => {
+    setShowCashModal(false);
+    onPay();
+  };
 
   useEffect(() => {
     handlePayRef.current = onPay;
@@ -68,7 +92,7 @@ export function CashRegister({
 
       if (e.altKey && e.key === "F10") {
         e.preventDefault();
-        handlePayRef.current();
+        handlePayClick();
       } else if (e.altKey && e.key === "F11") {
         e.preventDefault();
         handleCancelRef.current();
@@ -224,6 +248,7 @@ export function CashRegister({
   const iva = calculateCashRegisterIVA(form);
   const total = calculateCashRegisterTotal(form);
   const totalPieces = calculateTotalPieces(form.lines);
+  const change = cashReceivedNum - (form.payments.length === 1 ? total : cashAmount);
 
   if (!isOpen) return null;
 
@@ -803,7 +828,7 @@ export function CashRegister({
           {/* Right Sidebar: Action Buttons */}
           <div className="w-40 bg-gray-50 border-l flex flex-col items-center justify-center space-y-6 p-6">
             <button
-              onClick={onPay}
+              onClick={handlePayClick}
               disabled={isPaying}
               className="w-full bg-gradient-to-br from-green-500 via-green-600 to-green-700 text-white py-5 px-6 rounded-xl hover:from-green-600 hover:via-green-700 hover:to-green-800 flex flex-col items-center space-y-2 shadow-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:scale-100"
             >
@@ -910,6 +935,117 @@ export function CashRegister({
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de cobro en efectivo */}
+      {showCashModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4 text-white">
+              <div className="flex items-center space-x-3">
+                <div className="bg-white/20 rounded-full p-2">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">Cobro en Efectivo</h2>
+                  <p className="text-green-100 text-sm">Ingresa el monto recibido</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+              {/* Total a cobrar */}
+              <div className="bg-gray-50 rounded-xl p-4 text-center">
+                <p className="text-sm text-gray-500 mb-1">Total a cobrar</p>
+                <p className="text-3xl font-extrabold text-gray-900">
+                  ${(form.payments.length === 1 ? total : cashAmount).toLocaleString("es-MX", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </p>
+                {form.payments.length > 1 && (
+                  <p className="text-xs text-gray-400 mt-1">Sólo la parte en efectivo</p>
+                )}
+              </div>
+
+              {/* Input monto recibido */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Monto con el que paga:
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl font-bold">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={cashReceived}
+                    onChange={(e) => setCashReceived(e.target.value)}
+                    placeholder="0.00"
+                    autoFocus
+                    className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl text-xl font-bold text-gray-900 focus:outline-none focus:border-green-500 transition-colors"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && cashReceivedNum >= (form.payments.length === 1 ? total : cashAmount)) {
+                        handleConfirmCashPayment();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Cambio */}
+              <div className={`rounded-xl p-4 text-center transition-all ${
+                cashReceived === ""
+                  ? "bg-gray-50"
+                  : change >= 0
+                  ? "bg-green-50 border-2 border-green-200"
+                  : "bg-red-50 border-2 border-red-200"
+              }`}>
+                <p className="text-sm font-medium text-gray-500 mb-1">Cambio a devolver</p>
+                {cashReceived === "" ? (
+                  <p className="text-2xl font-bold text-gray-400">—</p>
+                ) : change >= 0 ? (
+                  <p className="text-3xl font-extrabold text-green-600">
+                    ${change.toLocaleString("es-MX", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-3xl font-extrabold text-red-500">
+                      -${Math.abs(change).toLocaleString("es-MX", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-xs text-red-400 mt-1">Monto insuficiente</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Botones */}
+              <div className="flex space-x-3 pt-1">
+                <button
+                  onClick={() => setShowCashModal(false)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmCashPayment}
+                  disabled={cashReceived === "" || change < 0 || isPaying}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:from-green-600 hover:to-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                >
+                  {isPaying ? "Procesando..." : "Confirmar Cobro"}
                 </button>
               </div>
             </div>
