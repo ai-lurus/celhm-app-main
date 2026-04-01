@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, type ReactElement } from "react";
+import React, { useState, type ReactElement } from "react";
 import {
   useCashRegisters,
   useCashCuts,
+  useCashCut,
   useCreateCashCut,
   useOpenCashSession,
   useCreateCashRegister,
@@ -53,6 +54,36 @@ const IconLock = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const IconChevronDown = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className || "w-4 h-4"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const IconChevronRight = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className || "w-4 h-4"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+  </svg>
+);
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  EFECTIVO: "Efectivo",
+  TARJETA_DEBITO: "Tarjeta Débito",
+  TARJETA_CREDITO: "Tarjeta Crédito",
+  TRANSFERENCIA: "Transferencia",
+  CHEQUE: "Cheque",
+  OTRO: "Otro",
+};
+
+const PAYMENT_METHOD_COLORS: Record<string, string> = {
+  EFECTIVO: "bg-green-100 text-green-700",
+  TARJETA_DEBITO: "bg-blue-100 text-blue-700",
+  TARJETA_CREDITO: "bg-purple-100 text-purple-700",
+  TRANSFERENCIA: "bg-orange-100 text-orange-700",
+  CHEQUE: "bg-gray-100 text-gray-700",
+  OTRO: "bg-gray-100 text-gray-600",
+};
+
 const StatusBadge = ({ status }: { status: "OPEN" | "CLOSED" }) => {
   if (status === "OPEN") {
     return (
@@ -77,7 +108,12 @@ export default function CashPage(): ReactElement {
   const [isOpenSessionModalOpen, setIsOpenSessionModalOpen] = useState(false);
   const [isCreateRegisterModalOpen, setIsCreateRegisterModalOpen] =
     useState(false);
-  const [viewingCut, setViewingCut] = useState<CashCut | null>(null);
+  const [viewingCutId, setViewingCutId] = useState<number | null>(null);
+  const [salesExpanded, setSalesExpanded] = useState(false);
+  const [expandedSaleIds, setExpandedSaleIds] = useState<Set<number>>(new Set());
+
+  const { data: viewingCutData, isLoading: isLoadingCut } = useCashCut(viewingCutId ?? 0);
+  const viewingCut = viewingCutId ? viewingCutData : null;
 
   const { data: branches } = useBranches();
   const branchId =
@@ -455,7 +491,11 @@ export default function CashPage(): ReactElement {
                           </button>
                         )}
                         <button
-                          onClick={() => setViewingCut(cut)}
+                          onClick={() => {
+                            setViewingCutId(cut.id);
+                            setSalesExpanded(false);
+                            setExpandedSaleIds(new Set());
+                          }}
                           className="text-primary hover:text-blue-900"
                           title="Ver detalles"
                         >
@@ -745,166 +785,208 @@ export default function CashPage(): ReactElement {
       )}
 
       {/* Modal Ver Detalles */}
-      {viewingCut && (
+      {viewingCutId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
           <div className="bg-card rounded-lg p-6 w-full max-w-3xl my-8 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
-                {viewingCut.status === "OPEN"
+                {isLoadingCut
+                  ? "Cargando..."
+                  : viewingCut?.status === "OPEN"
                   ? "Sesión en Curso"
                   : "Detalles del Corte"}
               </h2>
-              <StatusBadge status={viewingCut.status} />
+              {viewingCut && <StatusBadge status={viewingCut.status} />}
             </div>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Fecha
-                  </label>
-                  <p className="text-sm text-foreground">
-                    {new Date(viewingCut.date).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Caja
-                  </label>
-                  <p className="text-sm text-foreground">
-                    {viewingCut.cashRegister?.name || "-"}
-                  </p>
-                </div>
+
+            {isLoadingCut ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
-
-              <div className="bg-muted p-4 rounded space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Fondo Inicial:</span>
-                  <span className="text-sm font-medium">
-                    ${(viewingCut.initialAmount || 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-foreground">Ventas en Efectivo:</span>
-                  <span className="text-sm font-medium">
-                    ${(viewingCut.salesCash || 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-foreground">
-                    Ventas con Tarjeta (Débito):
-                  </span>
-                  <span className="text-sm font-medium">
-                    ${(viewingCut.salesDebitCard || 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-foreground">
-                    Ventas con Tarjeta (Crédito):
-                  </span>
-                  <span className="text-sm font-medium">
-                    ${(viewingCut.salesCreditCard || 0).toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-foreground">
-                    Ventas por Transferencia:
-                  </span>
-                  <span className="text-sm font-medium">
-                    ${(viewingCut.salesTransfer || 0).toLocaleString()}
-                  </span>
-                </div>
-
-                {viewingCut.status === "CLOSED" && (
-                  <>
-                    <div className="flex justify-between pt-2 border-t">
-                      <span className="text-sm font-bold">
-                        Efectivo Esperado (Sistema):
-                      </span>
-                      <span className="text-sm font-bold">
-                        ${(viewingCut.expectedAmount || 0).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm font-bold">
-                        Efectivo Contado (Real):
-                      </span>
-                      <span className="text-sm font-bold">
-                        ${(
-                          viewingCut.declaredAmount ||
-                          viewingCut.finalAmount ||
-                          0
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                    <div
-                      className={`flex justify-between pt-2 border-t ${getDifferenceColor(viewingCut.difference)}`}
-                    >
-                      <span className="text-sm font-bold">Diferencia:</span>
-                      <span className="text-sm font-bold">
-                        ${(viewingCut.difference || 0).toLocaleString()}
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {viewingCut.sales && viewingCut.sales.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Ventas del Corte
-                  </label>
-                  <div className="max-h-64 overflow-y-auto border rounded-md">
-                    <table className="min-w-full divide-y divide-border">
-                      <thead className="bg-muted sticky top-0">
-                        <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
-                            Folio
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
-                            Hora
-                          </th>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-card divide-y divide-border">
-                        {viewingCut.sales.map((sale: any) => (
-                          <tr key={sale.id} className="hover:bg-muted text-sm">
-                            <td className="px-4 py-2 whitespace-nowrap">
-                              {sale.folio}
-                            </td>
-                            <td className="px-4 py-2 whitespace-nowrap">
-                              {new Date(sale.createdAt).toLocaleTimeString()}
-                            </td>
-                            <td className="px-4 py-2 whitespace-nowrap">
-                              ${Number(sale.total).toLocaleString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            ) : viewingCut ? (
+              <div className="space-y-4">
+                {/* Info básica */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Fecha</label>
+                    <p className="text-sm text-foreground">{new Date(viewingCut.date).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Caja</label>
+                    <p className="text-sm text-foreground">{viewingCut.cashRegister?.name || "-"}</p>
                   </div>
                 </div>
-              )}
 
-              {viewingCut.notes && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Notas
-                  </label>
-                  <p className="text-sm text-foreground mt-1">
-                    {viewingCut.notes}
-                  </p>
+                {/* Resumen financiero */}
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Resumen de Ingresos</p>
+                  {[
+                    { label: "Fondo Inicial", value: viewingCut.initialAmount || 0 },
+                    { label: "Ventas en Efectivo", value: viewingCut.salesCash || 0 },
+                    { label: "Ventas con Tarjeta Débito", value: viewingCut.salesDebitCard || 0 },
+                    { label: "Ventas con Tarjeta Crédito", value: viewingCut.salesCreditCard || 0 },
+                    { label: "Ventas por Transferencia", value: viewingCut.salesTransfer || 0 },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex justify-between">
+                      <span className="text-sm text-foreground">{label}:</span>
+                      <span className="text-sm font-medium">${Number(value).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  ))}
+
+                  {viewingCut.status === "CLOSED" && (
+                    <>
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm font-bold">Efectivo Esperado (Sistema):</span>
+                          <span className="text-sm font-bold">${Number(viewingCut.expectedAmount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                          <span className="text-sm font-bold">Efectivo Contado (Real):</span>
+                          <span className="text-sm font-bold">${Number(viewingCut.declaredAmount || viewingCut.finalAmount || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      </div>
+                      <div className={`flex justify-between pt-2 border-t ${getDifferenceColor(viewingCut.difference)}`}>
+                        <span className="text-sm font-bold">Diferencia:</span>
+                        <span className="text-sm font-bold">${Number(viewingCut.difference || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Desglose de ventas — collapsible */}
+                {viewingCut.sales && viewingCut.sales.length > 0 && (
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    {/* Accordion header */}
+                    <button
+                      type="button"
+                      onClick={() => setSalesExpanded((v) => !v)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-muted hover:bg-muted/80 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Desglose de Ventas</span>
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                          {viewingCut.sales.length}
+                        </span>
+                      </div>
+                      {salesExpanded ? (
+                        <IconChevronDown className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <IconChevronRight className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </button>
+
+                    {/* Accordion body */}
+                    {salesExpanded && (
+                      <div className="max-h-96 overflow-y-auto divide-y divide-border">
+                        {(viewingCut.sales as any[]).map((sale) => {
+                          const isExpanded = expandedSaleIds.has(sale.id);
+                          const toggleSale = () =>
+                            setExpandedSaleIds((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(sale.id)) next.delete(sale.id);
+                              else next.add(sale.id);
+                              return next;
+                            });
+
+                          return (
+                            <div key={sale.id}>
+                              {/* Sale row */}
+                              <button
+                                type="button"
+                                onClick={toggleSale}
+                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/60 transition-colors text-left"
+                              >
+                                <span className="mt-0.5 text-muted-foreground flex-shrink-0">
+                                  {isExpanded ? (
+                                    <IconChevronDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <IconChevronRight className="w-3.5 h-3.5" />
+                                  )}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-foreground">{sale.folio}</span>
+                                    {sale.customer && (
+                                      <span className="text-xs text-muted-foreground truncate">{sale.customer.name}</span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {(sale.payments || []).map((p: any, i: number) => (
+                                      <span
+                                        key={i}
+                                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${PAYMENT_METHOD_COLORS[p.method] || "bg-gray-100 text-gray-600"}`}
+                                      >
+                                        {PAYMENT_METHOD_LABELS[p.method] || p.method}: ${Number(p.amount).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <p className="text-sm font-bold text-foreground">${Number(sale.total).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</p>
+                                  <p className="text-xs text-muted-foreground">{new Date(sale.createdAt).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</p>
+                                </div>
+                              </button>
+
+                              {/* Expanded: line items */}
+                              {isExpanded && sale.lines && sale.lines.length > 0 && (
+                                <div className="bg-muted/40 px-4 pb-3">
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="text-muted-foreground border-b border-border">
+                                        <th className="text-left py-1.5 font-medium">Producto</th>
+                                        <th className="text-center py-1.5 font-medium w-12">Cant.</th>
+                                        <th className="text-right py-1.5 font-medium">Precio</th>
+                                        <th className="text-right py-1.5 font-medium">Total</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border/60">
+                                      {(sale.lines as any[]).map((line) => (
+                                        <tr key={line.id} className="text-foreground">
+                                          <td className="py-1.5 pr-2">
+                                            <span className="font-medium">
+                                              {line.variant?.product?.name || line.description}
+                                            </span>
+                                            {line.variant?.name && (
+                                              <span className="text-muted-foreground ml-1">— {line.variant.name}</span>
+                                            )}
+                                          </td>
+                                          <td className="py-1.5 text-center">{line.qty}</td>
+                                          <td className="py-1.5 text-right">${Number(line.unitPrice).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                                          <td className="py-1.5 text-right font-medium">${Number(line.total).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {viewingCut.sales && viewingCut.sales.length === 0 && (
+                  <div className="text-center py-6 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
+                    No hay ventas registradas en este corte.
+                  </div>
+                )}
+
+                {viewingCut.notes && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-0.5">Notas</label>
+                    <p className="text-sm text-foreground mt-1">{viewingCut.notes}</p>
+                  </div>
+                )}
+              </div>
+            ) : null}
 
             <div className="mt-6 flex justify-between items-center">
-              {viewingCut.status === "OPEN" && (
+              {viewingCut?.status === "OPEN" && (
                 <button
                   onClick={() => {
-                    setViewingCut(null);
+                    setViewingCutId(null);
                     handleOpenCloseModal(viewingCut.cashRegisterId);
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
@@ -914,7 +996,7 @@ export default function CashPage(): ReactElement {
                 </button>
               )}
               <button
-                onClick={() => setViewingCut(null)}
+                onClick={() => setViewingCutId(null)}
                 className="ml-auto px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
               >
                 Cerrar
