@@ -14,6 +14,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { Role } from "@celhm/types";
 import { useToast } from "../../../hooks/use-toast";
+import { parseApiError } from "../../../lib/utils";
 
 // Iconos
 const IconEdit = ({ className }: { className?: string }) => (
@@ -206,8 +207,7 @@ export default function UsersPage() {
       toast({
         variant: "destructive",
         title: "Error al actualizar",
-        description:
-          error.response?.data?.message || "Error al actualizar usuario",
+        description: parseApiError(error, "Error al actualizar usuario"),
       });
     }
   };
@@ -230,8 +230,7 @@ export default function UsersPage() {
       toast({
         variant: "destructive",
         title: "Error al eliminar",
-        description:
-          error.response?.data?.message || "Error al eliminar usuario",
+        description: parseApiError(error, "Error al eliminar usuario"),
       });
     }
   };
@@ -268,7 +267,7 @@ export default function UsersPage() {
       toast({
         variant: "destructive",
         title: "Error al crear usuario",
-        description: error.response?.data?.message || "Error al crear usuario",
+        description: parseApiError(error, "Error al crear usuario"),
       });
     }
   };

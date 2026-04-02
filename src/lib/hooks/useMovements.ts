@@ -8,7 +8,16 @@ export function useCreateMovement() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { branchId: number; variantId: number; type: FrontendMovementType; qty: number; reason?: string; folio?: string; ticketId?: number }) => {
+    mutationFn: async (data: {
+      branchId: number
+      variantId: number
+      type: FrontendMovementType
+      qty: number
+      totalCost?: number
+      reason?: string
+      folio?: string
+      ticketId?: number
+    }) => {
       const backendData: CreateMovementRequest = {
         ...data,
         // Backend uses: ING (entrada), EGR (salida), VTA (venta), AJU (ajuste), TRF_OUT, TRF_IN
@@ -20,7 +29,8 @@ export function useCreateMovement() {
     onSuccess: () => {
       // Invalidate stock query to refresh inventory after movement
       queryClient.invalidateQueries({ queryKey: ['stock'] })
+      // Invalidate catalog to reflect updated purchasePrice
+      queryClient.invalidateQueries({ queryKey: ['stock', 'catalog'] })
     },
   })
 }
-

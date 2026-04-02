@@ -15,6 +15,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { parseApiError } from "../../../lib/utils";
 
 // --- Iconos ---
 const IconEdit = ({ className }: { className?: string }) => (
@@ -255,10 +256,7 @@ export default function CatalogPage() {
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Error al guardar el producto",
+        description: parseApiError(error, "Error al guardar el producto"),
       });
     }
   };
@@ -299,10 +297,7 @@ export default function CatalogPage() {
       toast({
         variant: "destructive",
         title: "Error al eliminar",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Error al eliminar el producto",
+        description: parseApiError(error, "Error al eliminar el producto"),
       });
     }
   };

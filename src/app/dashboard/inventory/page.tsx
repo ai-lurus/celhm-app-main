@@ -24,6 +24,7 @@ import {
 } from "./_components/icons";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { parseApiError } from "../../../lib/utils";
 
 //-----------------
 // TIPOS DE DATOS
@@ -123,6 +124,7 @@ export default function InventoryPage() {
     "entrada"
   );
   const [movementQuantity, setMovementQuantity] = useState<number>(1);
+  const [movementTotalCost, setMovementTotalCost] = useState<string>("0.00");
 
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -345,10 +347,7 @@ export default function InventoryPage() {
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Error al guardar el producto",
+        description: parseApiError(error, "Error al guardar el producto"),
       });
     }
   };
@@ -376,10 +375,7 @@ export default function InventoryPage() {
         toast({
           variant: "destructive",
           title: "Error al eliminar",
-          description:
-            error.response?.data?.message ||
-            error.message ||
-            "Error al eliminar el producto",
+          description: parseApiError(error, "Error al eliminar el producto"),
         });
       }
     }
@@ -390,11 +386,13 @@ export default function InventoryPage() {
     setItemForMovement(item);
     setMovementQuantity(1);
     setMovementType("entrada");
+    setMovementTotalCost("0.00");
     setIsMovementModalOpen(true);
   };
   const closeMovementModal = () => {
     setIsMovementModalOpen(false);
     setItemForMovement(null);
+    setMovementTotalCost("0.00");
   };
   const handleSaveMovement = async () => {
     if (movementQuantity <= 0) {
@@ -428,27 +426,39 @@ export default function InventoryPage() {
       return;
     }
 
+    // Validate totalCost for entradas
+    const parsedTotalCost = parseFloat(movementTotalCost);
+    if (movementType === "entrada" && (isNaN(parsedTotalCost) || parsedTotalCost <= 0)) {
+      toast({
+        variant: "destructive",
+        title: "Costo inválido",
+        description: "El costo total de la entrada debe ser mayor a $0.",
+      });
+      return;
+    }
+
     try {
       await createMovement.mutateAsync({
         branchId: user.branchId,
         variantId: itemForMovement.variantId,
         type: movementType,
         qty: movementQuantity,
+        totalCost: movementType === "entrada" ? parsedTotalCost : undefined,
       });
       toast({
         variant: "success",
         title: "Movimiento registrado",
-        description: `Se registró una ${movementType} de ${movementQuantity} unidades.`,
+        description:
+          movementType === "entrada"
+            ? `Entrada de ${movementQuantity} unidades registrada. Precio de compra actualizado.`
+            : `Salida de ${movementQuantity} unidades registrada.`,
       });
       closeMovementModal();
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error al registrar movimiento",
-        description:
-          error.response?.data?.message ||
-          error.message ||
-          "Error al registrar movimiento",
+        description: parseApiError(error, "Error al registrar movimiento"),
       });
     }
   };
@@ -1254,66 +1264,117 @@ export default function InventoryPage() {
       )}
 
       {/* movimiento */}
-      {isMovementModalOpen && itemForMovement && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
-          <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
-            <h2 className="text-xl font-bold text-foreground">
-              Registrar Movimiento
-            </h2>
-            <div className="mt-4">
-              <p className="font-medium">{itemForMovement.name}</p>
-              <p className="text-sm text-muted-foreground">
-                Existencias Actuales: {itemForMovement.qty}
-              </p>
-            </div>
-            <div className="space-y-4 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Tipo
-                </label>
-                <select
-                  value={movementType}
-                  onChange={(e) =>
-                    setMovementType(e.target.value as "entrada" | "salida")
-                  }
-                  className="mt-1 block w-full border border-border rounded-md p-2"
+      {isMovementModalOpen && itemForMovement && (() => {
+        const parsedCost = parseFloat(movementTotalCost) || 0;
+        const unitCost = movementQuantity > 0 && parsedCost > 0
+          ? parsedCost / movementQuantity
+          : null;
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+            <div className="bg-card p-6 rounded-lg shadow-2xl w-full max-w-md">
+              <h2 className="text-xl font-bold text-foreground">
+                Registrar Movimiento
+              </h2>
+              <div className="mt-4 p-3 bg-muted rounded-md">
+                <p className="font-medium text-foreground">{itemForMovement.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  SKU: {itemForMovement.sku} &nbsp;·&nbsp; Existencias actuales:{" "}
+                  <span className="font-semibold text-foreground">{itemForMovement.qty}</span>
+                </p>
+              </div>
+              <div className="space-y-4 mt-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Tipo
+                  </label>
+                  <select
+                    value={movementType}
+                    onChange={(e) => {
+                      setMovementType(e.target.value as "entrada" | "salida");
+                      setMovementTotalCost("0.00");
+                    }}
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                  >
+                    <option value="entrada">Entrada</option>
+                    <option value="salida">Salida</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground">
+                    Cantidad
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={movementQuantity}
+                    onChange={(e) =>
+                      setMovementQuantity(parseInt(e.target.value) || 0)
+                    }
+                    className="mt-1 block w-full border border-border rounded-md p-2"
+                  />
+                </div>
+
+                {/* Costo total — solo para entradas */}
+                {movementType === "entrada" && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground">
+                      Costo Total de la Entrada
+                    </label>
+                    <div className="relative mt-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        value={movementTotalCost}
+                        onChange={(e) => {
+                          if (/^\d*\.?\d*$/.test(e.target.value))
+                            setMovementTotalCost(e.target.value);
+                        }}
+                        onFocus={(e) => e.target.select()}
+                        onBlur={() => {
+                          const num = parseFloat(movementTotalCost);
+                          setMovementTotalCost(
+                            isNaN(num) ? "0.00" : num.toFixed(2)
+                          );
+                        }}
+                        className="block w-full border border-border rounded-md py-2 pl-7 pr-3"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    {unitCost !== null && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Costo unitario:{" "}
+                        <span className="font-semibold text-foreground">
+                          ${unitCost.toFixed(2)}
+                        </span>{" "}
+                        por unidad
+                        {" — "}
+                        <span className="text-blue-600">se actualizará el precio de compra del producto</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                <button
+                  onClick={closeMovementModal}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
                 >
-                  <option value="entrada">Entrada</option>
-                  <option value="salida">Salida</option>
-                </select>
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSaveMovement}
+                  disabled={createMovement.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+                >
+                  {createMovement.isPending ? "Registrando..." : "Registrar"}
+                </button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground">
-                  Cantidad
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={movementQuantity}
-                  onChange={(e) =>
-                    setMovementQuantity(parseInt(e.target.value) || 0)
-                  }
-                  className="mt-1 block w-full border border-border rounded-md p-2"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                onClick={closeMovementModal}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-md"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveMovement}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md"
-              >
-                Registrar
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* importar csv */}
       {isImportModalOpen && (
