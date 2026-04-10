@@ -66,7 +66,7 @@ export function Sidebar() {
   };
 
   const mainNavItems: NavItem[] = [
-    { label: "Dashboard", href: "/dashboard", permission: undefined },
+    { label: "Dashboard", href: "/dashboard", permission: "canViewDashboard" },
     {
       label: "Laboratorio",
       href: "/dashboard/laboratorio",
@@ -81,7 +81,7 @@ export function Sidebar() {
     {
       label: "Catálogo",
       href: "/dashboard/inventory",
-      permission: "canManageInventory",
+      permission: "canManageCatalog",
     },
     { label: "Caja", href: "/dashboard/cash", permission: "canManageCash" },
     {
@@ -95,7 +95,7 @@ export function Sidebar() {
     {
       label: "Usuarios",
       href: "/dashboard/users",
-      permission: "canViewAllBranches",
+      permission: "canManageUsers",
     },
     {
       label: "Configuración de la Empresa",

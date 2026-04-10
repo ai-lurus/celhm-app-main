@@ -91,7 +91,7 @@ export default function UsersPage() {
 
   // Proteger la página - solo administradores
   useEffect(() => {
-    if (user && !can("canViewAllBranches")) {
+    if (user && !can("canManageUsers")) {
       toast({
         variant: "destructive",
         title: "Acceso denegado",
@@ -101,7 +101,7 @@ export default function UsersPage() {
     }
   }, [user, can, router]);
 
-  if (!user || !can("canViewAllBranches")) {
+  if (!user || !can("canManageUsers")) {
     return (
       <div className="space-y-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">

@@ -5,6 +5,7 @@ import {
   useSales,
   useCreateSale,
   useAddPayment,
+  useCreateReturn,
   Sale,
   CreateSaleLine,
   PaymentMethod,
@@ -28,9 +29,9 @@ import {
   CashRegisterForm,
   createInitialCashRegisterForm,
 } from "./_components/types";
-
 import { calculateCashRegisterTotal } from "./_components/utils";
 import { PaymentModal } from "./_components/PaymentModal";
+import { ReturnModal } from "./_components/ReturnModal";
 
 const IconView = ({ className }: { className?: string }) => (
   <svg
@@ -60,7 +61,9 @@ export default function SalesPage() {
   const [page, setPage] = useState(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [returnSale, setReturnSale] = useState<Sale | null>(null);
   const [viewingSale, setViewingSale] = useState<Sale | null>(null);
 
   const { data: branches = [] } = useBranches();
@@ -81,6 +84,7 @@ export default function SalesPage() {
 
   const createSale = useCreateSale();
   const addPayment = useAddPayment();
+  const createReturn = useCreateReturn();
   const createCustomer = useCreateCustomer();
 
   const sales = Array.isArray((salesData as any)?.data)
@@ -150,6 +154,19 @@ export default function SalesPage() {
         }
       });
 
+      // Calculate the final total to resolve payment amounts.
+      // When there's only one payment method, its amount stays 0 in the form
+      // (it's shown visually via calculateCashRegisterTotal but never written back).
+      // We must fill it here so the sale gets marked PAGADO.
+      const saleTotal = calculateCashRegisterTotal(cashRegisterForm);
+      const resolvedPayments = cashRegisterForm.payments.map((p) => {
+        // Single payment with no explicit amount → use the full total
+        if (cashRegisterForm.payments.length === 1 && p.amount === 0) {
+          return { method: p.method, amount: saleTotal };
+        }
+        return { method: p.method, amount: p.amount };
+      }).filter(p => p.amount > 0);
+
       await createSale.mutateAsync({
         branchId,
         customerId: cashRegisterForm.customerId
@@ -157,10 +174,7 @@ export default function SalesPage() {
           : undefined,
         lines,
         discount: cashRegisterForm.discount,
-        payments: cashRegisterForm.payments.filter(p => p.amount > 0).map((p) => ({
-          amount: p.amount,
-          method: p.method,
-        })),
+        payments: resolvedPayments,
         cashRegisterId: cashRegisterForm.cashRegisterId,
       });
 
@@ -242,20 +256,45 @@ export default function SalesPage() {
       });
       setIsPaymentModalOpen(false);
       setSelectedSale(null);
-      // Refrescar la lista de ventas para mostrar el pago agregado
       await refetchSales();
     } catch (error) {
       console.error("Error adding payment:", error);
     }
   };
 
+  const handleReturnConfirm = async (data: {
+    cashRegisterId: number;
+    refundMethod: PaymentMethod;
+    lines: { saleLineId: number; qty: number }[];
+  }) => {
+    if (!returnSale) return;
+    try {
+      await createReturn.mutateAsync({ saleId: returnSale.id, data });
+      setIsReturnModalOpen(false);
+      setReturnSale(null);
+      setPage(1);
+      await refetchSales();
+      toast({
+        title: "Devolución registrada",
+        description: "La devolución se ha procesado y el inventario fue repuesto.",
+      });
+    } catch (error: any) {
+      console.error("Error creating return:", error);
+      toast({
+        variant: "destructive",
+        title: "Error en devolución",
+        description: error?.response?.data?.message || "Por favor, intenta de nuevo.",
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "PAID":
+      case "PAGADO":
         return "bg-green-100 text-green-800";
-      case "PENDING":
+      case "PENDIENTE":
         return "bg-yellow-100 text-yellow-800";
-      case "CANCELLED":
+      case "CANCELADO":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -330,9 +369,20 @@ export default function SalesPage() {
                 </tr>
               ) : (
                 sales.map((sale: Sale) => (
-                  <tr key={sale.id} className="hover:bg-muted">
+                  <tr key={sale.id} className={`hover:bg-muted ${sale.isReturn ? "bg-rose-50/40" : ""}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {sale.folio}
+                      <div className="flex items-center gap-2">
+                        {sale.folio}
+                        {sale.isReturn && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            DEV
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {sale.customer?.name || "-"}
@@ -341,7 +391,9 @@ export default function SalesPage() {
                       {sale.cashRegister?.name || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                      ${(sale.total || 0).toLocaleString()}
+                      <span className={sale.isReturn ? "text-rose-600 font-semibold" : ""}>
+                        ${(sale.total || 0).toLocaleString()}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                       ${(sale.paidAmount || 0).toLocaleString()}
@@ -365,7 +417,23 @@ export default function SalesPage() {
                         >
                           <IconView />
                         </button>
-                        {sale.status === "PENDING" &&
+                        {sale.status === "PAGADO" && !sale.isReturn && (
+                          <button
+                            onClick={() => {
+                              setReturnSale(sale);
+                              setIsReturnModalOpen(true);
+                            }}
+                            className="text-rose-600 hover:text-rose-800 text-sm font-medium flex items-center gap-1"
+                            title="Hacer devolución"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                            </svg>
+                            Devolver
+                          </button>
+                        )}
+                        {sale.status === "PENDIENTE" &&
                           sale.paidAmount < sale.total && (
                             <button
                               onClick={() => {
@@ -439,6 +507,19 @@ export default function SalesPage() {
           }}
           onSubmit={handlePaymentSubmit}
           isPending={addPayment.isPending}
+        />
+      )}
+
+      {/* Modal Devolución */}
+      {isReturnModalOpen && returnSale && (
+        <ReturnModal
+          sale={returnSale}
+          onClose={() => {
+            setIsReturnModalOpen(false);
+            setReturnSale(null);
+          }}
+          onConfirm={handleReturnConfirm}
+          isPending={createReturn.isPending}
         />
       )}
 

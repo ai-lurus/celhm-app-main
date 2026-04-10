@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import { ApiResponse } from '@celhm/types'
 
-export type SaleStatus = 'PENDING' | 'PAID' | 'CANCELLED'
+export type SaleStatus = 'PENDIENTE' | 'PAGADO' | 'CANCELADO'
 export type PaymentMethod = 'EFECTIVO' | 'TARJETA_DEBITO' | 'TARJETA_CREDITO' | 'TRANSFERENCIA' | 'CHEQUE' | 'OTRO'
 
 export interface SaleLine {
@@ -37,6 +37,8 @@ export interface Sale {
   discount: number
   total: number
   paidAmount: number
+  isReturn: boolean
+  returnOfSaleId?: number
   createdAt: string
   updatedAt: string
   lines: SaleLine[]
@@ -160,3 +162,29 @@ export function useAddPayment() {
   })
 }
 
+export interface CreateReturnLine {
+  saleLineId: number
+  qty: number
+  reason?: string
+}
+
+export interface CreateReturnRequest {
+  cashRegisterId: number
+  refundMethod: PaymentMethod
+  lines: CreateReturnLine[]
+}
+
+export function useCreateReturn() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ saleId, data }: { saleId: number; data: CreateReturnRequest }) => {
+      const response = await api.post<Sale>(`/sales/${saleId}/return`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] })
+      queryClient.invalidateQueries({ queryKey: ['stock'] })
+    },
+  })
+}

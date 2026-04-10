@@ -3,20 +3,21 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../stores/auth'
+import { getDefaultRoute } from '../lib/permissions'
 
 export default function HomePage() {
   const router = useRouter()
-  const { token, isHydrated } = useAuthStore()
+  const { token, user, isHydrated } = useAuthStore()
 
   useEffect(() => {
     if (!isHydrated) return
 
-    if (token) {
-      router.replace('/dashboard')
-    } else {
+    if (token && user) {
+      router.replace(getDefaultRoute(user.role))
+    } else if (!token) {
       router.replace('/login')
     }
-  }, [token, isHydrated, router])
+  }, [token, user, isHydrated, router])
 
   // Return empty div or minimal loading state to avoid flash of content
   return (

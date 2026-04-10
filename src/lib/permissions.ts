@@ -3,9 +3,16 @@ import { Role } from '@celhm/types'
 /**
  * Permisos por rol
  * Define qué acciones puede realizar cada rol
+ * 
+ * Acceso a secciones:
+ * - Administrador: acceso completo
+ * - Laboratorio: ventas, laboratorio, caja
+ * - Recepcionista: ventas, catálogo, caja, clientes
+ * - Todos pueden hacer ventas
  */
 export const rolePermissions = {
   ADMINISTRADOR: {
+    canViewDashboard: true,
     canViewReports: true,
     canViewFinancialReports: true,
     canManageSales: true,
@@ -19,8 +26,10 @@ export const rolePermissions = {
     canViewAllBranches: true,
     canUpdateTickets: true,
     canManageSettings: true,
+    canManageUsers: true,
   },
   ADMON: {
+    canViewDashboard: true,
     canViewReports: true,
     canViewFinancialReports: true,
     canManageSales: true,
@@ -29,17 +38,19 @@ export const rolePermissions = {
     canManageCustomers: true,
     canManageInventory: true,
     canManageCatalog: true,
-    canDeleteOrders: false, // No puede borrar órdenes, solo cancelarlas
+    canDeleteOrders: false,
     canEditPrices: true,
     canViewAllBranches: true,
     canUpdateTickets: true,
     canManageSettings: true,
+    canManageUsers: true,
   },
   LABORATORIO: {
+    canViewDashboard: false,
     canViewReports: false,
     canViewFinancialReports: false,
-    canManageSales: false,
-    canManageCash: false,
+    canManageSales: true,
+    canManageCash: true,
     canManageTickets: true,
     canManageCustomers: false,
     canManageInventory: false,
@@ -49,25 +60,57 @@ export const rolePermissions = {
     canViewAllBranches: false,
     canUpdateTickets: true,
     canManageSettings: false,
+    canManageUsers: false,
   },
   RECEPCIONISTA: {
+    canViewDashboard: false,
     canViewReports: false,
     canViewFinancialReports: false,
     canManageSales: true,
-    canManageCash: false,
-    canManageTickets: true, // Solo crear/ver tickets
+    canManageCash: true,
+    canManageTickets: false,
     canManageCustomers: true,
     canManageInventory: false,
-    canManageCatalog: false,
+    canManageCatalog: true,
     canDeleteOrders: false,
     canEditPrices: false,
     canViewAllBranches: false,
     canUpdateTickets: false,
     canManageSettings: false,
+    canManageUsers: false,
   },
 } as const
 
 export type PermissionKey = keyof typeof rolePermissions.ADMINISTRADOR
+
+/**
+ * Mapa de rutas a permisos requeridos.
+ * Si una ruta no está aquí, se permite a todos los usuarios autenticados.
+ */
+export const routePermissions: Record<string, PermissionKey> = {
+  '/dashboard/laboratorio': 'canManageTickets',
+  '/dashboard/sales': 'canManageSales',
+  '/dashboard/cash': 'canManageCash',
+  '/dashboard/customers': 'canManageCustomers',
+  '/dashboard/catalog': 'canManageCatalog',
+  '/dashboard/inventory': 'canManageCatalog',
+  '/dashboard/reports': 'canViewFinancialReports',
+  '/dashboard/users': 'canManageUsers',
+  '/dashboard/settings': 'canManageSettings',
+}
+
+/**
+ * Ruta por defecto según el rol del usuario.
+ * Los roles sin acceso al dashboard principal se redirigen a su sección.
+ */
+const roleDefaultRoutes: Record<string, string> = {
+  LABORATORIO: '/dashboard/laboratorio',
+  RECEPCIONISTA: '/dashboard/sales',
+}
+
+export function getDefaultRoute(role: Role): string {
+  return roleDefaultRoutes[role] || '/dashboard'
+}
 
 /**
  * Verifica si un rol tiene un permiso específico
@@ -100,4 +143,22 @@ export function hasAllPermissions(role: Role, ...permissions: PermissionKey[]): 
  */
 export function getRolePermissions(role: Role): Record<PermissionKey, boolean> {
   return rolePermissions[role] || ({} as Record<PermissionKey, boolean>)
+}
+
+/**
+ * Verifica si un rol puede acceder a una ruta del dashboard
+ */
+export function canAccessRoute(role: Role, pathname: string): boolean {
+  // Check if trying to access the dashboard home
+  if (pathname === '/dashboard' || pathname === '/dashboard/') {
+    return hasPermission(role, 'canViewDashboard')
+  }
+  // Check each route prefix
+  for (const [route, permission] of Object.entries(routePermissions)) {
+    if (pathname === route || pathname.startsWith(route + '/')) {
+      return hasPermission(role, permission)
+    }
+  }
+  // Allow access to routes not explicitly defined
+  return true
 }
