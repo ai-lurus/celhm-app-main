@@ -27,6 +27,7 @@ export const rolePermissions = {
     canUpdateTickets: true,
     canManageSettings: true,
     canManageUsers: true,
+    canManageCommissions: true,
   },
   ADMON: {
     canViewDashboard: true,
@@ -44,6 +45,7 @@ export const rolePermissions = {
     canUpdateTickets: true,
     canManageSettings: true,
     canManageUsers: true,
+    canManageCommissions: true,
   },
   LABORATORIO: {
     canViewDashboard: false,
@@ -61,6 +63,7 @@ export const rolePermissions = {
     canUpdateTickets: true,
     canManageSettings: false,
     canManageUsers: false,
+    canManageCommissions: false,
   },
   RECEPCIONISTA: {
     canViewDashboard: false,
@@ -78,6 +81,7 @@ export const rolePermissions = {
     canUpdateTickets: false,
     canManageSettings: false,
     canManageUsers: false,
+    canManageCommissions: false,
   },
 } as const
 
@@ -97,6 +101,7 @@ export const routePermissions: Record<string, PermissionKey> = {
   '/dashboard/reports': 'canViewFinancialReports',
   '/dashboard/users': 'canManageUsers',
   '/dashboard/settings': 'canManageSettings',
+  '/dashboard/commissions': 'canManageCommissions',
 }
 
 /**

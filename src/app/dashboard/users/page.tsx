@@ -79,7 +79,7 @@ export default function UsersPage() {
   const deleteMember = useDeleteMember();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<OrgMember | null>(null);
-  const [editForm, setEditForm] = useState({ role: "" as Role, branchId: "" });
+  const [editForm, setEditForm] = useState({ role: "" as Role, branchId: "", commissionRate: "" });
   const [newUserForm, setNewUserForm] = useState({
     name: "",
     email: "",
@@ -179,6 +179,7 @@ export default function UsersPage() {
     setEditForm({
       role: member.role,
       branchId: member.user.branch?.id.toString() || "",
+      commissionRate: member.commissionRate != null ? member.commissionRate.toString() : "",
     });
     setIsEditModalOpen(true);
   };
@@ -196,6 +197,7 @@ export default function UsersPage() {
         id: editingMember.id,
         role: editForm.role,
         branchId: editForm.branchId ? parseInt(editForm.branchId) : null,
+        commissionRate: editForm.commissionRate ? parseFloat(editForm.commissionRate) : null,
       });
       handleCloseEdit();
       toast({
@@ -368,6 +370,9 @@ export default function UsersPage() {
                     Sucursal
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Comisión
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Registrado
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -407,6 +412,13 @@ export default function UsersPage() {
                       <div className="text-sm text-gray-900 dark:text-gray-300">
                         {member.user.branch
                           ? `${member.user.branch.name} (${member.user.branch.code})`
+                          : "-"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-gray-300">
+                        {member.role === "LABORATORIO" && member.commissionRate != null
+                          ? `${Number(member.commissionRate).toFixed(1)}%`
                           : "-"}
                       </div>
                     </td>
@@ -585,6 +597,28 @@ export default function UsersPage() {
                   </select>
                 </div>
               </div>
+              {editForm.role === "LABORATORIO" && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tasa de Comisión (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Ej: 10.00"
+                    value={editForm.commissionRate}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, commissionRate: e.target.value })
+                    }
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Porcentaje aplicado al subtotal de cada venta de laboratorio
+                  </p>
+                </div>
+              )}
               <div className="flex justify-end space-x-4 pt-4">
                 <button
                   type="button"

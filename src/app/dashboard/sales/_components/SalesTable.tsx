@@ -65,7 +65,7 @@ export function SalesTable({ sales, isLoading, onViewSale, onAddPayment, getStat
                     >
                       <IconView />
                     </button>
-                    {sale.status === 'PENDING' && sale.paidAmount < sale.total && (
+                    {sale.status === 'PENDIENTE' && sale.paidAmount < sale.total && (
                       <button
                         onClick={() => onAddPayment(sale)}
                         className="text-green-600 hover:text-green-900 text-sm"

@@ -93,6 +93,11 @@ export function Sidebar() {
 
   const adminNavItems: NavItem[] = [
     {
+      label: "Comisiones",
+      href: "/dashboard/commissions",
+      permission: "canManageCommissions",
+    },
+    {
       label: "Usuarios",
       href: "/dashboard/users",
       permission: "canManageUsers",
