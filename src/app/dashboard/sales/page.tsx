@@ -167,11 +167,15 @@ export default function SalesPage() {
         return { method: p.method, amount: p.amount };
       }).filter(p => p.amount > 0);
 
+      // Get the first ticketId if present in lines for root ticketId support
+      const rootTicketId = lines.find(l => l.ticketId)?.ticketId;
+
       await createSale.mutateAsync({
         branchId,
         customerId: cashRegisterForm.customerId
           ? parseInt(cashRegisterForm.customerId)
           : undefined,
+        ticketId: rootTicketId,
         lines,
         discount: cashRegisterForm.discount,
         payments: resolvedPayments,

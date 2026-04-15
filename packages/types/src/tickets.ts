@@ -35,6 +35,7 @@ export const CreateTicketSchema = z.object({
   risk: z.string().optional(),
   advancePayment: z.number().optional(),
   internalNotes: z.string().optional(),
+  assignedUserId: z.number().optional(),
 })
 
 export const UpdateTicketStateSchema = z.object({
@@ -75,6 +76,7 @@ export const TicketSchema = z.object({
   risk: z.string().optional(),
   advancePayment: z.number().optional(),
   internalNotes: z.string().optional(),
+  assignedUserId: z.number().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   branch: z.object({
@@ -115,6 +117,7 @@ export const UpdateTicketSchema = z.object({
   risk: z.string().optional(),
   advancePayment: z.number().optional(),
   internalNotes: z.string().optional(),
+  assignedUserId: z.number().optional(),
 })
 
 export type Ticket = z.infer<typeof TicketSchema>

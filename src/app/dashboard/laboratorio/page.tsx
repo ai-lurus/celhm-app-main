@@ -16,6 +16,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useCreateCustomer, useCustomers } from "../../../lib/hooks/useCustomers";
 import { useBrands, useDeviceModels } from "../../../lib/hooks/useCatalog";
+import { useUsers } from "../../../lib/hooks/useUsers";
 import { useStock } from "../../../lib/hooks/useStock";
 import { Ticket, TicketState } from "@celhm/types";
 import { DateRangePicker } from "../../../components/ui/DateRangePicker";
@@ -116,6 +117,7 @@ interface TicketForm {
   accessories: string;
   risk: string;
   warrantyDays: number;
+  assignedUserId?: number;
 }
 
 const initialFormState: TicketForm = {
@@ -137,6 +139,7 @@ const initialFormState: TicketForm = {
   accessories: "N/A",
   risk: "NINGUNO",
   warrantyDays: 30,
+  assignedUserId: undefined,
 };
 
 interface StatusForm {
@@ -195,6 +198,8 @@ export default function TicketsPage() {
   const { toast } = useToast();
   const createCustomer = useCreateCustomer();
   const { data: existingCustomersData } = useCustomers({ page: 1, pageSize: 500 });
+  const { data: usersData } = useUsers();
+  const labUsers = Array.isArray(usersData) ? usersData.filter((u: any) => u.role === "LABORATORIO" || u.role === "ADMINISTRADOR") : [];
   const existingCustomers = Array.isArray((existingCustomersData as any)?.data)
     ? (existingCustomersData as any).data
     : [];
@@ -384,6 +389,7 @@ export default function TicketsPage() {
       accessories: ticket.accessories || "N/A",
       risk: ticket.risk || "NINGUNO",
       warrantyDays: ticket.warrantyDays || 30,
+      assignedUserId: ticket.assignedUserId || undefined,
     });
     setIsModalOpen(true);
   };
@@ -580,6 +586,7 @@ export default function TicketsPage() {
             accessories: formData.accessories || undefined,
             risk: formData.risk || undefined,
             warrantyDays: formData.warrantyDays || undefined,
+            assignedUserId: formData.assignedUserId || undefined,
           },
         });
         toast({
@@ -614,6 +621,7 @@ export default function TicketsPage() {
           accessories: formData.accessories || undefined,
           risk: formData.risk || undefined,
           warrantyDays: formData.warrantyDays || undefined,
+          assignedUserId: formData.assignedUserId || undefined,
         });
         toast({
           variant: "success",
@@ -1476,6 +1484,28 @@ export default function TicketsPage() {
                         className="w-full border border-border rounded-md px-3 py-2"
                         placeholder="Notas visibles solo para el personal..."
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Asignar a (Opcional)
+                      </label>
+                      <select
+                        value={formData.assignedUserId || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            assignedUserId: e.target.value ? parseInt(e.target.value) : undefined,
+                          })
+                        }
+                        className="w-full border border-border rounded-md px-3 py-2 bg-background text-foreground"
+                      >
+                        <option value="">-- Sin asignar --</option>
+                        {labUsers.map((member: any) => (
+                          <option key={member.id} value={member.user.id}>
+                            {member.user.name || member.user.email} ({member.role.toLowerCase()})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
