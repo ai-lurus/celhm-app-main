@@ -9,7 +9,7 @@ interface ChangePasswordModalProps {
 }
 
 export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
-  const [form, setForm] = useState({ password: '', confirm: '' })
+  const [form, setForm] = useState({ currentPassword: '', newPassword: '', confirm: '' })
   const [error, setError] = useState<string | null>(null)
   const { mutateAsync, isPending } = useChangePassword()
   const { toast } = useToast()
@@ -18,18 +18,21 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
     e.preventDefault()
     setError(null)
 
-    if (form.password.length < 8) {
-      setError('La contraseña debe tener al menos 8 caracteres')
+    if (form.newPassword.length < 8) {
+      setError('La nueva contraseña debe tener al menos 8 caracteres')
       return
     }
 
-    if (form.password !== form.confirm) {
-      setError('Las contraseñas no coinciden')
+    if (form.newPassword !== form.confirm) {
+      setError('Las contraseñas nuevas no coinciden')
       return
     }
 
     try {
-      await mutateAsync(form.password)
+      await mutateAsync({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword
+      })
       toast({ variant: 'success', title: 'Contraseña actualizada' })
       onClose()
     } catch {
@@ -44,20 +47,33 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
+              Contraseña actual
+            </label>
+            <input
+              type="password"
+              required
+              value={form.currentPassword}
+              onChange={(e) => setForm({ ...form, currentPassword: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
+              placeholder="Contraseña actual"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">
               Nueva contraseña
             </label>
             <input
               type="password"
               required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              value={form.newPassword}
+              onChange={(e) => setForm({ ...form, newPassword: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
               placeholder="Mínimo 8 caracteres"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">
-              Confirmar contraseña
+              Confirmar nueva contraseña
             </label>
             <input
               type="password"
@@ -65,7 +81,7 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
               value={form.confirm}
               onChange={(e) => setForm({ ...form, confirm: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground"
-              placeholder="Repite la contraseña"
+              placeholder="Repite la nueva contraseña"
             />
           </div>
           {error && (

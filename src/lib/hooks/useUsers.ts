@@ -104,8 +104,8 @@ export function useDeleteMember() {
 
 export function useChangePassword() {
   return useMutation({
-    mutationFn: async (password: string) => {
-      const response = await api.patch("/auth/change-password", { password });
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      const response = await api.patch("/auth/change-password", data);
       return response.data;
     },
   });
