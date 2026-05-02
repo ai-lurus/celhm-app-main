@@ -79,13 +79,21 @@ export default function UsersPage() {
   const deleteMember = useDeleteMember();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<OrgMember | null>(null);
-  const [editForm, setEditForm] = useState({ role: "" as Role, branchId: "", commissionRate: "" });
+  const [editForm, setEditForm] = useState({
+    role: "" as Role,
+    branchId: "",
+    commissionRate: "",
+  });
   const [newUserForm, setNewUserForm] = useState({
     name: "",
     email: "",
     role: "RECEPCIONISTA" as Role,
     branchId: "",
   });
+  const [tempPasswordModal, setTempPasswordModal] = useState<{
+    name: string;
+    password: string;
+  } | null>(null);
 
   const { toast } = useToast();
 
@@ -179,7 +187,8 @@ export default function UsersPage() {
     setEditForm({
       role: member.role,
       branchId: member.user.branch?.id.toString() || "",
-      commissionRate: member.commissionRate != null ? member.commissionRate.toString() : "",
+      commissionRate:
+        member.commissionRate != null ? member.commissionRate.toString() : "",
     });
     setIsEditModalOpen(true);
   };
@@ -197,7 +206,9 @@ export default function UsersPage() {
         id: editingMember.id,
         role: editForm.role,
         branchId: editForm.branchId ? parseInt(editForm.branchId) : null,
-        commissionRate: editForm.commissionRate ? parseFloat(editForm.commissionRate) : null,
+        commissionRate: editForm.commissionRate
+          ? parseFloat(editForm.commissionRate)
+          : null,
       });
       handleCloseEdit();
       toast({
@@ -250,7 +261,7 @@ export default function UsersPage() {
     }
 
     try {
-      await createUser.mutateAsync({
+      const result = await createUser.mutateAsync({
         ...newUserForm,
         organizationId: user.organizationId,
         branchId: newUserForm.branchId
@@ -258,11 +269,9 @@ export default function UsersPage() {
           : undefined,
       });
       handleCloseCreate();
-      toast({
-        variant: "success",
-        title: "Usuario creado",
-        description:
-          "Usuario creado e invitado exitosamente. Se ha enviado un correo de activación.",
+      setTempPasswordModal({
+        name: newUserForm.name,
+        password: result.tempPassword,
       });
     } catch (error: any) {
       console.error("Error creating user:", error);
@@ -417,7 +426,8 @@ export default function UsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-gray-300">
-                        {member.role === "LABORATORIO" && member.commissionRate != null
+                        {member.role === "LABORATORIO" &&
+                        member.commissionRate != null
                           ? `${Number(member.commissionRate).toFixed(1)}%`
                           : "-"}
                       </div>
@@ -610,7 +620,10 @@ export default function UsersPage() {
                     placeholder="Ej: 10.00"
                     value={editForm.commissionRate}
                     onChange={(e) =>
-                      setEditForm({ ...editForm, commissionRate: e.target.value })
+                      setEditForm({
+                        ...editForm,
+                        commissionRate: e.target.value,
+                      })
                     }
                     className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -752,6 +765,45 @@ export default function UsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Contraseña Temporal */}
+      {tempPasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Usuario creado
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+              Comparte esta contraseña temporal con{" "}
+              <strong>{tempPasswordModal.name}</strong>. Solo se muestra una
+              vez.
+            </p>
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-md px-4 py-3 flex items-center justify-between gap-4 mb-6">
+              <span className="font-mono text-lg font-semibold tracking-wider text-gray-900 dark:text-white">
+                {tempPasswordModal.password}
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  navigator.clipboard.writeText(tempPasswordModal.password)
+                }
+                className="text-xs text-blue-600 hover:text-blue-800 whitespace-nowrap"
+              >
+                Copiar
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setTempPasswordModal(null)}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
+              >
+                Entendido
+              </button>
+            </div>
           </div>
         </div>
       )}
