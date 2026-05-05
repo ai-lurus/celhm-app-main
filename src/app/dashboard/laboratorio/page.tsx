@@ -15,7 +15,7 @@ import { useBranches } from "../../../lib/hooks/useBranches";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useCreateCustomer, useCustomers } from "../../../lib/hooks/useCustomers";
-import { useBrands, useDeviceModels } from "../../../lib/hooks/useCatalog";
+import { useBrands, useDeviceModels, useCreateDeviceModel } from "../../../lib/hooks/useCatalog";
 import { useUsers } from "../../../lib/hooks/useUsers";
 import { useStock } from "../../../lib/hooks/useStock";
 import { Ticket, TicketState } from "@celhm/types";
@@ -208,6 +208,48 @@ export default function TicketsPage() {
   const [selectedBrandId, setSelectedBrandId] = useState<number | "">("" );
   const { data: deviceBrands = [] } = useBrands();
   const { data: deviceModels = [] } = useDeviceModels(selectedBrandId !== "" ? selectedBrandId : undefined);
+  const createDeviceModel = useCreateDeviceModel();
+
+  // Quick-create model modal
+  const [isQuickCreateModelOpen, setIsQuickCreateModelOpen] = useState(false);
+  const [newModelName, setNewModelName] = useState("");
+  const newModelNameRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isQuickCreateModelOpen) setTimeout(() => newModelNameRef.current?.focus(), 50);
+  }, [isQuickCreateModelOpen]);
+
+  const handleOpenQuickCreateModel = () => {
+    if (selectedBrandId === "") {
+      toast({ variant: "destructive", title: "Marca requerida", description: "Selecciona una marca primero." });
+      return;
+    }
+    setNewModelName("");
+    setIsQuickCreateModelOpen(true);
+  };
+
+  const handleCloseQuickCreateModel = () => {
+    setIsQuickCreateModelOpen(false);
+    setNewModelName("");
+  };
+
+  const handleSaveQuickCreateModel = async () => {
+    if (!newModelName.trim()) {
+      toast({ variant: "destructive", title: "Nombre requerido", description: "El nombre del modelo es requerido." });
+      return;
+    }
+    try {
+      const created = await createDeviceModel.mutateAsync({
+        brandId: selectedBrandId as number,
+        name: newModelName.trim(),
+      });
+      setFormData((prev) => ({ ...prev, model: created.name }));
+      handleCloseQuickCreateModel();
+      toast({ variant: "success", title: "Modelo creado", description: "Modelo guardado y seleccionado correctamente." });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "No se pudo crear el modelo." });
+    }
+  };
 
   // Customer search combobox
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
@@ -1253,9 +1295,22 @@ export default function TicketsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">
-                        Modelo
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-sm font-medium text-foreground">
+                          Modelo
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleOpenQuickCreateModel}
+                          disabled={selectedBrandId === ""}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span>Crear modelo</span>
+                        </button>
+                      </div>
                       <select
                         value={formData.model}
                         disabled={selectedBrandId === ""}
@@ -1270,6 +1325,9 @@ export default function TicketsPage() {
                         {(deviceModels as any[]).map((m: any) => (
                           <option key={m.id} value={m.name}>{m.name}</option>
                         ))}
+                        {formData.model && !(deviceModels as any[]).some(m => m.name === formData.model) && (
+                          <option value={formData.model}>{formData.model}</option>
+                        )}
                       </select>
                     </div>
                     <div>
@@ -2061,6 +2119,57 @@ export default function TicketsPage() {
                     <span>Guardando...</span>
                   </span>
                 ) : "Guardar y continuar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick-Create Model Modal */}
+      {isQuickCreateModelOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-[70] flex items-center justify-center p-4">
+          <div className="bg-card rounded-xl shadow-2xl w-full max-w-sm" onKeyDown={(e) => { if (e.key === "Escape") handleCloseQuickCreateModel(); if (e.key === "Enter") handleSaveQuickCreateModel(); }}>
+            <div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <h2 className="text-lg font-bold">Nuevo Modelo</h2>
+              </div>
+              <button onClick={handleCloseQuickCreateModel} className="text-white/70 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Nombre del Modelo <span className="text-red-500">*</span></label>
+                <input 
+                  ref={newModelNameRef} 
+                  type="text" 
+                  value={newModelName} 
+                  onChange={(e) => setNewModelName(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                  placeholder="Ej: iPhone 13 Pro, Galaxy S22..."
+                />
+              </div>
+            </div>
+            <div className="px-6 pb-6 flex justify-end space-x-3">
+              <button type="button" onClick={handleCloseQuickCreateModel}
+                className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted transition-colors">
+                Cancelar
+              </button>
+              <button type="button" onClick={handleSaveQuickCreateModel} disabled={createDeviceModel.isPending}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium">
+                {createDeviceModel.isPending ? (
+                  <span className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16 8 8 0 01-8-8z" />
+                    </svg>
+                    <span>Guardando...</span>
+                  </span>
+                ) : "Guardar y seleccionar"}
               </button>
             </div>
           </div>
