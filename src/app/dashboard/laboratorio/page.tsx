@@ -318,11 +318,6 @@ export default function TicketsPage() {
       toast({ variant: "destructive", title: "Teléfono requerido", description: "El teléfono del cliente es requerido." });
       return;
     }
-    if (!newCustEmail.trim()) {
-      toast({ variant: "destructive", title: "Email requerido", description: "El email del cliente es requerido." });
-      return;
-    }
-
     const phoneNorm = normalizePhone(newCustPhone);
     const emailNorm = normalizeEmail(newCustEmail);
     const dupPhone = phoneNorm ? existingCustomers.find((c: any) => normalizePhone(c.phone) === phoneNorm) : undefined;
@@ -2091,7 +2086,7 @@ export default function TicketsPage() {
                   onKeyDown={(e) => { if (e.key === "Escape") handleCloseQuickCreate(); }} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Email <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-foreground mb-1">Email</label>
                 <input type="email" value={newCustEmail} onChange={(e) => setNewCustEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
                   placeholder="correo@ejemplo.com"

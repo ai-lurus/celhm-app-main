@@ -98,11 +98,6 @@ export function CustomerSelector({
       toast({ variant: 'destructive', title: 'Teléfono requerido', description: 'El teléfono del cliente es requerido.' })
       return
     }
-    if (!newCustomerEmail.trim()) {
-      toast({ variant: 'destructive', title: 'Email requerido', description: 'El email del cliente es requerido.' })
-      return
-    }
-
     // Duplicate check against loaded customers list
     const phoneNorm = normalizePhone(newCustomerPhone)
     const emailNorm = normalizeEmail(newCustomerEmail)
@@ -305,7 +300,7 @@ export function CustomerSelector({
               {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Email <span className="text-red-500">*</span>
+                  Email
                 </label>
                 <input
                   type="email"

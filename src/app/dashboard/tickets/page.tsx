@@ -212,11 +212,6 @@ export default function TicketsPage() {
       toast({ variant: 'destructive', title: 'Teléfono requerido', description: 'El teléfono del cliente es requerido.' })
       return
     }
-    if (!newCustEmail.trim()) {
-      toast({ variant: 'destructive', title: 'Email requerido', description: 'El email del cliente es requerido.' })
-      return
-    }
-
     // Duplicate check
     const normalizePhone = (p: string) => p.replace(/\D/g, '')
     const normalizeEmail = (e: string) => e.trim().toLowerCase()
@@ -1064,7 +1059,7 @@ export default function TicketsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  Email <span className="text-red-500">*</span>
+                  Email
                 </label>
                 <input
                   type="email"
