@@ -10,7 +10,7 @@ import {
 } from "../../../lib/hooks/useStock";
 import { useToast } from "../../../hooks/use-toast";
 import { useCreateMovement } from "../../../lib/hooks/useMovements";
-import { useCategories, useBrands } from "../../../lib/hooks/useCatalog";
+import { useCategories, useBrands, useProducts } from "../../../lib/hooks/useCatalog";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import {
@@ -30,6 +30,7 @@ import { parseApiError } from "../../../lib/utils";
 // TIPOS DE DATOS
 //-----------------
 interface NewProductForm {
+  productId?: number;
   name: string;
   brand: string;
   price: number | string;
@@ -106,6 +107,17 @@ export default function InventoryPage() {
 
   // --- estados de modales ---
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [createMode, setCreateMode] = useState<"new" | "catalog">("new");
+  const [catalogSearch, setCatalogSearch] = useState<string>("");
+  const [isCatalogDropdownOpen, setIsCatalogDropdownOpen] = useState<boolean>(false);
+  const { data: catalogProductsData } = useProducts({
+    q: catalogSearch || undefined,
+    pageSize: 100,
+  });
+  const catalogProducts = Array.isArray((catalogProductsData as any)?.data)
+    ? (catalogProductsData as any).data
+    : [];
+
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [newProduct, setNewProduct] = useState<NewProductForm>(
     newProductInitialState
@@ -164,6 +176,8 @@ export default function InventoryPage() {
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
     setSelectedCategory("");
+    setCreateMode("new");
+    setCatalogSearch("");
     setIsModalOpen(true);
     setShowActionsDropdown(false);
   };
@@ -278,11 +292,19 @@ export default function InventoryPage() {
   };
 
   const handleSaveProduct = async () => {
-    if (!newProduct.name) {
+    if (createMode === "new" && !newProduct.name) {
       toast({
         variant: "destructive",
         title: "Nombre requerido",
         description: "Por favor, completa el nombre del producto.",
+      });
+      return;
+    }
+    if (createMode === "catalog" && !newProduct.productId && !itemToEdit) {
+      toast({
+        variant: "destructive",
+        title: "Producto requerido",
+        description: "Por favor, selecciona un producto del catálogo.",
       });
       return;
     }
@@ -318,7 +340,8 @@ export default function InventoryPage() {
       } else {
         await createItem.mutateAsync({
           branchId: user?.branchId,
-          name: newProduct.name,
+          productId: createMode === "catalog" ? newProduct.productId : undefined,
+          name: newProduct.name || "Producto Catálogo",
           brand: newProduct.brand,
           model: "Nuevo Modelo",
           sku: newProduct.sku || undefined,
@@ -1077,40 +1100,123 @@ export default function InventoryPage() {
             <h2 className="text-2xl font-bold text-foreground">
               {itemToEdit ? "Editar Producto" : "Agregar Nuevo Producto"}
             </h2>
+            {!itemToEdit && (
+              <div className="flex p-1 space-x-1 bg-muted rounded-lg w-fit">
+                <button
+                  onClick={() => setCreateMode("new")}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    createMode === "new"
+                      ? "bg-card text-foreground shadow"
+                      : "text-muted-foreground hover:bg-white/50"
+                  }`}
+                >
+                  Nuevo Producto
+                </button>
+                <button
+                  onClick={() => setCreateMode("catalog")}
+                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    createMode === "catalog"
+                      ? "bg-card text-foreground shadow"
+                      : "text-muted-foreground hover:bg-white/50"
+                  }`}
+                >
+                  Desde el Catálogo
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Nombre
-                  </label>
-                  <input
-                    type="text"
-                    value={newProduct.name}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, name: e.target.value })
-                    }
-                    className="mt-1 block w-full border border-border rounded-md p-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Marca
-                  </label>
-                  <select
-                    value={newProduct.brand}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, brand: e.target.value })
-                    }
-                    className="mt-1 block w-full border border-border rounded-md p-2"
-                  >
-                    <option value="">Selecciona una marca</option>
-                    {brands.map((brand) => (
-                      <option key={brand.id} value={brand.name}>
-                        {brand.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {createMode === "catalog" && !itemToEdit ? (
+                  <>
+                    <div className="relative">
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Buscar en Catálogo
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Buscar producto por nombre o modelo..."
+                        value={catalogSearch}
+                        onChange={(e) => {
+                          setCatalogSearch(e.target.value);
+                          setIsCatalogDropdownOpen(true);
+                          // Clear selected product if they edit the search
+                          if (newProduct.productId) {
+                            setNewProduct({ ...newProduct, productId: undefined, name: "", brand: "" });
+                          }
+                        }}
+                        onFocus={() => setIsCatalogDropdownOpen(true)}
+                        className="block w-full border border-border rounded-md p-2"
+                      />
+                      {isCatalogDropdownOpen && (
+                        <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                          {catalogProducts.length > 0 ? (
+                            catalogProducts.map((p: any) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                className="w-full text-left px-4 py-2 hover:bg-muted focus:bg-muted border-b border-border last:border-0"
+                                onClick={() => {
+                                  setNewProduct({
+                                    ...newProduct,
+                                    productId: p.id,
+                                    name: p.name || "",
+                                    brand: p.brand || "",
+                                  });
+                                  setCatalogSearch(`${p.name} ${p.model ? `(${p.model})` : ""} ${p.brand ? `- ${p.brand}` : ""}`);
+                                  setIsCatalogDropdownOpen(false);
+                                }}
+                              >
+                                <div className="font-medium text-foreground">{p.name}</div>
+                                <div className="text-xs text-muted-foreground mt-0.5">
+                                  {p.model ? `Modelo: ${p.model}` : ""} {p.brand ? ` | Marca: ${p.brand}` : ""}
+                                </div>
+                              </button>
+                            ))
+                          ) : catalogSearch ? (
+                            <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                              No se encontraron productos
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground">
+                        Nombre
+                      </label>
+                      <input
+                        type="text"
+                        value={newProduct.name}
+                        onChange={(e) =>
+                          setNewProduct({ ...newProduct, name: e.target.value })
+                        }
+                        className="mt-1 block w-full border border-border rounded-md p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground">
+                        Marca
+                      </label>
+                      <select
+                        value={newProduct.brand}
+                        onChange={(e) =>
+                          setNewProduct({ ...newProduct, brand: e.target.value })
+                        }
+                        className="mt-1 block w-full border border-border rounded-md p-2"
+                      >
+                        <option value="">Selecciona una marca</option>
+                        {brands.map((brand) => (
+                          <option key={brand.id} value={brand.name}>
+                            {brand.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-foreground">
                     Precio de Venta
@@ -1214,7 +1320,9 @@ export default function InventoryPage() {
                   />
                 </div>
               </div>
-              <div className="space-y-4">{renderCategorySelectors()}</div>
+              <div className="space-y-4">
+                {!(createMode === "catalog" && !itemToEdit) && renderCategorySelectors()}
+              </div>
             </div>
             <div className="flex justify-end space-x-4 pt-4">
               <button

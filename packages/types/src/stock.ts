@@ -31,8 +31,9 @@ export const StockStatusSchema = z.enum(['normal', 'low', 'critical'])
 export type StockStatus = z.infer<typeof StockStatusSchema>
 
 export const CreateInventoryItemSchema = z.object({
+  productId: z.number().optional(),
   branchId: z.number().optional(),
-  name: z.string().min(1),
+  name: z.string().min(1).optional(),
   brand: z.string().optional(),
   model: z.string().optional(),
   sku: z.string().optional(),
