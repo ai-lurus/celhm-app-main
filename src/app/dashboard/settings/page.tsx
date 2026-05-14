@@ -80,6 +80,18 @@ export default function CompanySettingsPage() {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tamaño del archivo (max 2MB)
+      const MAX_SIZE_MB = 2;
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        toast({
+          variant: "destructive",
+          title: "Imagen demasiado grande",
+          description: `El logo no debe superar los ${MAX_SIZE_MB}MB.`,
+        });
+        e.target.value = '';
+        return;
+      }
+
       // Crear vista previa
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -141,7 +153,22 @@ export default function CompanySettingsPage() {
       }
 
       console.error("Error actualizando la organización:", error);
-      const errorMessage = error instanceof Error ? error.message : "Hubo un error al actualizar la configuración de la empresa.";
+      
+      let errorMessage = "Hubo un error al actualizar la configuración de la empresa.";
+      if (error && typeof error === "object" && "response" in error) {
+        const responseData = (error as any).response?.data;
+        const status = (error as any).response?.status;
+        if (status === 413) {
+          errorMessage = "La imagen es demasiado grande. Por favor, sube una imagen de menor tamaño.";
+        } else if (responseData && responseData.message) {
+          errorMessage = Array.isArray(responseData.message) 
+            ? responseData.message[0] 
+            : responseData.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast({
         variant: "destructive",
         title: "Error al guardar",
