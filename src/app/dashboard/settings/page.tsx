@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { z } from "zod";
 import {
   useOrganization,
   useUpdateOrganization,
@@ -19,6 +20,30 @@ export default function CompanySettingsPage() {
     website: "",
     currency: "",
     vatRate: 0,
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const companySchema = z.object({
+    name: z.string().min(1, "El nombre de la empresa es obligatorio"),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+    email: z
+      .string()
+      .email("Debe ser un correo electrónico válido")
+      .or(z.literal(""))
+      .optional(),
+    taxId: z.string().optional(),
+    website: z
+      .string()
+      .url("Debe ser una URL válida (ej. https://ejemplo.com)")
+      .or(z.literal(""))
+      .optional(),
+    currency: z.string().optional(),
+    vatRate: z
+      .number()
+      .min(0, "La tasa de IVA no puede ser menor que 0")
+      .max(100, "La tasa de IVA no puede ser mayor que 100")
+      .optional(),
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -42,6 +67,14 @@ export default function CompanySettingsPage() {
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error for the field when typing
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,11 +106,17 @@ export default function CompanySettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+    
     try {
-      await updateOrganization.mutateAsync({
+      const validatedData = companySchema.parse({
         ...formData,
-        logo: logoPreview || undefined,
         vatRate: Number(formData.vatRate),
+      });
+
+      await updateOrganization.mutateAsync({
+        ...validatedData,
+        logo: logoPreview || undefined,
       });
       toast({
         variant: "success",
@@ -85,12 +124,28 @@ export default function CompanySettingsPage() {
         description: "Los cambios se han guardado correctamente.",
       });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            newErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(newErrors);
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: "Por favor revisa los campos del formulario.",
+        });
+        return;
+      }
+
       console.error("Error actualizando la organización:", error);
+      const errorMessage = error instanceof Error ? error.message : "Hubo un error al actualizar la configuración de la empresa.";
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description:
-          "Hubo un error al actualizar la configuración de la empresa.",
+        description: errorMessage,
       });
     }
   };
@@ -194,9 +249,11 @@ export default function CompanySettingsPage() {
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
             />
+            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
           </div>
 
           <div>
@@ -207,8 +264,11 @@ export default function CompanySettingsPage() {
               type="text"
               value={formData.phone}
               onChange={(e) => handleInputChange("phone", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.phone ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
             />
+            {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
           </div>
 
           <div className="md:col-span-2">
@@ -219,9 +279,12 @@ export default function CompanySettingsPage() {
               value={formData.address}
               onChange={(e) => handleInputChange("address", e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.address ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
               placeholder="Ingrese la dirección de la empresa"
             />
+            {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
           </div>
 
           <div>
@@ -232,8 +295,11 @@ export default function CompanySettingsPage() {
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.email ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
             />
+            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
           </div>
 
           <div>
@@ -244,8 +310,11 @@ export default function CompanySettingsPage() {
               type="text"
               value={formData.taxId}
               onChange={(e) => handleInputChange("taxId", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.taxId ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
             />
+            {errors.taxId && <p className="mt-1 text-sm text-red-500">{errors.taxId}</p>}
           </div>
 
           <div>
@@ -256,9 +325,12 @@ export default function CompanySettingsPage() {
               type="url"
               value={formData.website}
               onChange={(e) => handleInputChange("website", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.website ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
               placeholder="https://"
             />
+            {errors.website && <p className="mt-1 text-sm text-red-500">{errors.website}</p>}
           </div>
 
           <div>
@@ -269,9 +341,12 @@ export default function CompanySettingsPage() {
               type="text"
               value={formData.currency}
               onChange={(e) => handleInputChange("currency", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.currency ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
               placeholder="MXN"
             />
+            {errors.currency && <p className="mt-1 text-sm text-red-500">{errors.currency}</p>}
           </div>
 
           <div>
@@ -285,9 +360,12 @@ export default function CompanySettingsPage() {
               onChange={(e) =>
                 handleInputChange("vatRate", parseFloat(e.target.value))
               }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                errors.vatRate ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+              }`}
               placeholder="0.16"
             />
+            {errors.vatRate && <p className="mt-1 text-sm text-red-500">{errors.vatRate}</p>}
           </div>
         </div>
 
