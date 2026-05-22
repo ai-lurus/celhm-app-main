@@ -158,11 +158,14 @@ export function CashRegister({
       const unitPrice = Number(line.unitPrice) || 0;
       line.qty = qty;
       line.amount = qty * unitPrice;
+    } else if (field === "unitPrice") {
+      const unitPrice = Math.max(0, Number(value) || 0);
+      line.unitPrice = unitPrice;
+      line.amount = line.qty * unitPrice;
     } else if (field === "advance") {
       // El anticipo no se puede modificar, viene de la orden de reparación
       return;
     } else {
-      // Solo permitir modificar cantidad, no precio
       (line as any)[field] = value;
     }
 
@@ -528,12 +531,22 @@ export function CashRegister({
                         <div className="text-sm text-gray-700">
                           {String(line.product || "")}
                         </div>
-                        <div className="text-sm text-gray-700 font-medium">
-                          $
-                          {(line.unitPrice || 0).toLocaleString("es-MX", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
+                        <div className="flex items-center">
+                          <span className="text-sm text-gray-500 mr-1">$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={line.unitPrice}
+                            onChange={(e) =>
+                              handleUpdateLine(
+                                index,
+                                "unitPrice",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm font-medium"
+                          />
                         </div>
                         <div>
                           {isRepairOrder ? (
