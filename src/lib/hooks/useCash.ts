@@ -160,3 +160,17 @@ export function useCreateCashRegister() {
     },
   })
 }
+
+export function useDeleteCashRegister() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const response = await api.delete(`/cash/registers/${id}`)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash', 'registers'] })
+    },
+  })
+}
