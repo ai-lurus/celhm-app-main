@@ -170,10 +170,13 @@ export default function CashPage(): ReactElement {
 
   const { toast } = useToast();
 
+  const [closingCut, setClosingCut] = useState<CashCut | null>(null);
+
   // Open close modal pre-loaded with the register from the row action
-  const handleOpenCloseModal = (registerId: number) => {
+  const handleOpenCloseModal = (cut: CashCut) => {
+    setClosingCut(cut);
     setCutForm({
-      cashRegisterId: registerId,
+      cashRegisterId: cut.cashRegisterId,
       declaredAmount: "0.00",
       notes: "",
     });
@@ -507,7 +510,7 @@ export default function CashPage(): ReactElement {
                       <div className="flex items-center justify-end gap-2">
                         {cut.status === "OPEN" && (
                           <button
-                            onClick={() => handleOpenCloseModal(cut.cashRegisterId)}
+                            onClick={() => handleOpenCloseModal(cut)}
                             title="Cerrar caja"
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
                           >
@@ -762,17 +765,33 @@ export default function CashPage(): ReactElement {
                 </div>
               </div>
 
-              {/* Auto-calculated methods info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-md px-4 py-3 text-sm text-blue-800">
-                <p className="font-medium mb-1">ℹ️ Cálculo automático</p>
-                <p className="text-xs text-blue-700">
-                  Los montos de <strong>Tarjeta de Débito</strong>,{" "}
-                  <strong>Tarjeta de Crédito</strong> y{" "}
-                  <strong>Transferencia</strong> se determinarán
-                  automáticamente según las ventas registradas durante esta
-                  sesión.
-                </p>
-              </div>
+              {/* Expected amounts summary */}
+              {closingCut && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-sm text-blue-900 shadow-sm">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    Montos Esperados (Cálculo automático)
+                  </h3>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                    <div className="flex justify-between font-bold text-base bg-white/60 px-2 py-1 rounded">
+                      <span>Efectivo:</span>
+                      <span>${(Number(closingCut.initialAmount || 0) + Number(closingCut.salesCash || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-blue-800/80 px-2 py-1">
+                      <span>T. Débito:</span>
+                      <span className="font-medium">${Number(closingCut.salesDebitCard || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-blue-800/80 px-2 py-1">
+                      <span>T. Crédito:</span>
+                      <span className="font-medium">${Number(closingCut.salesCreditCard || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-blue-800/80 px-2 py-1">
+                      <span>Transf.:</span>
+                      <span className="font-medium">${Number(closingCut.salesTransfer || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
