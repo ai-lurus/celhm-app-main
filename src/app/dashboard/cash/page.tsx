@@ -1031,7 +1031,7 @@ export default function CashPage(): ReactElement {
                 <button
                   onClick={() => {
                     setViewingCutId(null);
-                    handleOpenCloseModal(viewingCut.cashRegisterId);
+                    handleOpenCloseModal(viewingCut);
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-2"
                 >
