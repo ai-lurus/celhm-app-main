@@ -39,6 +39,8 @@ interface NewProductForm {
   sku: string;
   initial_stock: number;
   min_stock: number;
+  isPriceEditable: boolean;
+  tracksInventory: boolean;
 }
 
 const newProductInitialState: NewProductForm = {
@@ -50,6 +52,8 @@ const newProductInitialState: NewProductForm = {
   sku: "",
   initial_stock: 10,
   min_stock: 5,
+  isPriceEditable: false,
+  tracksInventory: true,
 };
 
 const CSV_TEMPLATE_HEADERS =
@@ -242,6 +246,8 @@ export default function InventoryPage() {
       sku: item.sku,
       initial_stock: item.qty,
       min_stock: item.min,
+      isPriceEditable: item.isPriceEditable || false,
+      tracksInventory: item.tracksInventory ?? true,
     });
     setSelectedCategory("");
     setIsModalOpen(true);
@@ -330,6 +336,8 @@ export default function InventoryPage() {
             initial_stock: newProduct.initial_stock,
             min_stock: newProduct.min_stock,
             max_stock: 100,
+            isPriceEditable: newProduct.isPriceEditable,
+            tracksInventory: newProduct.tracksInventory,
           },
         });
         toast({
@@ -358,6 +366,8 @@ export default function InventoryPage() {
           qty: newProduct.initial_stock,
           min: newProduct.min_stock,
           max: 100,
+          isPriceEditable: newProduct.isPriceEditable,
+          tracksInventory: newProduct.tracksInventory,
         });
         toast({
           variant: "success",
@@ -1258,6 +1268,9 @@ export default function InventoryPage() {
                     />
                   </div>
                 </div>
+              </div>
+              <div className="space-y-4">
+                {!(createMode === "catalog" && !itemToEdit) && renderCategorySelectors()}
                 <div>
                   <label className="block text-sm font-medium text-foreground">
                     Código de Barras
@@ -1319,9 +1332,42 @@ export default function InventoryPage() {
                     className="mt-1 block w-full border border-border rounded-md p-2"
                   />
                 </div>
-              </div>
-              <div className="space-y-4">
-                {!(createMode === "catalog" && !itemToEdit) && renderCategorySelectors()}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center mt-6">
+                    <input
+                      type="checkbox"
+                      name="isPriceEditable"
+                      checked={newProduct.isPriceEditable}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          isPriceEditable: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label className="ml-2 text-sm font-medium text-foreground">
+                      Precio en venta (Editable)
+                    </label>
+                  </div>
+                  <div className="flex items-center mt-6">
+                    <input
+                      type="checkbox"
+                      name="tracksInventory"
+                      checked={newProduct.tracksInventory}
+                      onChange={(e) =>
+                        setNewProduct({
+                          ...newProduct,
+                          tracksInventory: e.target.checked,
+                        })
+                      }
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label className="ml-2 text-sm font-medium text-foreground">
+                      Afecta Inventario
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex justify-end space-x-4 pt-4">

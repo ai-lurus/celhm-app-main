@@ -13,6 +13,8 @@ export const ProductSchema = z.object({
   }).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  isPriceEditable: z.boolean().optional(),
+  tracksInventory: z.boolean().optional(),
 })
 
 export const VariantSchema = z.object({
@@ -32,6 +34,8 @@ export const VariantSchema = z.object({
     id: z.number(),
     name: z.string(),
     category: z.string().optional(),
+    isPriceEditable: z.boolean().optional(),
+    tracksInventory: z.boolean().optional(),
   }).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),

@@ -82,6 +82,8 @@ interface NewProductForm {
   category: string;
   brand: string;
   model: string;
+  isPriceEditable: boolean;
+  tracksInventory: boolean;
 }
 
 interface Category {
@@ -105,6 +107,8 @@ const newProductInitialState: NewProductForm = {
   category: "",
   brand: "",
   model: "",
+  isPriceEditable: false,
+  tracksInventory: true,
 };
 
 export default function CatalogPage() {
@@ -200,6 +204,8 @@ export default function CatalogPage() {
       category: product.category,
       brand: product.brand,
       model: product.model,
+      isPriceEditable: product.isPriceEditable || false,
+      tracksInventory: product.tracksInventory ?? true,
     });
     setIsProductModalOpen(true);
   };
@@ -230,6 +236,8 @@ export default function CatalogPage() {
             category: newProductData.category || undefined,
             brand: newProductData.brand || undefined,
             model: newProductData.model || undefined,
+            isPriceEditable: newProductData.isPriceEditable,
+            tracksInventory: newProductData.tracksInventory,
           },
         });
         toast({
@@ -244,6 +252,8 @@ export default function CatalogPage() {
           category: newProductData.category || undefined,
           brand: newProductData.brand || undefined,
           model: newProductData.model || undefined,
+          isPriceEditable: newProductData.isPriceEditable,
+          tracksInventory: newProductData.tracksInventory,
         });
         toast({
           variant: "success",
@@ -266,8 +276,12 @@ export default function CatalogPage() {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    const { name, value } = e.target;
-    setNewProductData({ ...newProductData, [name]: value });
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      setNewProductData({ ...newProductData, [name]: (e.target as HTMLInputElement).checked });
+    } else {
+      setNewProductData({ ...newProductData, [name]: value });
+    }
   };
 
   // ----------------------------
@@ -783,6 +797,32 @@ export default function CatalogPage() {
                     className="mt-1 block w-full border border-border rounded-md p-2"
                     placeholder="Ej: iPhone 12/13"
                   />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center mt-6">
+                  <input
+                    type="checkbox"
+                    name="isPriceEditable"
+                    checked={newProductData.isPriceEditable}
+                    onChange={handleProductModalChange}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label className="ml-2 text-sm font-medium text-foreground">
+                    Precio en venta (Editable)
+                  </label>
+                </div>
+                <div className="flex items-center mt-6">
+                  <input
+                    type="checkbox"
+                    name="tracksInventory"
+                    checked={newProductData.tracksInventory}
+                    onChange={handleProductModalChange}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label className="ml-2 text-sm font-medium text-foreground">
+                    Afecta Inventario
+                  </label>
                 </div>
               </div>
             </div>

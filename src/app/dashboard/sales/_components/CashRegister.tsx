@@ -130,6 +130,7 @@ export function CashRegister({
         qty: 1,
         unitPrice: price,
         amount: price,
+        isPriceEditable: item.isPriceEditable,
       };
       onFormChange({
         ...form,
@@ -210,6 +211,7 @@ export function CashRegister({
       unitPrice: ticketPrice,
       advance: advancePayment,
       amount: ticketPrice,
+      isPriceEditable: false,
     };
 
     onFormChange({
@@ -529,7 +531,17 @@ export function CashRegister({
                           {String(line.code || "")}
                         </div>
                         <div className="text-sm text-gray-700">
-                          {String(line.product || "")}
+                          {line.isPriceEditable ? (
+                            <input
+                              type="text"
+                              value={line.product}
+                              onChange={(e) => handleUpdateLine(index, "product", e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                              placeholder="Descripción del concepto"
+                            />
+                          ) : (
+                            String(line.product || "")
+                          )}
                         </div>
                         <div className="flex items-center">
                           <span className="text-sm text-gray-500 mr-1">$</span>
@@ -545,7 +557,8 @@ export function CashRegister({
                                 parseFloat(e.target.value) || 0
                               )
                             }
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm font-medium"
+                            disabled={!line.isPriceEditable}
+                            className={`w-full px-2 py-1 border border-gray-300 rounded text-sm font-medium ${!line.isPriceEditable ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
                           />
                         </div>
                         <div>

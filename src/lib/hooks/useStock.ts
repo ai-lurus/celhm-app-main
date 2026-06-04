@@ -17,6 +17,8 @@ export interface InventoryItem {
   status: StockStatus
   categoryId: number
   variantId: number
+  isPriceEditable?: boolean
+  tracksInventory?: boolean
 }
 
 // Helper to map backend response to frontend format
@@ -38,6 +40,8 @@ function mapStockItemToInventoryItem(item: StockItem): InventoryItem {
     status,
     categoryId: 0, // TODO: Get from product.category when available
     variantId: item.variant.id,
+    isPriceEditable: item.variant.product.isPriceEditable,
+    tracksInventory: item.variant.product.tracksInventory,
   }
 }
 

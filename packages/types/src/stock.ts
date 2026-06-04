@@ -21,6 +21,8 @@ export const StockItemSchema = z.object({
       category: z.string().optional(),
       brand: z.string().optional(),
       model: z.string().optional(),
+      isPriceEditable: z.boolean().optional(),
+      tracksInventory: z.boolean().optional(),
     }),
   }),
   createdAt: z.string(),
@@ -43,6 +45,8 @@ export const CreateInventoryItemSchema = z.object({
   qty: z.number().min(0),
   min: z.number().min(0),
   max: z.number().min(0).optional(),
+  isPriceEditable: z.boolean().optional(),
+  tracksInventory: z.boolean().optional(),
 })
 
 export const UpdateInventoryItemSchema = z.object({
@@ -56,6 +60,8 @@ export const UpdateInventoryItemSchema = z.object({
   initial_stock: z.number().min(0).optional(),
   min_stock: z.number().min(0).optional(),
   max_stock: z.number().min(0).optional(),
+  isPriceEditable: z.boolean().optional(),
+  tracksInventory: z.boolean().optional(),
 })
 
 export type StockItem = z.infer<typeof StockItemSchema>

@@ -12,6 +12,8 @@ export interface Product {
   model: string
   createdAt: string
   variantsCount?: number
+  isPriceEditable?: boolean
+  tracksInventory?: boolean
 }
 
 interface GetProductsParams {
@@ -56,6 +58,8 @@ export function useProducts(params: GetProductsParams = {}) {
           model: p.model || '',
           createdAt: p.createdAt,
           variantsCount: p._count?.variants || 0,
+          isPriceEditable: p.isPriceEditable,
+          tracksInventory: p.tracksInventory,
         })),
         pagination: response.data.pagination,
       }
