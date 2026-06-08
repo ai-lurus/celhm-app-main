@@ -74,7 +74,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const allRoles: Role[] = ["ADMINISTRADOR", "LABORATORIO", "RECEPCIONISTA"];
+const allRoles: Role[] = ["ADMINISTRADOR", "LABORATORIO", "VENTAS"];
 
 const formatRole = (role: Role) => {
   return role.charAt(0) + role.slice(1).toLowerCase();
@@ -106,7 +106,7 @@ export default function UsersPage() {
   const [newUserForm, setNewUserForm] = useState({
     name: "",
     email: "",
-    role: "RECEPCIONISTA" as Role,
+    role: "VENTAS" as Role,
     branchId: "",
   });
   const [tempPasswordModal, setTempPasswordModal] = useState<{
@@ -181,7 +181,7 @@ export default function UsersPage() {
         return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200";
       case "LABORATORIO":
         return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200";
-      case "RECEPCIONISTA":
+      case "VENTAS":
         return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
       default:
         return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
@@ -192,7 +192,7 @@ export default function UsersPage() {
     setNewUserForm({
       name: "",
       email: "",
-      role: "RECEPCIONISTA",
+      role: "VENTAS",
       branchId: branches.length > 0 ? branches[0].id.toString() : "",
     });
     setIsCreateModalOpen(true);
@@ -203,7 +203,7 @@ export default function UsersPage() {
     setNewUserForm({
       name: "",
       email: "",
-      role: "RECEPCIONISTA",
+      role: "VENTAS",
       branchId: "",
     });
   };
@@ -503,7 +503,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-gray-300">
-                        {member.role === "LABORATORIO" &&
+                        {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(member.role) &&
                         member.commissionRate != null
                           ? `${Number(member.commissionRate).toFixed(1)}%`
                           : "-"}
@@ -691,7 +691,7 @@ export default function UsersPage() {
                   </select>
                 </div>
               </div>
-              {editForm.role === "LABORATORIO" && (
+              {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(editForm.role) && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Tasa de Comisión (%)
@@ -801,7 +801,6 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Sucursal
@@ -825,6 +824,32 @@ export default function UsersPage() {
                   </select>
                 </div>
               </div>
+
+              {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(newUserForm.role) && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tasa de Comisión (%)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    placeholder="Ej: 10.00"
+                    value={(newUserForm as any).commissionRate || ""}
+                    onChange={(e) =>
+                      setNewUserForm({
+                        ...newUserForm,
+                        commissionRate: e.target.value,
+                      } as any)
+                    }
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Porcentaje aplicado al subtotal de comisiones
+                  </p>
+                </div>
+              )}
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
                 <p className="text-sm text-blue-800 dark:text-blue-200">

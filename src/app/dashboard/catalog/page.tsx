@@ -84,6 +84,7 @@ interface NewProductForm {
   model: string;
   isPriceEditable: boolean;
   tracksInventory: boolean;
+  isCommissionable: boolean;
 }
 
 interface Category {
@@ -109,6 +110,7 @@ const newProductInitialState: NewProductForm = {
   model: "",
   isPriceEditable: false,
   tracksInventory: true,
+  isCommissionable: false,
 };
 
 export default function CatalogPage() {
@@ -206,6 +208,7 @@ export default function CatalogPage() {
       model: product.model,
       isPriceEditable: product.isPriceEditable || false,
       tracksInventory: product.tracksInventory ?? true,
+      isCommissionable: product.isCommissionable || false,
     });
     setIsProductModalOpen(true);
   };
@@ -238,6 +241,7 @@ export default function CatalogPage() {
             model: newProductData.model || undefined,
             isPriceEditable: newProductData.isPriceEditable,
             tracksInventory: newProductData.tracksInventory,
+            isCommissionable: newProductData.isCommissionable,
           },
         });
         toast({
@@ -254,6 +258,7 @@ export default function CatalogPage() {
           model: newProductData.model || undefined,
           isPriceEditable: newProductData.isPriceEditable,
           tracksInventory: newProductData.tracksInventory,
+          isCommissionable: newProductData.isCommissionable,
         });
         toast({
           variant: "success",
@@ -822,6 +827,20 @@ export default function CatalogPage() {
                   />
                   <label className="ml-2 text-sm font-medium text-foreground">
                     Afecta Inventario
+                  </label>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center mt-6">
+                  <input
+                    type="checkbox"
+                    name="isCommissionable"
+                    checked={newProductData.isCommissionable}
+                    onChange={handleProductModalChange}
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label className="ml-2 text-sm font-medium text-foreground">
+                    Comisionable
                   </label>
                 </div>
               </div>

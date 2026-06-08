@@ -7,7 +7,7 @@ import { Role } from '@celhm/types'
  * Acceso a secciones:
  * - Administrador: acceso completo
  * - Laboratorio: ventas, laboratorio, caja
- * - Recepcionista: ventas, catálogo, caja, clientes
+ * - Ventas: ventas, catálogo, caja, clientes
  * - Todos pueden hacer ventas
  */
 export const rolePermissions = {
@@ -65,7 +65,7 @@ export const rolePermissions = {
     canManageUsers: false,
     canManageCommissions: false,
   },
-  RECEPCIONISTA: {
+  VENTAS: {
     canViewDashboard: false,
     canViewReports: false,
     canViewFinancialReports: false,
@@ -110,7 +110,7 @@ export const routePermissions: Record<string, PermissionKey> = {
  */
 const roleDefaultRoutes: Record<string, string> = {
   LABORATORIO: '/dashboard/laboratorio',
-  RECEPCIONISTA: '/dashboard/sales',
+  VENTAS: '/dashboard/sales',
 }
 
 export function getDefaultRoute(role: Role): string {
