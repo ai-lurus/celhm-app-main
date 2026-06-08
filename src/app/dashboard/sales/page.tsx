@@ -32,6 +32,8 @@ import {
 import { calculateCashRegisterTotal } from "./_components/utils";
 import { PaymentModal } from "./_components/PaymentModal";
 import { ReturnModal } from "./_components/ReturnModal";
+import { ViewSaleModal } from "./_components/ViewSaleModal";
+import { api } from "../../../lib/api";
 
 const IconView = ({ className }: { className?: string }) => (
   <svg
@@ -170,7 +172,7 @@ export default function SalesPage() {
       // Get the first ticketId if present in lines for root ticketId support
       const rootTicketId = lines.find(l => l.ticketId)?.ticketId;
 
-      await createSale.mutateAsync({
+      const newSale = await createSale.mutateAsync({
         branchId,
         customerId: cashRegisterForm.customerId
           ? parseInt(cashRegisterForm.customerId)
@@ -182,7 +184,8 @@ export default function SalesPage() {
         cashRegisterId: cashRegisterForm.cashRegisterId,
       });
 
-      // El pago se manejó en la creación de la venta
+      // Show the details modal immediately
+      setViewingSale(newSale);
 
       setIsCreateModalOpen(false);
       setCashRegisterForm(
@@ -190,12 +193,14 @@ export default function SalesPage() {
       );
       // Resetear a la página 1 para ver la nueva venta creada
       setPage(1);
-      // Refrescar la lista de ventas para mostrar la nueva venta creada
-      await refetchSales();
+      
       toast({
         title: "Venta creada",
         description: "La venta se ha registrado exitosamente.",
       });
+
+      // Refrescar la lista de ventas para mostrar la nueva venta creada
+      await refetchSales();
     } catch (error) {
       console.error("Error creating sale:", error);
       toast({
@@ -259,6 +264,14 @@ export default function SalesPage() {
         data,
       });
       setIsPaymentModalOpen(false);
+      
+      const updatedSale = await api.get(`/sales/${selectedSale.id}`);
+      if (updatedSale && updatedSale.data) {
+        setViewingSale(updatedSale.data);
+      } else {
+        setViewingSale(selectedSale);
+      }
+      
       setSelectedSale(null);
       await refetchSales();
     } catch (error) {
@@ -529,128 +542,11 @@ export default function SalesPage() {
 
       {/* Modal Ver Detalles */}
       {viewingSale && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-          <div className="bg-card rounded-lg p-6 w-full max-w-2xl my-8">
-            <h2 className="text-xl font-bold mb-4">Detalles de Venta</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Folio
-                  </label>
-                  <p className="text-sm text-foreground">{viewingSale.folio}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Estado
-                  </label>
-                  <span
-                    className={`px-2 py-1 text-xs rounded-full ${getStatusColor(viewingSale.status)}`}
-                  >
-                    {viewingSale.status}
-                  </span>
-                </div>
-              </div>
-              {viewingSale.customer && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Cliente
-                  </label>
-                  <p className="text-sm text-foreground">
-                    {viewingSale.customer.name}
-                  </p>
-                </div>
-              )}
-              {viewingSale.cashRegister && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground">
-                    Caja
-                  </label>
-                  <p className="text-sm text-foreground">
-                    {viewingSale.cashRegister.code} -{" "}
-                    {viewingSale.cashRegister.name}
-                  </p>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Líneas de Venta
-                </label>
-                <table className="min-w-full divide-y divide-border">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                        Descripción
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                        Cantidad
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                        Precio
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground">
-                        Subtotal
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-card divide-y divide-border">
-                    {viewingSale.lines.map((line: SaleLine) => (
-                      <tr key={line.id}>
-                        <td className="px-4 py-2 text-sm">
-                          {line.description}
-                        </td>
-                        <td className="px-4 py-2 text-sm">{line.qty}</td>
-                        <td className="px-4 py-2 text-sm">
-                          ${(line.unitPrice || 0).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-2 text-sm">
-                          ${(line.subtotal || 0).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="bg-muted p-4 rounded">
-                <div className="flex justify-between">
-                  <span className="font-bold">Total:</span>
-                  <span className="font-bold">
-                    ${(viewingSale.total || 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-              {viewingSale.payments.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Pagos
-                  </label>
-                  <div className="space-y-2">
-                    {viewingSale.payments.map((payment: Payment) => (
-                      <div
-                        key={payment.id}
-                        className="flex justify-between text-sm"
-                      >
-                        <span>
-                          {payment.method} -{" "}
-                          {payment.reference || "Sin referencia"}
-                        </span>
-                        <span>${(payment.amount || 0).toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setViewingSale(null)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ViewSaleModal
+          sale={viewingSale}
+          onClose={() => setViewingSale(null)}
+          getStatusColor={getStatusColor}
+        />
       )}
     </div>
   );
