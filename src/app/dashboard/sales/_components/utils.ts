@@ -1,34 +1,41 @@
 import { SaleLineItem, CashRegisterForm } from './types'
 
-export const calculateCashRegisterSubtotal = (lines: SaleLineItem[]): number => {
-  return lines.reduce((sum, line) => {
-    const amount = Number(line.amount) || 0
-    const advance = Number(line.advance) || 0
-    return sum + (amount - advance) // Restar el anticipo del monto total
-  }, 0)
+export const calculateCashRegisterSubtotal = (form: CashRegisterForm, vatRate: number = 0.16): number => {
+  const total = calculateCashRegisterTotal(form)
+  const rate = vatRate > 1 ? vatRate / 100 : vatRate
+  return total / (1 + rate)
 }
 
 export const calculateCashRegisterDiscount = (form: CashRegisterForm): number => {
-  const subtotal = calculateCashRegisterSubtotal(form.lines)
+  // Sum of lines before global discount
+  const sumLines = form.lines.reduce((sum, line) => {
+    const amount = Number(line.amount) || 0
+    const advance = Number(line.advance) || 0
+    return sum + (amount - advance)
+  }, 0)
+
   const discountValue = Number(form.discount) || 0
   if (form.discountPercent && discountValue > 0) {
-    return (subtotal * discountValue) / 100
+    return (sumLines * discountValue) / 100
   }
   return discountValue
 }
 
-export const calculateCashRegisterIVA = (form: CashRegisterForm): number => {
-  const subtotal = calculateCashRegisterSubtotal(form.lines)
-  const discount = calculateCashRegisterDiscount(form)
-  const baseAmount = subtotal - discount
-  return baseAmount > 0 ? baseAmount * 0.16 : 0 // 16% IVA
+export const calculateCashRegisterIVA = (form: CashRegisterForm, vatRate: number = 0.16): number => {
+  const total = calculateCashRegisterTotal(form)
+  const subtotal = calculateCashRegisterSubtotal(form, vatRate)
+  return total - subtotal
 }
 
 export const calculateCashRegisterTotal = (form: CashRegisterForm): number => {
-  const subtotal = calculateCashRegisterSubtotal(form.lines)
+  const sumLines = form.lines.reduce((sum, line) => {
+    const amount = Number(line.amount) || 0
+    const advance = Number(line.advance) || 0
+    return sum + (amount - advance)
+  }, 0)
+  
   const discount = calculateCashRegisterDiscount(form)
-  const iva = calculateCashRegisterIVA(form)
-  const total = subtotal - discount + iva
+  const total = sumLines - discount
   return Math.max(0, total) // Asegurar que no sea negativo
 }
 

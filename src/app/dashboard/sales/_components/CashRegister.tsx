@@ -18,6 +18,7 @@ import { CustomerSelector } from "./CustomerSelector";
 import { useToast } from "../../../../hooks/use-toast";
 import { useCashRegisters } from "../../../../lib/hooks/useCash";
 import { useAuthStore } from "../../../../stores/auth";
+import { useOrganization } from "../../../../lib/hooks/useOrganization";
 
 interface CashRegisterProps {
   isOpen: boolean;
@@ -54,6 +55,8 @@ export function CashRegister({
   const [ticketSearch, setTicketSearch] = useState("");
   const user = useAuthStore((state) => state.user);
   const { data: cashRegisters = [] } = useCashRegisters(user?.branchId || 0);
+  const { data: organization } = useOrganization();
+  const vatRate = organization?.vatRate || 0.16;
 
   // Hotkeys setup
   const handlePayRef = useRef(onPay);
@@ -248,9 +251,9 @@ export function CashRegister({
       item.name.toLowerCase().includes(form.productSearch.toLowerCase())
   );
 
-  const subtotal = calculateCashRegisterSubtotal(form.lines);
+  const subtotal = calculateCashRegisterSubtotal(form, vatRate);
   const discount = calculateCashRegisterDiscount(form);
-  const iva = calculateCashRegisterIVA(form);
+  const iva = calculateCashRegisterIVA(form, vatRate);
   const total = calculateCashRegisterTotal(form);
   const totalPieces = calculateTotalPieces(form.lines);
   const change = cashReceivedNum - (form.payments.length === 1 ? total : cashAmount);
@@ -821,7 +824,7 @@ export function CashRegister({
                     </span>
                   </div>
                   <div className="text-sm">
-                    <span className="text-gray-700">IVA</span>
+                    <span className="text-gray-700">IVA ({(vatRate > 1 ? vatRate : vatRate * 100).toFixed(0)}%)</span>
                     <span className="ml-2 font-medium">
                       $
                       {iva.toLocaleString("es-MX", {

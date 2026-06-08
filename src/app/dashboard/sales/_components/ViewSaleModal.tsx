@@ -59,9 +59,23 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
             </table>
           </div>
           <div className="bg-muted p-4 rounded">
-            <div className="flex justify-between">
-              <span className="font-bold">Total:</span>
-              <span className="font-bold">${((sale.total || 0)).toLocaleString()}</span>
+            <div className="flex justify-between text-sm mb-1">
+              <span>Subtotal:</span>
+              <span>${(sale.subtotal || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
+            {(sale.discount || 0) > 0 && (
+              <div className="flex justify-between text-sm text-red-500 mb-1">
+                <span>Descuento:</span>
+                <span>-${(sale.discount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-sm mb-2">
+              <span>IVA:</span>
+              <span>${((sale.total || 0) - (sale.subtotal || 0)).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
+            <div className="flex justify-between font-bold border-t border-border pt-2">
+              <span>Total:</span>
+              <span>${(sale.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
             </div>
           </div>
           {sale.payments.length > 0 && (
@@ -136,6 +150,10 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
                 <span>-${(sale.discount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
+            <div className="flex justify-between mb-1">
+              <span>IVA:</span>
+              <span>${((sale?.total || 0) - (sale?.subtotal || 0)).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+            </div>
             <div className="flex justify-between font-bold text-sm mt-1 border-t border-dashed border-gray-400 pt-2 pb-1">
               <span>TOTAL:</span>
               <span>${(sale?.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
