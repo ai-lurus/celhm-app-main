@@ -8,6 +8,7 @@ import {
   useCreateUser,
   useUpdateMember,
   useDeleteMember,
+  useAdminChangePassword,
 } from "../../../lib/hooks/useUsers";
 import { useBranches } from "../../../lib/hooks/useBranches";
 import { useAuthStore } from "../../../stores/auth";
@@ -30,6 +31,23 @@ const IconEdit = ({ className }: { className?: string }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
       d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+    />
+  </svg>
+);
+
+const IconKey = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+    stroke="currentColor"
+    className={className || "w-5 h-5"}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"
     />
   </svg>
 );
@@ -77,6 +95,7 @@ export default function UsersPage() {
   const createUser = useCreateUser();
   const updateMember = useUpdateMember();
   const deleteMember = useDeleteMember();
+  const adminChangePassword = useAdminChangePassword();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<OrgMember | null>(null);
   const [editForm, setEditForm] = useState({
@@ -94,6 +113,13 @@ export default function UsersPage() {
     name: string;
     password: string;
   } | null>(null);
+
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordMember, setPasswordMember] = useState<OrgMember | null>(null);
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const { toast } = useToast();
 
@@ -198,6 +224,17 @@ export default function UsersPage() {
     setEditingMember(null);
   };
 
+  const handleOpenPassword = (member: OrgMember) => {
+    setPasswordMember(member);
+    setPasswordForm({ newPassword: "", confirmPassword: "" });
+    setIsPasswordModalOpen(true);
+  };
+
+  const handleClosePassword = () => {
+    setIsPasswordModalOpen(false);
+    setPasswordMember(null);
+  };
+
   const handleUpdateMember = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
@@ -221,6 +258,46 @@ export default function UsersPage() {
         variant: "destructive",
         title: "Error al actualizar",
         description: parseApiError(error, "Error al actualizar usuario"),
+      });
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordMember) return;
+    if (passwordForm.newPassword.length < 8) {
+      toast({
+        variant: "destructive",
+        title: "Error de validación",
+        description: "La contraseña debe tener al menos 8 caracteres.",
+      });
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error de validación",
+        description: "Las contraseñas no coinciden.",
+      });
+      return;
+    }
+
+    try {
+      await adminChangePassword.mutateAsync({
+        memberId: passwordMember.id,
+        newPassword: passwordForm.newPassword,
+      });
+      handleClosePassword();
+      toast({
+        variant: "success",
+        title: "Contraseña actualizada",
+        description: "La contraseña del usuario se actualizó correctamente.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error al cambiar contraseña",
+        description: parseApiError(error, "Error al cambiar contraseña"),
       });
     }
   };
@@ -450,6 +527,13 @@ export default function UsersPage() {
                           className="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         >
                           <IconEdit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenPassword(member)}
+                          title="Cambiar Contraseña"
+                          className="p-2 rounded-md text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors"
+                        >
+                          <IconKey className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDeleteMember(member)}
@@ -804,6 +888,68 @@ export default function UsersPage() {
                 Entendido
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cambiar Contraseña */}
+      {isPasswordModalOpen && passwordMember && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-sm">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              Cambiar Contraseña
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              {passwordMember.user.name} · {passwordMember.user.email}
+            </p>
+            <form onSubmit={handleUpdatePassword} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nueva Contraseña
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={passwordForm.newPassword}
+                  onChange={(e) =>
+                    setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                  }
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Mínimo 8 caracteres"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Confirmar Contraseña
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) =>
+                    setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                  }
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Repita la nueva contraseña"
+                />
+              </div>
+              <div className="flex justify-end space-x-4 pt-4">
+                <button
+                  type="button"
+                  onClick={handleClosePassword}
+                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={adminChangePassword.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors disabled:opacity-50"
+                >
+                  {adminChangePassword.isPending ? "Guardando..." : "Guardar"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

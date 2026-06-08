@@ -110,3 +110,14 @@ export function useChangePassword() {
     },
   });
 }
+
+export function useAdminChangePassword() {
+  return useMutation({
+    mutationFn: async (data: { memberId: number; newPassword: string }) => {
+      const response = await api.patch(`/orgs/members/${data.memberId}/password`, {
+        newPassword: data.newPassword,
+      });
+      return response.data;
+    },
+  });
+}
