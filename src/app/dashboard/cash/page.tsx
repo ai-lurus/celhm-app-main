@@ -9,6 +9,7 @@ import {
   useOpenCashSession,
   useCreateCashRegister,
   useDeleteCashRegister,
+  useUpdateCashCut,
   CashCut,
   CashRegister,
 } from "../../../lib/hooks/useCash";
@@ -102,6 +103,8 @@ const StatusBadge = ({ status }: { status: "OPEN" | "CLOSED" }) => {
   );
 };
 
+const DENOMINATIONS = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5];
+
 export default function CashPage(): ReactElement {
   const user = useAuthStore((state) => state.user);
   const [page, setPage] = useState(1);
@@ -111,7 +114,9 @@ export default function CashPage(): ReactElement {
     useState(false);
   const [viewingCutId, setViewingCutId] = useState<number | null>(null);
   const [salesExpanded, setSalesExpanded] = useState(false);
+  const [isDenominationsExpanded, setIsDenominationsExpanded] = useState(false);
   const [expandedSaleIds, setExpandedSaleIds] = useState<Set<number>>(new Set());
+  const [isEditing, setIsEditing] = useState(false);
 
   const { data: viewingCutData, isLoading: isLoadingCut } = useCashCut(viewingCutId ?? 0);
   const viewingCut = viewingCutId ? viewingCutData : null;
@@ -137,6 +142,7 @@ export default function CashPage(): ReactElement {
   const openCashSession = useOpenCashSession();
   const createCashRegister = useCreateCashRegister();
   const deleteCashRegister = useDeleteCashRegister();
+  const updateCashCut = useUpdateCashCut();
 
   const cuts: CashCut[] = Array.isArray((cutsData as any)?.data)
     ? (cutsData as any).data
@@ -150,10 +156,12 @@ export default function CashPage(): ReactElement {
     cashRegisterId: number;
     declaredAmount: string | number;
     notes: string;
+    denominations: Record<string, number>;
   }>({
     cashRegisterId: 0,
     declaredAmount: "0.00",
     notes: "",
+    denominations: {},
   });
 
   const [openForm, setOpenForm] = useState<{
@@ -179,6 +187,7 @@ export default function CashPage(): ReactElement {
       cashRegisterId: cut.cashRegisterId,
       declaredAmount: "0.00",
       notes: "",
+      denominations: {},
     });
     setIsCreateModalOpen(true);
   };
@@ -201,9 +210,10 @@ export default function CashPage(): ReactElement {
         date: new Date().toISOString(),
         declaredAmount: parseFloat(cutForm.declaredAmount.toString()),
         notes: cutForm.notes,
+        denominations: Object.keys(cutForm.denominations).length > 0 ? cutForm.denominations : undefined,
       });
       setIsCreateModalOpen(false);
-      setCutForm({ cashRegisterId: 0, declaredAmount: "0.00", notes: "" });
+      setCutForm({ cashRegisterId: 0, declaredAmount: "0.00", notes: "", denominations: {} });
       toast({
         variant: "success",
         title: "Corte realizado",
@@ -216,6 +226,55 @@ export default function CashPage(): ReactElement {
         title: "Error al registrar",
         description:
           error?.message || "Hubo un error al registrar el corte de caja.",
+      });
+    }
+  };
+
+  const handleEditClick = () => {
+    if (viewingCut) {
+      setClosingCut(viewingCut);
+      setCutForm({
+        cashRegisterId: viewingCut.cashRegisterId,
+        declaredAmount: viewingCut.declaredAmount !== undefined ? viewingCut.declaredAmount : (viewingCut.finalAmount || "0.00"),
+        notes: viewingCut.notes || "",
+        denominations: viewingCut.denominations || {},
+      });
+      setIsEditing(true);
+      setIsDenominationsExpanded(!!viewingCut.denominations && Object.keys(viewingCut.denominations).length > 0);
+      setViewingCutId(null);
+      setIsCreateModalOpen(true);
+    }
+  };
+
+  const handleUpdateCut = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      // In edit mode we are editing closingCut which was stored when handleEditClick was called
+      const editId = closingCut?.id;
+      if (!editId) return;
+      
+      await updateCashCut.mutateAsync({
+        id: editId,
+        data: {
+          declaredAmount: parseFloat(cutForm.declaredAmount.toString()),
+          notes: cutForm.notes,
+          denominations: Object.keys(cutForm.denominations).length > 0 ? cutForm.denominations : undefined,
+        }
+      });
+      setIsCreateModalOpen(false);
+      setIsEditing(false);
+      toast({
+        variant: "success",
+        title: "Corte actualizado",
+        description: "El corte de caja ha sido actualizado exitosamente.",
+      });
+    } catch (error: any) {
+      console.error("Error al actualizar el corte:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al actualizar",
+        description: error?.message || "Hubo un error al actualizar el corte.",
       });
     }
   };
@@ -315,6 +374,26 @@ export default function CashPage(): ReactElement {
     } else {
       setter("0.00");
     }
+  };
+
+  const handleDenominationChange = (den: number, count: string) => {
+    const numCount = parseInt(count) || 0;
+    const newDenominations = { ...cutForm.denominations, [den.toString()]: numCount };
+    if (numCount === 0) {
+      delete newDenominations[den.toString()];
+    }
+    
+    // Calculate new total
+    let newTotal = 0;
+    for (const [d, c] of Object.entries(newDenominations)) {
+      newTotal += parseFloat(d) * c;
+    }
+    
+    setCutForm({
+      ...cutForm,
+      denominations: newDenominations,
+      declaredAmount: newTotal > 0 ? newTotal.toFixed(2) : "0.00",
+    });
   };
 
   const getDifferenceColor = (diff: number) => {
@@ -699,17 +778,17 @@ export default function CashPage(): ReactElement {
         </div>
       )}
 
-      {/* Modal Cerrar Caja */}
+      {/* Modal Cerrar / Editar Caja */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-xl font-bold mb-1">Cerrar Caja</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-1">{isEditing ? "Editar Corte de Caja" : "Cerrar Caja"}</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Ingresa el efectivo que contaste físicamente en caja. Los demás
-              montos (tarjeta, transferencia) se calcularán automáticamente
-              desde las ventas registradas.
+              {isEditing 
+                ? "Edita la información del corte de caja ya cerrado. Los subtotales se recalcularán automáticamente." 
+                : "Ingresa el efectivo que contaste físicamente en caja. Los demás montos (tarjeta, transferencia) se calcularán automáticamente desde las ventas registradas."}
             </p>
-            <form onSubmit={handleCreateCut} className="space-y-4">
+            <form onSubmit={isEditing ? handleUpdateCut : handleCreateCut} className="space-y-4">
               {/* Caja — read-only, pre-filled from row action */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
@@ -718,10 +797,11 @@ export default function CashPage(): ReactElement {
                 <select
                   required
                   value={cutForm.cashRegisterId}
+                  disabled={isEditing}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                     setCutForm({ ...cutForm, cashRegisterId: parseInt(e.target.value) })
                   }
-                  className="w-full px-3 py-2 border border-border rounded-md bg-muted"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-muted disabled:opacity-75 disabled:cursor-not-allowed"
                 >
                   <option value={0}>Seleccionar caja...</option>
                   {registersArray.map((reg: CashRegister) => (
@@ -763,6 +843,47 @@ export default function CashPage(): ReactElement {
                     placeholder="0.00"
                   />
                 </div>
+              </div>
+
+              {/* Denomination Breakdown */}
+              <div className="border border-border rounded-lg overflow-hidden mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsDenominationsExpanded(!isDenominationsExpanded)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-muted/50 hover:bg-muted transition-colors"
+                >
+                  <span className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Desglose por denominación (Opcional)
+                  </span>
+                  {isDenominationsExpanded ? (
+                    <IconChevronDown className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <IconChevronRight className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </button>
+
+                {isDenominationsExpanded && (
+                  <div className="p-4 grid grid-cols-2 gap-x-4 gap-y-3 bg-card border-t border-border">
+                    {DENOMINATIONS.map((den) => (
+                      <div key={den} className="flex items-center justify-between">
+                        <label className="text-sm text-foreground w-16">
+                          ${den >= 1 ? den : den.toFixed(2)}
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={cutForm.denominations[den.toString()] || ""}
+                          onChange={(e) => handleDenominationChange(den, e.target.value)}
+                          className="w-20 px-2 py-1 text-sm border border-border rounded-md text-right"
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Expected amounts summary */}
@@ -810,17 +931,24 @@ export default function CashPage(): ReactElement {
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setIsEditing(false);
+                  }}
                   className="px-4 py-2 border border-border rounded-md text-foreground hover:bg-muted"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={createCashCut.isPending}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                  disabled={isEditing ? updateCashCut.isPending : createCashCut.isPending}
+                  className={`px-4 py-2 text-white rounded-md disabled:opacity-50 ${
+                    isEditing ? "bg-blue-600 hover:bg-blue-700" : "bg-red-600 hover:bg-red-700"
+                  }`}
                 >
-                  {createCashCut.isPending ? "Guardando..." : "Cerrar Caja"}
+                  {isEditing 
+                    ? (updateCashCut.isPending ? "Guardando..." : "Guardar Cambios") 
+                    : (createCashCut.isPending ? "Guardando..." : "Cerrar Caja")}
                 </button>
               </div>
             </form>
@@ -840,7 +968,18 @@ export default function CashPage(): ReactElement {
                   ? "Sesión en Curso"
                   : "Detalles del Corte"}
               </h2>
-              {viewingCut && <StatusBadge status={viewingCut.status} />}
+              <div className="flex items-center gap-3">
+                {viewingCut?.status === "CLOSED" && (
+                  <button
+                    onClick={handleEditClick}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-md transition-colors border border-blue-200"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    Editar
+                  </button>
+                )}
+                {viewingCut && <StatusBadge status={viewingCut.status} />}
+              </div>
             </div>
 
             {isLoadingCut ? (
@@ -896,6 +1035,23 @@ export default function CashPage(): ReactElement {
                     </>
                   )}
                 </div>
+
+                {/* Desglose de denominaciones */}
+                {viewingCut.denominations && Object.keys(viewingCut.denominations).length > 0 && (
+                  <div className="bg-muted p-4 rounded-lg space-y-2 mt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Desglose de Denominaciones</p>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+                      {Object.entries(viewingCut.denominations)
+                        .sort(([a], [b]) => Number(b) - Number(a))
+                        .map(([den, count]) => (
+                          <div key={den} className="flex justify-between border-b border-border/50 pb-1">
+                            <span className="text-sm text-foreground">${Number(den) >= 1 ? Number(den) : Number(den).toFixed(2)} x {count}</span>
+                            <span className="text-sm font-medium">${(Number(den) * Number(count)).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Desglose de ventas — collapsible */}
                 {viewingCut.sales && viewingCut.sales.length > 0 && (

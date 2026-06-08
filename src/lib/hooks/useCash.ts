@@ -40,6 +40,7 @@ export interface CashCut {
   totalSales?: number
   totalPayments?: number
   notes?: string
+  denominations?: Record<string, number>
   createdAt: string
   cashRegister?: CashRegister
   sales?: any[]
@@ -51,6 +52,13 @@ export interface CreateCashCutRequest {
   date: string
   declaredAmount: number
   notes?: string
+  denominations?: Record<string, number>
+}
+
+export interface UpdateCashCutRequest {
+  declaredAmount?: number
+  notes?: string
+  denominations?: Record<string, number>
 }
 
 export interface OpenCashSessionRequest {
@@ -125,6 +133,20 @@ export function useCreateCashCut() {
   return useMutation({
     mutationFn: async (data: CreateCashCutRequest) => {
       const response = await api.post<CashCut>('/cash/cuts', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cash'] })
+    },
+  })
+}
+
+export function useUpdateCashCut() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: UpdateCashCutRequest }) => {
+      const response = await api.patch<CashCut>(`/cash/cuts/${id}`, data)
       return response.data
     },
     onSuccess: () => {
