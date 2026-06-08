@@ -14,6 +14,7 @@ export interface Product {
   variantsCount?: number
   isPriceEditable?: boolean
   tracksInventory?: boolean
+  isCommissionable?: boolean
 }
 
 interface GetProductsParams {
@@ -60,6 +61,7 @@ export function useProducts(params: GetProductsParams = {}) {
           variantsCount: p._count?.variants || 0,
           isPriceEditable: p.isPriceEditable,
           tracksInventory: p.tracksInventory,
+          isCommissionable: (p as any).isCommissionable,
         })),
         pagination: response.data.pagination,
       }

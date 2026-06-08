@@ -74,7 +74,7 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const allRoles: Role[] = ["ADMINISTRADOR", "LABORATORIO", "VENTAS"];
+const allRoles: Role[] = ["ADMINISTRADOR", "TECNICO", "VENDEDOR", "ALMACENISTA", "CAJERO"];
 
 const formatRole = (role: Role) => {
   return role.charAt(0) + role.slice(1).toLowerCase();
@@ -106,7 +106,7 @@ export default function UsersPage() {
   const [newUserForm, setNewUserForm] = useState({
     name: "",
     email: "",
-    role: "VENTAS" as Role,
+    role: "VENDEDOR" as Role,
     branchId: "",
   });
   const [tempPasswordModal, setTempPasswordModal] = useState<{
@@ -151,8 +151,7 @@ export default function UsersPage() {
   }
 
   const filteredMembers = (members || []).filter((member: OrgMember) => {
-    // Hide ADMON from the UI
-    if (member.role === "ADMON") return false;
+    // Removed ADMON hide logic since role is removed
 
     const user = member.user;
     const nameMatch =
@@ -177,12 +176,14 @@ export default function UsersPage() {
     switch (role) {
       case "ADMINISTRADOR":
         return "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200";
-      case "ADMON":
-        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200";
-      case "LABORATORIO":
+      case "TECNICO":
         return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200";
-      case "VENTAS":
+      case "VENDEDOR":
         return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
+      case "ALMACENISTA":
+        return "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200";
+      case "CAJERO":
+        return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200";
       default:
         return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
     }
@@ -192,7 +193,7 @@ export default function UsersPage() {
     setNewUserForm({
       name: "",
       email: "",
-      role: "VENTAS",
+      role: "VENDEDOR",
       branchId: branches.length > 0 ? branches[0].id.toString() : "",
     });
     setIsCreateModalOpen(true);
@@ -203,7 +204,7 @@ export default function UsersPage() {
     setNewUserForm({
       name: "",
       email: "",
-      role: "VENTAS",
+      role: "VENDEDOR",
       branchId: "",
     });
   };
@@ -503,7 +504,7 @@ export default function UsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-gray-300">
-                        {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(member.role) &&
+                        {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(member.role) &&
                         member.commissionRate != null
                           ? `${Number(member.commissionRate).toFixed(1)}%`
                           : "-"}
@@ -691,7 +692,7 @@ export default function UsersPage() {
                   </select>
                 </div>
               </div>
-              {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(editForm.role) && (
+              {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(editForm.role) && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Tasa de Comisión (%)
@@ -825,7 +826,7 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              {["LABORATORIO", "ADMINISTRADOR", "ADMON", "VENTAS"].includes(newUserForm.role) && (
+              {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(newUserForm.role) && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Tasa de Comisión (%)

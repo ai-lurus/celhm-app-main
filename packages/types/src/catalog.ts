@@ -15,6 +15,7 @@ export const ProductSchema = z.object({
   updatedAt: z.string(),
   isPriceEditable: z.boolean().optional(),
   tracksInventory: z.boolean().optional(),
+  isCommissionable: z.boolean().optional(),
 })
 
 export const VariantSchema = z.object({

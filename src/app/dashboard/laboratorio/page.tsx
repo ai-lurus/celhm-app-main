@@ -199,7 +199,7 @@ export default function TicketsPage() {
   const createCustomer = useCreateCustomer();
   const { data: existingCustomersData } = useCustomers({ page: 1, pageSize: 500 });
   const { data: usersData } = useUsers();
-  const labUsers = Array.isArray(usersData) ? usersData.filter((u: any) => u.role === "LABORATORIO" || u.role === "ADMINISTRADOR") : [];
+  const labUsers = Array.isArray(usersData) ? usersData.filter((u: any) => u.role === "TECNICO" || u.role === "ADMINISTRADOR") : [];
   const existingCustomers = Array.isArray((existingCustomersData as any)?.data)
     ? (existingCustomersData as any).data
     : [];
