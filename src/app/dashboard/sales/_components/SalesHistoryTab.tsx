@@ -60,12 +60,13 @@ export function SalesHistoryTab({
       </div>
 
       <div className="bg-blue-600 text-white px-6 py-2">
-        <div className="grid grid-cols-6 gap-4 text-sm font-medium">
+        <div className="grid grid-cols-7 gap-4 text-sm font-medium">
           <div>Folio</div>
           <div>Hora</div>
           <div className="col-span-2">Cliente</div>
           <div>Total</div>
           <div>Método de Pago</div>
+          <div className="text-right">Acciones</div>
         </div>
       </div>
 
@@ -83,7 +84,7 @@ export function SalesHistoryTab({
             {sales.map((sale) => (
               <div
                 key={sale.id}
-                className="grid grid-cols-6 gap-4 px-6 py-3 hover:bg-gray-50 items-center"
+                className="grid grid-cols-7 gap-4 px-6 py-3 hover:bg-gray-50 items-center"
               >
                 <div className="text-sm text-gray-700">{sale.folio}</div>
                 <div className="text-sm text-gray-700">
@@ -102,10 +103,10 @@ export function SalesHistoryTab({
                     maximumFractionDigits: 2,
                   })}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">
-                    {formatPaymentMethods(sale)}
-                  </span>
+                <div className="text-sm text-gray-700">
+                  {formatPaymentMethods(sale)}
+                </div>
+                <div className="text-right">
                   <button
                     onClick={() => onReprint(sale)}
                     className="text-blue-600 hover:text-blue-800 text-xs font-medium border border-blue-200 rounded px-2 py-1"
