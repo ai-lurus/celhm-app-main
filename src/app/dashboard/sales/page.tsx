@@ -34,6 +34,7 @@ import { calculateCashRegisterTotal } from "./_components/utils";
 import { PaymentModal } from "./_components/PaymentModal";
 import { ReturnModal } from "./_components/ReturnModal";
 import { ViewSaleModal } from "./_components/ViewSaleModal";
+import { DevolucionReceipt } from "./_components/DevolucionReceipt";
 import { api } from "../../../lib/api";
 
 const IconView = ({ className }: { className?: string }) => (
@@ -58,6 +59,23 @@ const IconView = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const IconPrint = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="currentColor"
+    className={className || "w-4 h-4"}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+    />
+  </svg>
+);
+
 export default function SalesPage() {
   const { toast } = useToast();
   const user = useAuthStore((state) => state.user);
@@ -68,6 +86,7 @@ export default function SalesPage() {
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [returnSale, setReturnSale] = useState<Sale | null>(null);
   const [viewingSale, setViewingSale] = useState<Sale | null>(null);
+  const [viewingReturn, setViewingReturn] = useState<Sale | null>(null);
 
   const { data: branches = [] } = useBranches();
   const branchId = user?.branchId || (branches.length > 0 ? branches[0].id : 1);
@@ -297,7 +316,10 @@ export default function SalesPage() {
   }) => {
     if (!returnSale) return;
     try {
-      await createReturn.mutateAsync({ saleId: returnSale.id, data });
+      const createdReturn = await createReturn.mutateAsync({
+        saleId: returnSale.id,
+        data,
+      });
       setIsReturnModalOpen(false);
       setReturnSale(null);
       setPage(1);
@@ -306,6 +328,7 @@ export default function SalesPage() {
         title: "Devolución registrada",
         description: "La devolución se ha procesado y el inventario fue repuesto.",
       });
+      setViewingReturn(createdReturn);
     } catch (error: any) {
       console.error("Error creating return:", error);
       toast({
@@ -461,6 +484,16 @@ export default function SalesPage() {
                             Devolver
                           </button>
                         )}
+                        {sale.isReturn && (
+                          <button
+                            onClick={() => setViewingReturn(sale)}
+                            className="text-rose-600 hover:text-rose-800 text-sm font-medium flex items-center gap-1"
+                            title="Reimprimir comprobante de devolución"
+                          >
+                            <IconPrint />
+                            Reimprimir
+                          </button>
+                        )}
                         {sale.status === "PENDIENTE" &&
                           sale.paidAmount < sale.total && (
                             <button
@@ -557,6 +590,14 @@ export default function SalesPage() {
           sale={viewingSale}
           onClose={() => setViewingSale(null)}
           getStatusColor={getStatusColor}
+        />
+      )}
+
+      {/* Comprobante de Devolución */}
+      {viewingReturn && (
+        <DevolucionReceipt
+          sale={viewingReturn}
+          onClose={() => setViewingReturn(null)}
         />
       )}
     </div>

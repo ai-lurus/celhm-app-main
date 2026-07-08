@@ -56,6 +56,10 @@ export interface Sale {
     code: string
     name: string
   }
+  user?: {
+    name: string
+    email: string
+  }
 }
 
 export interface CreateSaleLine {
