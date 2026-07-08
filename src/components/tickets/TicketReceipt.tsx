@@ -10,13 +10,22 @@ import {
 import { Ticket } from "@celhm/types";
 import { format } from "date-fns";
 
-// Register fonts if needed, using default Helvetica for now
+// react-pdf's built-in "Helvetica" only supports WinAnsi glyphs and drops
+// accented characters (á, é, í, ó, ú, ñ, ü), rendering them as garbled boxes.
+// Roboto is registered locally so ticket PDFs print Spanish text correctly.
+Font.register({
+  family: "Roboto",
+  fonts: [
+    { src: "/fonts/Roboto-Regular.ttf", fontWeight: "normal" },
+    { src: "/fonts/Roboto-Bold.ttf", fontWeight: "bold" },
+  ],
+});
 
 const styles = StyleSheet.create({
   page: {
     padding: 20,
     fontSize: 9,
-    fontFamily: "Helvetica",
+    fontFamily: "Roboto",
   },
   section: {
     marginBottom: 4,
