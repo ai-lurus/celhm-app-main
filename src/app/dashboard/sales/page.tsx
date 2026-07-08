@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   useSales,
   useCreateSale,
+  useCancelSale,
   useAddPayment,
   useCreateReturn,
   Sale,
@@ -85,6 +86,7 @@ export default function SalesPage() {
   const { data: usersData } = useUsers();
 
   const createSale = useCreateSale();
+  const cancelSale = useCancelSale();
   const addPayment = useAddPayment();
   const createReturn = useCreateReturn();
   const createCustomer = useCreateCustomer();
@@ -134,6 +136,11 @@ export default function SalesPage() {
     }
 
     try {
+      if (cashRegisterForm.continuingFromSaleId) {
+        await cancelSale.mutateAsync(cashRegisterForm.continuingFromSaleId);
+        setCashRegisterForm((prev) => ({ ...prev, continuingFromSaleId: undefined }));
+      }
+
       // Convertir CashRegisterForm a CreateSaleRequest
       const lines: CreateSaleLine[] = cashRegisterForm.lines.map((line) => {
         // Si es una orden de reparación (code empieza con TICKET-)
@@ -206,7 +213,9 @@ export default function SalesPage() {
       toast({
         variant: "destructive",
         title: "Error al crear venta",
-        description: "Por favor, intenta de nuevo.",
+        description: cashRegisterForm.continuingFromSaleId
+          ? "La venta pendiente original fue cancelada, pero no se pudo crear la venta nueva. Verifica el carrito e intenta de nuevo."
+          : "Por favor, intenta de nuevo.",
       });
     }
   };
