@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PaymentMethod, CreateSaleLine, Sale, usePendingSalesByCustomer, useCancelSale } from "../../../../lib/hooks/useSales";
+import { PaymentMethod, CreateSaleLine, Sale, usePendingSalesByCustomer, useCancelSale, useSales } from "../../../../lib/hooks/useSales";
 import { PendingSalesModal } from "./PendingSalesModal";
+import { SalesHistoryTab } from "./SalesHistoryTab";
+import { ViewSaleModal } from "./ViewSaleModal";
 import { InventoryItem } from "../../../../lib/hooks/useStock";
 import { OrgMember } from "../../../../lib/hooks/useUsers";
 import { Customer } from "../../../../lib/hooks/useCustomers";
@@ -64,6 +66,20 @@ export function CashRegister({
   const cancelSaleMutation = useCancelSale();
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [checkedCustomerId, setCheckedCustomerId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"venta" | "historial">("venta");
+  const [historyStartDate, setHistoryStartDate] = useState(form.date);
+  const [historyEndDate, setHistoryEndDate] = useState(form.date);
+  const [reprintSale, setReprintSale] = useState<Sale | null>(null);
+  const { data: historySalesData, isLoading: isHistoryLoading } = useSales(
+    {
+      branchId: user?.branchId,
+      startDate: historyStartDate,
+      endDate: historyEndDate,
+      pageSize: 100,
+    },
+    { enabled: activeTab === "historial" && !!user?.branchId }
+  );
+  const historySales = historySalesData?.data ?? [];
 
   // Hotkeys setup
   const handlePayRef = useRef(onPay);
@@ -334,6 +350,19 @@ export function CashRegister({
   const totalPieces = calculateTotalPieces(form.lines);
   const change = cashReceivedNum - (form.payments.length === 1 ? total : cashAmount);
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PAGADO":
+        return "bg-green-100 text-green-800";
+      case "PENDIENTE":
+        return "bg-yellow-100 text-yellow-800";
+      case "CANCELADO":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -347,9 +376,45 @@ export function CashRegister({
           <span className="text-lg font-bold">TICKET</span>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b bg-gray-50">
+          <button
+            onClick={() => setActiveTab("venta")}
+            className={`px-6 py-2 text-sm font-medium border-b-2 ${
+              activeTab === "venta"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Venta
+          </button>
+          <button
+            onClick={() => setActiveTab("historial")}
+            className={`px-6 py-2 text-sm font-medium border-b-2 ${
+              activeTab === "historial"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Historial
+          </button>
+        </div>
+
         <div className="flex-1 flex overflow-hidden">
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col">
+            {activeTab === "historial" ? (
+              <SalesHistoryTab
+                sales={historySales}
+                isLoading={isHistoryLoading}
+                startDate={historyStartDate}
+                endDate={historyEndDate}
+                onStartDateChange={setHistoryStartDate}
+                onEndDateChange={setHistoryEndDate}
+                onReprint={setReprintSale}
+              />
+            ) : (
+              <>
             {/* Header Section */}
             <div className="bg-gray-100 px-6 py-4 border-b">
               <div className="grid grid-cols-2 gap-4 mb-4">
@@ -946,6 +1011,8 @@ export function CashRegister({
                 </div>
               </div>
             </div>
+              </>
+            )}
           </div>
 
           {/* Right Sidebar: Action Buttons */}
@@ -1305,6 +1372,14 @@ export function CashRegister({
           onContinue={handleContinuePendingSale}
           onCancel={handleCancelPendingSale}
           onClose={() => setShowPendingModal(false)}
+        />
+      )}
+
+      {reprintSale && (
+        <ViewSaleModal
+          sale={reprintSale}
+          onClose={() => setReprintSale(null)}
+          getStatusColor={getStatusColor}
         />
       )}
     </div>

@@ -25,7 +25,7 @@ interface ReturnModalProps {
   isPending?: boolean;
 }
 
-const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   EFECTIVO: "Efectivo",
   TARJETA_DEBITO: "Tarjeta Débito",
   TARJETA_CREDITO: "Tarjeta Crédito",
