@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PaymentMethod, CreateSaleLine } from "../../../../lib/hooks/useSales";
+import { PaymentMethod, CreateSaleLine, Sale, usePendingSalesByCustomer, useCancelSale } from "../../../../lib/hooks/useSales";
+import { PendingSalesModal } from "./PendingSalesModal";
 import { InventoryItem } from "../../../../lib/hooks/useStock";
 import { OrgMember } from "../../../../lib/hooks/useUsers";
 import { Customer } from "../../../../lib/hooks/useCustomers";
@@ -57,6 +58,12 @@ export function CashRegister({
   const { data: cashRegisters = [] } = useCashRegisters(user?.branchId || 0);
   const { data: organization } = useOrganization();
   const vatRate = organization?.vatRate || 0.16;
+  const numericCustomerId = form.customerId ? parseInt(form.customerId) : undefined;
+  const { data: pendingSalesData } = usePendingSalesByCustomer(numericCustomerId);
+  const pendingSales = pendingSalesData?.data ?? [];
+  const cancelSaleMutation = useCancelSale();
+  const [showPendingModal, setShowPendingModal] = useState(false);
+  const [checkedCustomerId, setCheckedCustomerId] = useState<string | null>(null);
 
   // Hotkeys setup
   const handlePayRef = useRef(onPay);
@@ -108,6 +115,19 @@ export function CashRegister({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!form.customerId) {
+      setCheckedCustomerId(null);
+      return;
+    }
+    if (form.customerId !== checkedCustomerId && pendingSalesData) {
+      setCheckedCustomerId(form.customerId);
+      if (pendingSales.length > 0) {
+        setShowPendingModal(true);
+      }
+    }
+  }, [form.customerId, pendingSalesData, checkedCustomerId, pendingSales.length]);
 
   const handleAddProduct = (item: InventoryItem) => {
     const existingLineIndex = form.lines.findIndex(
@@ -185,6 +205,58 @@ export function CashRegister({
   };
 
   const { toast } = useToast();
+
+  const handleContinuePendingSale = (sale: Sale) => {
+    const mappedLines: SaleLineItem[] = sale.lines.map((line) => {
+      if (line.ticketId) {
+        return {
+          variantId: undefined,
+          code: `TICKET-${line.ticketId}`,
+          product: line.description,
+          qty: line.qty,
+          unitPrice: Number(line.unitPrice),
+          amount: Number(line.unitPrice) * line.qty - Number(line.discount || 0),
+          isPriceEditable: false,
+        };
+      }
+      const stockItem = stockItems.find((item) => item.variantId === line.variantId);
+      return {
+        variantId: line.variantId,
+        code: stockItem?.sku || "",
+        product: line.description,
+        qty: line.qty,
+        unitPrice: Number(line.unitPrice),
+        amount: Number(line.unitPrice) * line.qty - Number(line.discount || 0),
+        isPriceEditable: stockItem?.isPriceEditable,
+      };
+    });
+
+    onFormChange({
+      ...form,
+      customerId: sale.customerId ? String(sale.customerId) : form.customerId,
+      customerName: sale.customer?.name || form.customerName,
+      lines: mappedLines,
+      discount: Number(sale.discount),
+      continuingFromSaleId: sale.id,
+    });
+    setShowPendingModal(false);
+  };
+
+  const handleCancelPendingSale = async (sale: Sale) => {
+    try {
+      await cancelSaleMutation.mutateAsync(sale.id);
+      toast({
+        title: "Venta pendiente cancelada",
+        description: `El folio ${sale.folio} fue cancelado y el stock fue restaurado.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "No se pudo cancelar",
+        description: "Intenta de nuevo.",
+      });
+    }
+  };
 
   const handleAddTicket = (ticket: Ticket) => {
     // Verificar si el ticket ya está agregado
@@ -1203,6 +1275,15 @@ export function CashRegister({
             </div>
           </div>
         </div>
+      )}
+
+      {showPendingModal && (
+        <PendingSalesModal
+          sales={pendingSales}
+          onContinue={handleContinuePendingSale}
+          onCancel={handleCancelPendingSale}
+          onClose={() => setShowPendingModal(false)}
+        />
       )}
     </div>
   );
