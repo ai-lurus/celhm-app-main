@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   useOrganization,
   useUpdateOrganization,
+  TicketLegend,
 } from "../../../lib/hooks/useOrganization";
 import { useToast } from "../../../hooks/use-toast";
 
@@ -46,6 +47,8 @@ export default function CompanySettingsPage() {
       .optional(),
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [ticketLegends, setTicketLegends] = useState<TicketLegend[]>([]);
+  const [savedTicketLegends, setSavedTicketLegends] = useState<TicketLegend[]>([]);
 
   useEffect(() => {
     if (organization) {
@@ -62,6 +65,8 @@ export default function CompanySettingsPage() {
       if (organization.logo) {
         setLogoPreview(organization.logo);
       }
+      setTicketLegends(organization.ticketLegends);
+      setSavedTicketLegends(organization.ticketLegends);
     }
   }, [organization]);
 
@@ -99,6 +104,41 @@ export default function CompanySettingsPage() {
       };
       reader.readAsDataURL(file);
       // TODO: Subir a servidor y obtener URL
+    }
+  };
+
+  const updateTicketLegend = (
+    id: string,
+    field: "label" | "body" | "enabled",
+    value: string | boolean
+  ) => {
+    setTicketLegends((prev) =>
+      prev.map((legend) =>
+        legend.id === id ? { ...legend, [field]: value } : legend
+      )
+    );
+  };
+
+  const hasTicketLegendsChanges =
+    JSON.stringify(ticketLegends) !== JSON.stringify(savedTicketLegends);
+
+  const handleTicketLegendsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateOrganization.mutateAsync({ ticketLegends });
+      setSavedTicketLegends(ticketLegends);
+      toast({
+        variant: "success",
+        title: "Configuración de ticket guardada",
+        description: "Las leyendas del pie de ticket se actualizaron correctamente.",
+      });
+    } catch (error) {
+      console.error("Error actualizando las leyendas del ticket:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "Hubo un error al actualizar la configuración del ticket.",
+      });
     }
   };
 
@@ -432,6 +472,90 @@ export default function CompanySettingsPage() {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
               />
             </svg>
+            {updateOrganization.isPending ? "Guardando..." : "Guardar Cambios"}
+          </button>
+        </div>
+      </form>
+
+      {/* Sección de Configuración de Ticket */}
+      <form
+        onSubmit={handleTicketLegendsSubmit}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6"
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Configuración de Ticket
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Define las leyendas que aparecen al pie de cada ticket impreso,
+            debajo del total. Se imprimen en el orden mostrado abajo, con
+            letra más pequeña que el resto del ticket.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {ticketLegends.map((legend) => (
+            <div
+              key={legend.id}
+              className="border border-gray-200 dark:border-gray-700 rounded-md p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <input
+                  type="text"
+                  value={legend.label}
+                  onChange={(e) =>
+                    updateTicketLegend(legend.id, "label", e.target.value)
+                  }
+                  className="flex-1 px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium"
+                  placeholder="Nombre de la leyenda"
+                />
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  <input
+                    type="checkbox"
+                    checked={legend.enabled}
+                    onChange={(e) =>
+                      updateTicketLegend(legend.id, "enabled", e.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                  />
+                  Activa
+                </label>
+              </div>
+              <textarea
+                value={legend.body}
+                onChange={(e) =>
+                  updateTicketLegend(legend.id, "body", e.target.value)
+                }
+                rows={2}
+                maxLength={500}
+                className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Texto que se imprimirá al pie del ticket"
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm">
+            {hasTicketLegendsChanges ? (
+              <span className="text-amber-600 dark:text-amber-400 font-medium">
+                Hay cambios sin guardar
+              </span>
+            ) : (
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                Todos los cambios guardados
+              </span>
+            )}
+          </p>
+          <button
+            type="submit"
+            disabled={updateOrganization.isPending || !hasTicketLegendsChanges}
+            className={`inline-flex items-center px-4 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              hasTicketLegendsChanges
+                ? "bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            }`}
+          >
             {updateOrganization.isPending ? "Guardando..." : "Guardar Cambios"}
           </button>
         </div>

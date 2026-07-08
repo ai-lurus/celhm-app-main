@@ -1,6 +1,7 @@
 'use client'
 
 import { Sale, SaleLine, Payment } from '../../../../lib/hooks/useSales'
+import { useOrganization } from '../../../../lib/hooks/useOrganization'
 
 interface ViewSaleModalProps {
   sale: Sale
@@ -9,6 +10,11 @@ interface ViewSaleModalProps {
 }
 
 export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalProps) {
+  const { data: organization } = useOrganization()
+  const ticketLegends = (organization?.ticketLegends || []).filter(
+    (legend) => legend.enabled && legend.body.trim().length > 0
+  )
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto print:bg-white print:static print:block print:opacity-100">
       <div className="bg-card rounded-lg p-6 w-full max-w-2xl my-8 relative print:m-0 print:p-0 print:w-[80mm] print:shadow-none print:bg-white print:max-w-none print:rounded-none">
@@ -173,6 +179,17 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
                 <span>CAMBIO:</span>
                 <span>${Math.max(0, (sale?.paidAmount || 0) - (sale?.total || 0)).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
               </div>
+            </div>
+          )}
+
+          {ticketLegends.length > 0 && (
+            <div className="mt-4 pt-2 border-t border-dashed border-gray-400 text-[9px] leading-snug space-y-2">
+              {ticketLegends.map((legend) => (
+                <div key={legend.id}>
+                  <p className="font-bold">{legend.label}</p>
+                  <p className="whitespace-pre-wrap">{legend.body}</p>
+                </div>
+              ))}
             </div>
           )}
 

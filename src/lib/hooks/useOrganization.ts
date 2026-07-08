@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 
+export interface TicketLegend {
+  id: string;
+  label: string;
+  body: string;
+  enabled: boolean;
+}
+
 export interface Organization {
   id: number;
   name: string;
@@ -13,6 +20,7 @@ export interface Organization {
   website?: string;
   currency?: string;
   vatRate?: number;
+  ticketLegends: TicketLegend[];
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +35,7 @@ export interface UpdateOrganizationRequest {
   website?: string;
   currency?: string;
   vatRate?: number;
+  ticketLegends?: TicketLegend[];
 }
 
 export function useOrganization() {
@@ -48,6 +57,7 @@ export function useOrganization() {
         website: data.website || undefined,
         currency: data.currency || undefined,
         vatRate: data.vatRate ? Number(data.vatRate) : undefined,
+        ticketLegends: Array.isArray(data.ticketLegends) ? data.ticketLegends : [],
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };
