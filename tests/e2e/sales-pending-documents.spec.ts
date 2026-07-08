@@ -56,7 +56,7 @@ test.describe('Pending sales handling in POS', () => {
     await expect(page).toHaveURL('/dashboard');
 
     await page.goto('/dashboard/sales');
-    await page.click('text=+ Nueva Venta');
+    await page.getByRole('button', { name: '+ Nueva Venta' }).click();
     await page.fill('input[placeholder="CLIENTE DE MOSTRADOR"]', customerName);
 
     const pendingSalesResponse = page.waitForResponse(
@@ -65,16 +65,15 @@ test.describe('Pending sales handling in POS', () => {
     await page.getByRole('button', { name: customerName }).click();
     await pendingSalesResponse;
 
-    await expect(page.getByRole('heading', { name: 'Documentos pendientes de este cliente' })).toBeVisible();
-    // The folio also appears in the sales table behind the modal (same-page background data);
-    // the modal renders after it in the DOM, so `.last()` reliably targets the modal's row.
-    await expect(page.locator(`text=${pendingSale.folio}`).last()).toBeVisible();
+    const pendingModal = page.getByTestId('pending-sales-modal');
+    await expect(pendingModal.getByRole('heading', { name: 'Documentos pendientes de este cliente' })).toBeVisible();
+    await expect(pendingModal.getByText(pendingSale.folio)).toBeVisible();
 
     // The new-sale form must remain usable while the modal is open.
-    await expect(page.locator('text=PAGAR')).toBeEnabled();
+    await expect(page.getByRole('button', { name: /PAGAR/ })).toBeEnabled();
 
     // Ignoring must close the modal without blocking the flow.
-    await page.getByRole('button', { name: 'Ignorar' }).click();
-    await expect(page.getByRole('heading', { name: 'Documentos pendientes de este cliente' })).not.toBeVisible();
+    await pendingModal.getByRole('button', { name: 'Ignorar' }).click();
+    await expect(pendingModal).not.toBeVisible();
   });
 });

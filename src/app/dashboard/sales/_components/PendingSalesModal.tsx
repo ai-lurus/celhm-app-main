@@ -33,7 +33,10 @@ export function PendingSalesModal({ sales, onContinue, onCancel, onClose }: Pend
   if (visibleSales.length === 0) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-[70] flex items-center justify-center p-4">
+    <div
+      data-testid="pending-sales-modal"
+      className="fixed inset-0 bg-black bg-opacity-60 z-[70] flex items-center justify-center p-4"
+    >
       <div className="bg-card rounded-xl shadow-2xl w-full max-w-2xl">
         <div className="bg-blue-600 text-white px-6 py-4 rounded-t-xl flex items-center justify-between">
           <h2 className="text-lg font-bold">Documentos pendientes de este cliente</h2>
