@@ -72,6 +72,10 @@ export function CashRegister({
   const hasCashPayment = form.payments.some((p) => p.method === "EFECTIVO");
 
   const handlePayClick = () => {
+    if (form.isPending) {
+      onPay();
+      return;
+    }
     if (hasCashPayment) {
       setCashReceived("");
       setShowCashModal(true);
@@ -454,92 +458,110 @@ export function CashRegister({
                   </select>
                 </div>
                 <div className="col-span-1">
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Método(s) de Pago: *
-                    </label>
-                    {form.payments.length < 2 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const total = calculateCashRegisterTotal({ ...form, payments: form.payments }); // just use standard total
-                          const currentTotal = form.payments[0].amount > 0 ? form.payments[0].amount : total;
-                          onFormChange({ 
-                            ...form, 
-                            payments: [
-                              { method: form.payments[0].method, amount: currentTotal }, 
-                              { method: "TARJETA_DEBITO" as PaymentMethod, amount: 0 }
-                            ] 
-                          });
-                        }}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        + Dividir pago
-                      </button>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    {form.payments.map((payment, index) => (
-                      <div key={index} className="flex items-center space-x-1">
-                        <select
-                          value={payment.method}
-                          onChange={(e) => {
-                            const newPayments = [...form.payments];
-                            newPayments[index].method = e.target.value as PaymentMethod;
-                            onFormChange({ ...form, payments: newPayments });
-                          }}
-                          className={`${form.payments.length > 1 ? 'w-1/2' : 'flex-1'} px-2 py-1 text-sm border border-gray-300 rounded-md bg-white`}
-                        >
-                          <option value="EFECTIVO">Efectivo</option>
-                          <option value="TARJETA_DEBITO">Débito</option>
-                          <option value="TARJETA_CREDITO">Crédito</option>
-                          <option value="TRANSFERENCIA">Transf.</option>
-                          <option value="CHEQUE">Cheque</option>
-                          <option value="OTRO">Otro</option>
-                        </select>
-                        {form.payments.length > 1 && (
-                          <div className="flex items-center space-x-1 flex-1">
-                            <span className="text-gray-500 text-sm">$</span>
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.01"
-                              value={payment.amount || ''}
-                              onChange={(e) => {
-                                const newPayments = [...form.payments];
-                                newPayments[index].amount = parseFloat(e.target.value) || 0;
-                                
-                                // Auto-calcular el otro monto
-                                const total = calculateCashRegisterTotal({ ...form, payments: newPayments });
-                                if (index === 0 && form.payments.length === 2 && total > 0) {
-                                  newPayments[1].amount = parseFloat(Math.max(0, total - newPayments[0].amount).toFixed(2));
-                                } else if (index === 1 && form.payments.length === 2 && total > 0) {
-                                  newPayments[0].amount = parseFloat(Math.max(0, total - newPayments[1].amount).toFixed(2));
-                                }
-                                
-                                onFormChange({ ...form, payments: newPayments });
-                              }}
-                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md bg-white"
-                              placeholder="Monto"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newPayments = form.payments.filter((_, i) => i !== index);
-                                // Ensure the remaining method has 0 amount or auto amounts since it's only one.
-                                if (newPayments.length === 1) newPayments[0].amount = calculateCashRegisterTotal({ ...form, payments: newPayments });
-                                onFormChange({ ...form, payments: newPayments });
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                              title="Eliminar método"
-                            >
-                              <svg className="w-4 h-4 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                          </div>
+                  <label className="flex items-center space-x-2 mb-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="isPending"
+                      checked={form.isPending}
+                      onChange={(e) =>
+                        onFormChange({ ...form, isPending: e.target.checked })
+                      }
+                      className="w-4 h-4 cursor-pointer"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Dejar pendiente (fiado)
+                    </span>
+                  </label>
+                  {!form.isPending && (
+                    <>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Método(s) de Pago: *
+                        </label>
+                        {form.payments.length < 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const total = calculateCashRegisterTotal({ ...form, payments: form.payments }); // just use standard total
+                              const currentTotal = form.payments[0].amount > 0 ? form.payments[0].amount : total;
+                              onFormChange({
+                                ...form,
+                                payments: [
+                                  { method: form.payments[0].method, amount: currentTotal },
+                                  { method: "TARJETA_DEBITO" as PaymentMethod, amount: 0 }
+                                ]
+                              });
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            + Dividir pago
+                          </button>
                         )}
                       </div>
-                    ))}
-                  </div>
+                      <div className="space-y-2">
+                        {form.payments.map((payment, index) => (
+                          <div key={index} className="flex items-center space-x-1">
+                            <select
+                              value={payment.method}
+                              onChange={(e) => {
+                                const newPayments = [...form.payments];
+                                newPayments[index].method = e.target.value as PaymentMethod;
+                                onFormChange({ ...form, payments: newPayments });
+                              }}
+                              className={`${form.payments.length > 1 ? 'w-1/2' : 'flex-1'} px-2 py-1 text-sm border border-gray-300 rounded-md bg-white`}
+                            >
+                              <option value="EFECTIVO">Efectivo</option>
+                              <option value="TARJETA_DEBITO">Débito</option>
+                              <option value="TARJETA_CREDITO">Crédito</option>
+                              <option value="TRANSFERENCIA">Transf.</option>
+                              <option value="CHEQUE">Cheque</option>
+                              <option value="OTRO">Otro</option>
+                            </select>
+                            {form.payments.length > 1 && (
+                              <div className="flex items-center space-x-1 flex-1">
+                                <span className="text-gray-500 text-sm">$</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={payment.amount || ''}
+                                  onChange={(e) => {
+                                    const newPayments = [...form.payments];
+                                    newPayments[index].amount = parseFloat(e.target.value) || 0;
+
+                                    // Auto-calcular el otro monto
+                                    const total = calculateCashRegisterTotal({ ...form, payments: newPayments });
+                                    if (index === 0 && form.payments.length === 2 && total > 0) {
+                                      newPayments[1].amount = parseFloat(Math.max(0, total - newPayments[0].amount).toFixed(2));
+                                    } else if (index === 1 && form.payments.length === 2 && total > 0) {
+                                      newPayments[0].amount = parseFloat(Math.max(0, total - newPayments[1].amount).toFixed(2));
+                                    }
+
+                                    onFormChange({ ...form, payments: newPayments });
+                                  }}
+                                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md bg-white"
+                                  placeholder="Monto"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newPayments = form.payments.filter((_, i) => i !== index);
+                                    // Ensure the remaining method has 0 amount or auto amounts since it's only one.
+                                    if (newPayments.length === 1) newPayments[0].amount = calculateCashRegisterTotal({ ...form, payments: newPayments });
+                                    onFormChange({ ...form, payments: newPayments });
+                                  }}
+                                  className="text-red-500 hover:text-red-700"
+                                  title="Eliminar método"
+                                >
+                                  <svg className="w-4 h-4 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

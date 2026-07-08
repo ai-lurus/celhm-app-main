@@ -168,13 +168,15 @@ export default function SalesPage() {
       // (it's shown visually via calculateCashRegisterTotal but never written back).
       // We must fill it here so the sale gets marked PAGADO.
       const saleTotal = calculateCashRegisterTotal(cashRegisterForm);
-      const resolvedPayments = cashRegisterForm.payments.map((p) => {
-        // Single payment with no explicit amount → use the full total
-        if (cashRegisterForm.payments.length === 1 && p.amount === 0) {
-          return { method: p.method, amount: saleTotal };
-        }
-        return { method: p.method, amount: p.amount };
-      }).filter(p => p.amount > 0);
+      const resolvedPayments = cashRegisterForm.isPending
+        ? []
+        : cashRegisterForm.payments.map((p) => {
+            // Single payment with no explicit amount → use the full total
+            if (cashRegisterForm.payments.length === 1 && p.amount === 0) {
+              return { method: p.method, amount: saleTotal };
+            }
+            return { method: p.method, amount: p.amount };
+          }).filter(p => p.amount > 0);
 
       // Get the first ticketId if present in lines for root ticketId support
       const rootTicketId = lines.find(l => l.ticketId)?.ticketId;

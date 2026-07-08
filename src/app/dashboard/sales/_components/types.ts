@@ -26,6 +26,7 @@ export interface CashRegisterForm {
   ticketDetails: string
   cashRegisterId?: number
   continuingFromSaleId?: number
+  isPending: boolean
 }
 
 export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegisterForm => ({
@@ -42,4 +43,5 @@ export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegist
   productSearch: '',
   productDetails: '',
   ticketDetails: '',
+  isPending: false,
 })
