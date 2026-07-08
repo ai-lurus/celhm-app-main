@@ -98,7 +98,7 @@ interface GetSalesParams {
   pageSize?: number
 }
 
-export function useSales(params: GetSalesParams = {}) {
+export function useSales(params: GetSalesParams = {}, options: { enabled?: boolean } = {}) {
   return useQuery<ApiResponse<Sale>>({
     queryKey: ['sales', params],
     queryFn: async () => {
@@ -116,7 +116,15 @@ export function useSales(params: GetSalesParams = {}) {
       return response.data
     },
     retry: false,
+    enabled: options.enabled,
   })
+}
+
+export function usePendingSalesByCustomer(customerId?: number) {
+  return useSales(
+    { customerId, status: 'PENDIENTE', pageSize: 50 },
+    { enabled: !!customerId },
+  )
 }
 
 export function useSale(id: number) {
@@ -180,6 +188,21 @@ export function useCreateReturn() {
   return useMutation({
     mutationFn: async ({ saleId, data }: { saleId: number; data: CreateReturnRequest }) => {
       const response = await api.post<Sale>(`/sales/${saleId}/return`, data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] })
+      queryClient.invalidateQueries({ queryKey: ['stock'] })
+    },
+  })
+}
+
+export function useCancelSale() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (saleId: number) => {
+      const response = await api.post<Sale>(`/sales/${saleId}/cancel`, {})
       return response.data
     },
     onSuccess: () => {
