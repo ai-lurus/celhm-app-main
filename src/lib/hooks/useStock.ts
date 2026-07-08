@@ -17,6 +17,7 @@ export interface InventoryItem {
   status: StockStatus
   categoryId: number
   variantId: number
+  barcode?: string
   isPriceEditable?: boolean
   tracksInventory?: boolean
 }
@@ -40,6 +41,7 @@ function mapStockItemToInventoryItem(item: StockItem): InventoryItem {
     status,
     categoryId: 0, // TODO: Get from product.category when available
     variantId: item.variant.id,
+    barcode: item.variant.barcode,
     isPriceEditable: item.variant.product.isPriceEditable,
     tracksInventory: item.variant.product.tracksInventory,
   }

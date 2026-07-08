@@ -242,7 +242,7 @@ export default function InventoryPage() {
       purchasePrice: (item as any).purchasePrice
         ? Number((item as any).purchasePrice).toFixed(2)
         : "0.00",
-      barcode: (item as any).barcode || "",
+      barcode: item.barcode || "",
       sku: item.sku,
       initial_stock: item.qty,
       min_stock: item.min,
@@ -375,6 +375,7 @@ export default function InventoryPage() {
           description: "El producto se ha creado correctamente.",
         });
       }
+      await refetch();
       closeModal();
     } catch (error: any) {
       toast({

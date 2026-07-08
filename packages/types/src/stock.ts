@@ -15,6 +15,7 @@ export const StockItemSchema = z.object({
     brand: z.string().optional(),
     model: z.string().optional(),
     price: z.number().optional(),
+    barcode: z.string().optional(),
     product: z.object({
       id: z.number(),
       name: z.string(),
