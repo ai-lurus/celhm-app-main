@@ -57,6 +57,7 @@ describe('useAuthStore', () => {
   it('should handle login error', async () => {
     const mockError = {
       response: {
+        status: 401,
         data: {
           message: 'Invalid credentials',
         },
@@ -81,7 +82,7 @@ describe('useAuthStore', () => {
     expect(result.current.user).toBeNull()
     expect(result.current.token).toBeNull()
     expect(result.current.isLoading).toBe(false)
-    expect(result.current.error).toBe('Invalid credentials')
+    expect(result.current.error).toBe('Credenciales inválidas')
   })
 
   it('should logout successfully', () => {
