@@ -25,6 +25,7 @@ export interface CashRegisterForm {
   productDetails: string
   ticketDetails: string
   cashRegisterId?: number
+  continuingFromSaleId?: number
 }
 
 export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegisterForm => ({
