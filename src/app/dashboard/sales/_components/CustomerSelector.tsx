@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Customer, useCreateCustomer } from '../../../../lib/hooks/useCustomers'
+import { useCustomerGroups } from '../../../../lib/hooks/useCustomerGroups'
 import { useToast } from '../../../../hooks/use-toast'
 
 interface CustomerSelectorProps {
   customers: Customer[]
   value: string
   customerName: string
-  onSelect: (customerId: string, customerName: string) => void
+  onSelect: (customerId: string, customerName: string, groupDiscountPercent?: number) => void
   onCreateCustomer: (name: string, phone: string) => Promise<void>
 }
 
@@ -28,7 +29,9 @@ export function CustomerSelector({
   const [newCustomerRFC, setNewCustomerRFC] = useState('')
   const [newCustomerEmail, setNewCustomerEmail] = useState('')
   const [newCustomerNotes, setNewCustomerNotes] = useState('')
+  const [newCustomerGroupId, setNewCustomerGroupId] = useState('')
   const createCustomer = useCreateCustomer()
+  const { data: groups = [] } = useCustomerGroups()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const nameInputRef = useRef<HTMLInputElement>(null)
@@ -60,7 +63,7 @@ export function CustomerSelector({
   }, [showCreateModal])
 
   const handleSelectCustomer = (customer: Customer) => {
-    onSelect(customer.id.toString(), customer.name)
+    onSelect(customer.id.toString(), customer.name, customer.group?.discountPercent)
     setIsOpen(false)
     setSearchTerm('')
   }
@@ -78,6 +81,7 @@ export function CustomerSelector({
     setNewCustomerRFC('')
     setNewCustomerEmail('')
     setNewCustomerNotes('')
+    setNewCustomerGroupId('')
   }
 
   const handleCloseCreateModal = () => {
@@ -135,11 +139,12 @@ export function CustomerSelector({
         rfc: newCustomerRFC.trim() || undefined,
         email: newCustomerEmail.trim() || undefined,
         notes: newCustomerNotes.trim() || undefined,
+        groupId: newCustomerGroupId ? Number(newCustomerGroupId) : undefined,
       })
 
       // Auto-select using the returned customer data
       // (useCreateCustomer.onSuccess already invalidates the customers query cache)
-      onSelect(created.id.toString(), created.name)
+      onSelect(created.id.toString(), created.name, created.group?.discountPercent)
 
       handleCloseCreateModal()
       setIsOpen(false)
@@ -321,6 +326,24 @@ export function CustomerSelector({
                   className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground resize-none"
                   placeholder="Notas adicionales (opcional)"
                 />
+              </div>
+
+              {/* Discount group */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Grupo de descuento</label>
+                <select
+                  value={newCustomerGroupId}
+                  onChange={(e) => setNewCustomerGroupId(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-background text-foreground"
+                >
+                  <option value="">Grupo predeterminado</option>
+                  {groups.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                      {group.discountPercent > 0 ? ` (${group.discountPercent}%)` : ''}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

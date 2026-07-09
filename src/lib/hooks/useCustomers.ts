@@ -30,6 +30,7 @@ export interface CreateCustomerRequest {
   branchId?: number
   isWholesale?: boolean
   isCorporate?: boolean
+  groupId?: number
 }
 
 export interface UpdateCustomerRequest {
@@ -100,6 +101,21 @@ export function useUpdateCustomer() {
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: UpdateCustomerRequest }) => {
       const response = await api.patch<Customer>(`/customers/${id}`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] })
+      queryClient.invalidateQueries({ queryKey: ['customers', variables.id] })
+    },
+  })
+}
+
+export function useUpdateCustomerGroup() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, groupId }: { id: number; groupId: number }) => {
+      const response = await api.patch<Customer>(`/customers/${id}/group`, { groupId })
       return response.data
     },
     onSuccess: (_, variables) => {

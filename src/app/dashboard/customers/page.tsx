@@ -5,9 +5,11 @@ import {
   useCustomers,
   useCreateCustomer,
   useUpdateCustomer,
+  useUpdateCustomerGroup,
   useDeleteCustomer,
   Customer,
 } from "../../../lib/hooks/useCustomers";
+import { useCustomerGroups } from "../../../lib/hooks/useCustomerGroups";
 import { useToast } from "../../../hooks/use-toast";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import Link from "next/link";
@@ -77,7 +79,18 @@ interface CustomerForm {
   rfc: string;
   email: string;
   notes: string;
+  groupId: string;
 }
+
+const emptyCustomerForm: CustomerForm = {
+  name: "",
+  phone: "",
+  phoneAlt: "",
+  rfc: "",
+  email: "",
+  notes: "",
+  groupId: "",
+};
 
 interface FilterNode {
   id: number;
@@ -91,7 +104,8 @@ const filtersData: { locations: { data: FilterNode[] } } = {
 };
 
 export default function CustomersPage() {
-  const { can } = usePermissions();
+  const { can, role } = usePermissions();
+  const isAdmin = role === "ADMINISTRADOR";
   const pathname = usePathname();
   // ---Estados busqueda---
   const [searchTerm, setSearchTerm] = useState("");
@@ -105,14 +119,7 @@ export default function CustomersPage() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
-  const [formData, setFormData] = useState<CustomerForm>({
-    name: "",
-    phone: "",
-    phoneAlt: "",
-    rfc: "",
-    email: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState<CustomerForm>(emptyCustomerForm);
 
   const { data: customersData, isLoading } = useCustomers({
     q: searchTerm,
@@ -130,7 +137,9 @@ export default function CustomersPage() {
   };
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const updateCustomerGroup = useUpdateCustomerGroup();
   const deleteCustomer = useDeleteCustomer();
+  const { data: groups = [] } = useCustomerGroups();
   const { toast } = useToast();
 
   const handleFilterChange = (level: number, id: string) => {
@@ -203,14 +212,7 @@ export default function CustomersPage() {
 
   const handleOpenCreate = () => {
     setEditingCustomer(null);
-    setFormData({
-      name: "",
-      phone: "",
-      phoneAlt: "",
-      rfc: "",
-      email: "",
-      notes: "",
-    });
+    setFormData(emptyCustomerForm);
     setIsModalOpen(true);
   };
 
@@ -223,6 +225,7 @@ export default function CustomersPage() {
       rfc: customer.rfc || "",
       email: customer.email || "",
       notes: customer.notes || "",
+      groupId: customer.group?.id ? String(customer.group.id) : "",
     });
     setIsModalOpen(true);
   };
@@ -235,14 +238,7 @@ export default function CustomersPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCustomer(null);
-    setFormData({
-      name: "",
-      phone: "",
-      phoneAlt: "",
-      rfc: "",
-      email: "",
-      notes: "",
-    });
+    setFormData(emptyCustomerForm);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -259,8 +255,9 @@ export default function CustomersPage() {
       return;
     }
 
+    const { groupId, ...rest } = formData;
     const payload = {
-      ...formData,
+      ...rest,
       email: emailTrimmed || undefined,
       phoneAlt: formData.phoneAlt?.trim() || undefined,
       rfc: formData.rfc?.trim() || undefined,
@@ -273,6 +270,10 @@ export default function CustomersPage() {
           id: editingCustomer.id,
           data: payload,
         });
+        const newGroupId = groupId ? Number(groupId) : undefined;
+        if (isAdmin && newGroupId && newGroupId !== editingCustomer.group?.id) {
+          await updateCustomerGroup.mutateAsync({ id: editingCustomer.id, groupId: newGroupId });
+        }
         toast({
           variant: "success",
           title: "Cliente actualizado",
@@ -280,7 +281,10 @@ export default function CustomersPage() {
             "Los datos del cliente se han actualizado correctamente.",
         });
       } else {
-        await createCustomer.mutateAsync(payload);
+        await createCustomer.mutateAsync({
+          ...payload,
+          groupId: groupId ? Number(groupId) : undefined,
+        });
         toast({
           variant: "success",
           title: "Cliente creado",
@@ -388,6 +392,9 @@ export default function CustomersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Notas
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Grupo
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Acciones
                 </th>
@@ -397,7 +404,7 @@ export default function CustomersPage() {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-4 text-center text-muted-foreground"
                   >
                     Cargando...
@@ -406,7 +413,7 @@ export default function CustomersPage() {
               ) : customers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-4 text-center text-muted-foreground"
                   >
                     No hay clientes registrados
@@ -433,6 +440,16 @@ export default function CustomersPage() {
                     <td className="px-6 py-4">
                       <div className="text-sm text-muted-foreground truncate max-w-xs">
                         {customer.notes || "-"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-muted-foreground">
+                        {customer.group?.name || "-"}
+                        {customer.group && customer.group.discountPercent > 0 && (
+                          <span className="ml-1 inline-flex text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                            {customer.group.discountPercent}%
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -586,6 +603,30 @@ export default function CustomersPage() {
                   className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              {(!editingCustomer || isAdmin) && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">
+                    Grupo de descuento
+                  </label>
+                  <select
+                    value={formData.groupId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, groupId: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">
+                      {editingCustomer ? "Sin cambios" : "Grupo predeterminado"}
+                    </option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                        {group.discountPercent > 0 ? ` (${group.discountPercent}%)` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="flex justify-end space-x-3 pt-4">
                 <button
                   type="button"
@@ -597,11 +638,11 @@ export default function CustomersPage() {
                 <button
                   type="submit"
                   disabled={
-                    createCustomer.isPending || updateCustomer.isPending
+                    createCustomer.isPending || updateCustomer.isPending || updateCustomerGroup.isPending
                   }
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {createCustomer.isPending || updateCustomer.isPending
+                  {createCustomer.isPending || updateCustomer.isPending || updateCustomerGroup.isPending
                     ? "Guardando..."
                     : "Guardar"}
                 </button>
