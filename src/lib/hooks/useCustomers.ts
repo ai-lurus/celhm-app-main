@@ -13,6 +13,7 @@ export interface Customer {
   branchId?: number
   isWholesale?: boolean
   isCorporate?: boolean
+  group?: { id: number; name: string; discountPercent: number }
   createdAt: string
   updatedAt: string
   tickets?: any[]

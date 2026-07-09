@@ -456,7 +456,16 @@ export function CashRegister({
                     value={form.customerId}
                     customerName={form.customerName}
                     onSelect={(customerId, customerName) => {
-                      onFormChange({ ...form, customerId, customerName, continuingFromSaleId: undefined });
+                      const selected = customers.find((c) => c.id.toString() === customerId);
+                      const groupDiscount = Number(selected?.group?.discountPercent || 0);
+                      onFormChange({
+                        ...form,
+                        customerId,
+                        customerName,
+                        continuingFromSaleId: undefined,
+                        discount: groupDiscount,
+                        discountPercent: groupDiscount > 0,
+                      });
                     }}
                     onCreateCustomer={onCreateCustomer}
                   />

@@ -10,6 +10,8 @@ import {
 } from "../../../lib/hooks/useCustomers";
 import { useToast } from "../../../hooks/use-toast";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 // Iconos
 const IconEdit = ({ className }: { className?: string }) => (
@@ -90,6 +92,7 @@ const filtersData: { locations: { data: FilterNode[] } } = {
 
 export default function CustomersPage() {
   const { can } = usePermissions();
+  const pathname = usePathname();
   // ---Estados busqueda---
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -329,6 +332,18 @@ export default function CustomersPage() {
         >
           + Nuevo Cliente
         </button>
+      </div>
+
+      {/* Tabs de navegación */}
+      <div className="border-b border-border">
+        <nav className="-mb-px flex space-x-8">
+          <Link href="/dashboard/customers" className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === "/dashboard/customers" ? "border-blue-500 text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"}`}>
+            Clientes
+          </Link>
+          <Link href="/dashboard/customers/groups" className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${pathname === "/dashboard/customers/groups" ? "border-blue-500 text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"}`}>
+            Grupos
+          </Link>
+        </nav>
       </div>
 
       {/* --- FILTROS --- */}
