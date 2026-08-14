@@ -101,3 +101,6 @@ jspm_packages/
 tmp/
 temp/
 
+
+# Worktrees (local scratch, never commit)
+.worktrees/
