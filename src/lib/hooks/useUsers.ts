@@ -8,6 +8,7 @@ export interface OrgMember {
   userId: number;
   role: Role;
   commissionRate: number | null;
+  commissionPlanId: number | null;
   user: {
     id: number;
     name: string | null;
@@ -74,11 +75,13 @@ export function useUpdateMember() {
       role?: Role;
       branchId?: number | null;
       commissionRate?: number | null;
+      commissionPlanId?: number | null;
     }) => {
       const response = await api.patch(`/orgs/members/${data.id}`, {
         role: data.role,
         branchId: data.branchId,
         commissionRate: data.commissionRate,
+        commissionPlanId: data.commissionPlanId,
       });
       return response.data;
     },
