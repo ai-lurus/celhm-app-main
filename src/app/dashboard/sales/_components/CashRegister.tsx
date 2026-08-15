@@ -614,16 +614,16 @@ export function CashRegister({
                                   step="0.01"
                                   value={payment.amount || ''}
                                   onChange={(e) => {
-                                    const newPayments = [...form.payments];
-                                    newPayments[index].amount = parseFloat(e.target.value) || 0;
+                                    const newAmount = parseFloat(e.target.value) || 0;
+                                    const editedPayments = form.payments.map((p, i) =>
+                                      i === index ? { ...p, amount: newAmount } : p
+                                    );
 
-                                    // Auto-calcular el otro monto
-                                    const total = calculateCashRegisterTotal({ ...form, payments: newPayments });
-                                    if (index === 0 && form.payments.length === 2 && total > 0) {
-                                      newPayments[1].amount = parseFloat(Math.max(0, total - newPayments[0].amount).toFixed(2));
-                                    } else if (index === 1 && form.payments.length === 2 && total > 0) {
-                                      newPayments[0].amount = parseFloat(Math.max(0, total - newPayments[1].amount).toFixed(2));
-                                    }
+                                    const isLastRow = index === form.payments.length - 1;
+                                    const total = calculateCashRegisterTotal({ ...form, payments: editedPayments });
+                                    const newPayments = isLastRow
+                                      ? editedPayments
+                                      : rebalanceLastPayment(editedPayments, total);
 
                                     onFormChange({ ...form, payments: newPayments });
                                   }}
