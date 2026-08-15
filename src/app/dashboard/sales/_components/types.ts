@@ -21,6 +21,7 @@ export interface CashRegisterForm {
   lines: SaleLineItem[]
   discount: number
   discountPercent: boolean
+  discountGroupId: string
   productSearch: string
   productDetails: string
   ticketDetails: string
@@ -40,6 +41,7 @@ export const createInitialCashRegisterForm = (sellerId: string = ''): CashRegist
   lines: [],
   discount: 0,
   discountPercent: false,
+  discountGroupId: '',
   productSearch: '',
   productDetails: '',
   ticketDetails: '',
