@@ -32,7 +32,8 @@ export const mockProducts: Product[] = [
     id: 1,
     name: 'Pantalla LCD iPhone',
     description: 'Pantalla LCD para iPhone 12/13',
-    category: 'Pantallas',
+    categoryId: 1,
+    category: { id: 1, name: 'Pantallas' },
     brand: 'Apple',
     model: 'iPhone 12/13',
     variants: [
@@ -58,7 +59,8 @@ export const mockProducts: Product[] = [
     id: 2,
     name: 'Batería Samsung Galaxy',
     description: 'Batería original Samsung Galaxy S21',
-    category: 'Baterías',
+    categoryId: 2,
+    category: { id: 2, name: 'Baterías' },
     brand: 'Samsung',
     model: 'Galaxy S21',
     variants: [

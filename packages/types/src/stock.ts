@@ -19,7 +19,8 @@ export const StockItemSchema = z.object({
     product: z.object({
       id: z.number(),
       name: z.string(),
-      category: z.string().optional(),
+      categoryId: z.number().nullable().optional(),
+      category: z.object({ id: z.number(), name: z.string() }).nullable().optional(),
       brand: z.string().optional(),
       model: z.string().optional(),
       isPriceEditable: z.boolean().optional(),
@@ -35,6 +36,7 @@ export type StockStatus = z.infer<typeof StockStatusSchema>
 
 export const CreateInventoryItemSchema = z.object({
   productId: z.number().optional(),
+  categoryId: z.number().optional(),
   branchId: z.number().optional(),
   name: z.string().min(1).optional(),
   brand: z.string().optional(),
