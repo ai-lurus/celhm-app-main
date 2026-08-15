@@ -39,7 +39,7 @@ function mapStockItemToInventoryItem(item: StockItem): InventoryItem {
     reserved: item.reserved,
     price: item.variant.price || 0,
     status,
-    categoryId: 0, // TODO: Get from product.category when available
+    categoryId: item.variant.product.categoryId ?? 0,
     variantId: item.variant.id,
     barcode: item.variant.barcode,
     isPriceEditable: item.variant.product.isPriceEditable,

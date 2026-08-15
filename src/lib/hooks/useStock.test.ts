@@ -41,6 +41,7 @@ describe('useStock', () => {
               product: {
                 id: 9,
                 name: 'Pantalla',
+                categoryId: 3,
               },
             },
             createdAt: '',
@@ -56,5 +57,6 @@ describe('useStock', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(result.current.data?.data[0].barcode).toBe('7501234567890')
+    expect(result.current.data?.data[0].categoryId).toBe(3)
   })
 })

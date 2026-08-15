@@ -8,6 +8,11 @@ export interface TicketLegend {
   enabled: boolean;
 }
 
+export type SkuMaskSegment =
+  | { type: "literal"; value: string }
+  | { type: "root" | "category" | "product"; length: number }
+  | { type: "sequence"; digits: number }
+
 export interface Organization {
   id: number;
   name: string;
@@ -21,6 +26,7 @@ export interface Organization {
   currency?: string;
   vatRate?: number;
   ticketLegends: TicketLegend[];
+  skuMaskConfig: SkuMaskSegment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +42,7 @@ export interface UpdateOrganizationRequest {
   currency?: string;
   vatRate?: number;
   ticketLegends?: TicketLegend[];
+  skuMaskConfig?: SkuMaskSegment[];
 }
 
 export function useOrganization() {
@@ -58,6 +65,7 @@ export function useOrganization() {
         currency: data.currency || undefined,
         vatRate: data.vatRate ? Number(data.vatRate) : undefined,
         ticketLegends: Array.isArray(data.ticketLegends) ? data.ticketLegends : [],
+        skuMaskConfig: Array.isArray(data.skuMaskConfig) ? data.skuMaskConfig : [],
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
       };

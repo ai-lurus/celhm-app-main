@@ -8,6 +8,7 @@ export interface Product {
   name: string
   description: string
   category: string
+  categoryId: number | null
   brand: string
   model: string
   createdAt: string
@@ -54,7 +55,8 @@ export function useProducts(params: GetProductsParams = {}) {
           id: p.id,
           name: p.name,
           description: p.description || '',
-          category: p.category || '',
+          category: p.category?.name || '',
+          categoryId: p.categoryId ?? null,
           brand: p.brand || '',
           model: p.model || '',
           createdAt: p.createdAt,
