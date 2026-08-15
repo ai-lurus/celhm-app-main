@@ -11,6 +11,7 @@ import {
   useAdminChangePassword,
 } from "../../../lib/hooks/useUsers";
 import { useBranches } from "../../../lib/hooks/useBranches";
+import { useCommissionPlans } from "../../../lib/hooks/useCommissionPlans";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { Role } from "@celhm/types";
@@ -94,6 +95,7 @@ export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const createUser = useCreateUser();
   const updateMember = useUpdateMember();
+  const { data: commissionPlans = [] } = useCommissionPlans();
   const deleteMember = useDeleteMember();
   const adminChangePassword = useAdminChangePassword();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -102,6 +104,7 @@ export default function UsersPage() {
     role: "" as Role,
     branchId: "",
     commissionRate: "",
+    commissionPlanId: "",
   });
   const [newUserForm, setNewUserForm] = useState({
     name: "",
@@ -216,6 +219,8 @@ export default function UsersPage() {
       branchId: member.user.branch?.id.toString() || "",
       commissionRate:
         member.commissionRate != null ? member.commissionRate.toString() : "",
+      commissionPlanId:
+        member.commissionPlanId != null ? member.commissionPlanId.toString() : "",
     });
     setIsEditModalOpen(true);
   };
@@ -246,6 +251,9 @@ export default function UsersPage() {
         branchId: editForm.branchId ? parseInt(editForm.branchId) : null,
         commissionRate: editForm.commissionRate
           ? parseFloat(editForm.commissionRate)
+          : null,
+        commissionPlanId: editForm.commissionPlanId
+          ? parseInt(editForm.commissionPlanId)
           : null,
       });
       handleCloseEdit();
@@ -714,6 +722,31 @@ export default function UsersPage() {
                   />
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Porcentaje aplicado al subtotal de cada venta de laboratorio
+                  </p>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-4">
+                    Plan de comisión
+                  </label>
+                  <select
+                    value={editForm.commissionPlanId}
+                    onChange={(e) =>
+                      setEditForm({
+                        ...editForm,
+                        commissionPlanId: e.target.value,
+                      })
+                    }
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">— Ninguno —</option>
+                    {commissionPlans
+                      .filter((plan) => plan.active)
+                      .map((plan) => (
+                        <option key={plan.id} value={plan.id}>
+                          {plan.name}
+                        </option>
+                      ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Si se asigna un plan, sus reglas tienen prioridad sobre la tasa fija de arriba.
                   </p>
                 </div>
               )}
