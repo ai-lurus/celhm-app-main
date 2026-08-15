@@ -6,7 +6,9 @@ import {
   useOrganization,
   useUpdateOrganization,
   TicketLegend,
+  SkuMaskSegment,
 } from "../../../lib/hooks/useOrganization";
+import { renderSkuMask } from "../../../lib/sku-mask";
 import { useToast } from "../../../hooks/use-toast";
 
 export default function CompanySettingsPage() {
@@ -49,6 +51,8 @@ export default function CompanySettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [ticketLegends, setTicketLegends] = useState<TicketLegend[]>([]);
   const [savedTicketLegends, setSavedTicketLegends] = useState<TicketLegend[]>([]);
+  const [skuMaskConfig, setSkuMaskConfig] = useState<SkuMaskSegment[]>([]);
+  const [savedSkuMaskConfig, setSavedSkuMaskConfig] = useState<SkuMaskSegment[]>([]);
 
   useEffect(() => {
     if (organization) {
@@ -67,6 +71,8 @@ export default function CompanySettingsPage() {
       }
       setTicketLegends(organization.ticketLegends);
       setSavedTicketLegends(organization.ticketLegends);
+      setSkuMaskConfig(organization.skuMaskConfig);
+      setSavedSkuMaskConfig(organization.skuMaskConfig);
     }
   }, [organization]);
 
@@ -118,6 +124,62 @@ export default function CompanySettingsPage() {
       )
     );
   };
+
+  const SKU_MASK_SLOTS = 4;
+
+  const padSkuMaskConfig = (segments: SkuMaskSegment[]): SkuMaskSegment[] => {
+    const padded = [...segments];
+    while (padded.length < SKU_MASK_SLOTS) {
+      padded.push({ type: "literal", value: "" });
+    }
+    return padded.slice(0, SKU_MASK_SLOTS);
+  };
+
+  const updateSkuMaskSlot = (index: number, segment: SkuMaskSegment) => {
+    setSkuMaskConfig((prev) => {
+      const next = padSkuMaskConfig(prev);
+      next[index] = segment;
+      return next;
+    });
+  };
+
+  const handleSkuMaskTypeChange = (index: number, type: SkuMaskSegment["type"]) => {
+    if (type === "literal") updateSkuMaskSlot(index, { type: "literal", value: "" });
+    else if (type === "sequence") updateSkuMaskSlot(index, { type: "sequence", digits: 4 });
+    else updateSkuMaskSlot(index, { type, length: 2 });
+  };
+
+  const hasSkuMaskChanges =
+    JSON.stringify(padSkuMaskConfig(skuMaskConfig)) !== JSON.stringify(padSkuMaskConfig(savedSkuMaskConfig));
+
+  const handleSkuMaskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const cleaned = padSkuMaskConfig(skuMaskConfig);
+      await updateOrganization.mutateAsync({ skuMaskConfig: cleaned });
+      setSkuMaskConfig(cleaned);
+      setSavedSkuMaskConfig(cleaned);
+      toast({
+        variant: "success",
+        title: "Máscara de código guardada",
+        description: "La configuración del generador de SKU se actualizó correctamente.",
+      });
+    } catch (error) {
+      console.error("Error actualizando la máscara de SKU:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "Hubo un error al actualizar la máscara de código.",
+      });
+    }
+  };
+
+  const skuMaskPreview = renderSkuMask(padSkuMaskConfig(skuMaskConfig), {
+    root: "Accesorios",
+    category: "Cables",
+    product: "Cable USB-C",
+    seq: 1,
+  });
 
   const hasTicketLegendsChanges =
     JSON.stringify(ticketLegends) !== JSON.stringify(savedTicketLegends);
@@ -552,6 +614,131 @@ export default function CompanySettingsPage() {
             disabled={updateOrganization.isPending || !hasTicketLegendsChanges}
             className={`inline-flex items-center px-4 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               hasTicketLegendsChanges
+                ? "bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            }`}
+          >
+            {updateOrganization.isPending ? "Guardando..." : "Guardar Cambios"}
+          </button>
+        </div>
+      </form>
+
+      {/* Sección de Configuración de la máscara de código (SKU) */}
+      <form
+        onSubmit={handleSkuMaskSubmit}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6"
+      >
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Configuración de la máscara de código
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Define cómo se arma automáticamente el código (SKU) al crear un
+            producto: cada segmento puede ser texto fijo, caracteres de la
+            categoría raíz (R), la categoría (C), el nombre del producto (P),
+            o un consecutivo.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {padSkuMaskConfig(skuMaskConfig).map((segment, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 dark:border-gray-700 rounded-md p-3 space-y-2"
+            >
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                Segmento {index + 1}
+              </label>
+              <select
+                value={segment.type}
+                onChange={(e) =>
+                  handleSkuMaskTypeChange(index, e.target.value as SkuMaskSegment["type"])
+                }
+                className="w-full px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 text-sm border-gray-300 dark:border-gray-600"
+              >
+                <option value="literal">Texto fijo</option>
+                <option value="root">Raíz de categoría (R)</option>
+                <option value="category">Categoría (C)</option>
+                <option value="product">Nombre de producto (P)</option>
+                <option value="sequence">Consecutivo (#)</option>
+              </select>
+
+              {segment.type === "literal" && (
+                <input
+                  type="text"
+                  value={segment.value}
+                  maxLength={5}
+                  onChange={(e) =>
+                    updateSkuMaskSlot(index, { type: "literal", value: e.target.value })
+                  }
+                  placeholder="ej. -"
+                  className="w-full px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 text-sm border-gray-300 dark:border-gray-600"
+                />
+              )}
+
+              {(segment.type === "root" ||
+                segment.type === "category" ||
+                segment.type === "product") && (
+                <input
+                  type="number"
+                  min={1}
+                  max={4}
+                  value={segment.length}
+                  onChange={(e) =>
+                    updateSkuMaskSlot(index, {
+                      type: segment.type,
+                      length: Number(e.target.value) || 1,
+                    })
+                  }
+                  className="w-full px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 text-sm border-gray-300 dark:border-gray-600"
+                />
+              )}
+
+              {segment.type === "sequence" && (
+                <input
+                  type="number"
+                  min={1}
+                  max={8}
+                  value={segment.digits}
+                  onChange={(e) =>
+                    updateSkuMaskSlot(index, {
+                      type: "sequence",
+                      digits: Number(e.target.value) || 1,
+                    })
+                  }
+                  className="w-full px-2 py-1.5 border rounded-md bg-white dark:bg-gray-700 text-sm border-gray-300 dark:border-gray-600"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-gray-50 dark:bg-gray-900/40 rounded-md p-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+            Vista previa (categoría &quot;Accesorios / Cables&quot;, producto &quot;Cable USB-C&quot;):
+          </p>
+          <p className="text-lg font-mono font-semibold text-gray-900 dark:text-white">
+            {skuMaskPreview || "—"}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm">
+            {hasSkuMaskChanges ? (
+              <span className="text-amber-600 dark:text-amber-400 font-medium">
+                Hay cambios sin guardar
+              </span>
+            ) : (
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                Todos los cambios guardados
+              </span>
+            )}
+          </p>
+          <button
+            type="submit"
+            disabled={updateOrganization.isPending || !hasSkuMaskChanges}
+            className={`inline-flex items-center px-4 py-2 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              hasSkuMaskChanges
                 ? "bg-blue-600 hover:bg-blue-700 text-white active:bg-blue-800"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
             }`}
