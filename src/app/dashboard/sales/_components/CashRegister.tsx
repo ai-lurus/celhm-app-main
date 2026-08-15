@@ -16,6 +16,8 @@ import {
   calculateCashRegisterIVA,
   calculateCashRegisterTotal,
   calculateTotalPieces,
+  getNextAvailablePaymentMethod,
+  rebalanceLastPayment,
 } from "./utils";
 import { CustomerSelector } from "./CustomerSelector";
 import { useToast } from "../../../../hooks/use-toast";
@@ -556,25 +558,33 @@ export function CashRegister({
                         <label className="block text-sm font-medium text-gray-700">
                           Método(s) de Pago: *
                         </label>
-                        {form.payments.length < 2 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const total = calculateCashRegisterTotal({ ...form, payments: form.payments }); // just use standard total
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const total = calculateCashRegisterTotal(form);
+                            const newMethod = getNextAvailablePaymentMethod(form.payments);
+
+                            if (form.payments.length === 1) {
                               const currentTotal = form.payments[0].amount > 0 ? form.payments[0].amount : total;
                               onFormChange({
                                 ...form,
                                 payments: [
                                   { method: form.payments[0].method, amount: currentTotal },
-                                  { method: "TARJETA_DEBITO" as PaymentMethod, amount: 0 }
-                                ]
+                                  { method: newMethod, amount: 0 },
+                                ],
                               });
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            + Dividir pago
-                          </button>
-                        )}
+                            } else {
+                              const withNewRow = [...form.payments, { method: newMethod, amount: 0 }];
+                              onFormChange({
+                                ...form,
+                                payments: rebalanceLastPayment(withNewRow, total),
+                              });
+                            }
+                          }}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {form.payments.length === 1 ? "+ Dividir pago" : "+ Agregar método"}
+                        </button>
                       </div>
                       <div className="space-y-2">
                         {form.payments.map((payment, index) => (
