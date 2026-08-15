@@ -14,6 +14,7 @@ export interface SaleLine {
   qty: number
   unitPrice: number
   discount: number
+  advance: number
   subtotal: number
 }
 
@@ -69,6 +70,7 @@ export interface CreateSaleLine {
   qty: number
   unitPrice: number
   discount?: number
+  advance?: number
 }
 
 export interface CreateSaleRequest {

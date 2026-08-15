@@ -170,6 +170,7 @@ export default function SalesPage() {
             description: line.product,
             qty: Number(line.qty),
             unitPrice: Number(line.unitPrice),
+            advance: Number(line.advance) || 0,
           };
         } else {
           // Es un producto normal
