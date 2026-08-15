@@ -182,6 +182,7 @@ export default function TicketsPage() {
   // Parts search state
   const [partSearchTerm, setPartSearchTerm] = useState("");
   const [isPartSearchOpen, setIsPartSearchOpen] = useState(false);
+  const [includeCostOnAdd, setIncludeCostOnAdd] = useState(false);
   const partSearchRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<TicketForm>(initialFormState);
@@ -470,6 +471,7 @@ export default function TicketsPage() {
   const handleCloseViewModal = () => {
     setIsViewModalOpen(false);
     setViewingTicketId(null);
+    setIncludeCostOnAdd(false);
   };
 
   const handlePriceChange = (field: keyof TicketForm, value: string) => {
@@ -1899,6 +1901,14 @@ export default function TicketsPage() {
 
                   {can("canUpdateTickets") && (
                     <div className="relative mb-4" ref={partSearchRef}>
+                      <label className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={includeCostOnAdd}
+                          onChange={(e) => setIncludeCostOnAdd(e.target.checked)}
+                        />
+                        Sumar precio de la pieza al costo del ticket
+                      </label>
                       <div className="flex gap-2">
                         <div className="relative flex-1">
                           <input
@@ -1923,14 +1933,16 @@ export default function TicketsPage() {
                                       try {
                                         await addTicketPart.mutateAsync({
                                           ticketId: viewingTicket.id,
-                                          data: { variantId: item.variantId, qty: 1 },
+                                          data: { variantId: item.variantId, qty: 1, includeCost: includeCostOnAdd },
                                         });
                                         setPartSearchTerm("");
                                         setIsPartSearchOpen(false);
                                         toast({
                                           variant: "success",
                                           title: "Pieza añadida",
-                                          description: `${item.name} se añadió al ticket.`,
+                                          description: includeCostOnAdd
+                                            ? `${item.name} se añadió al ticket (+$${item.price.toFixed(2)} al costo).`
+                                            : `${item.name} se añadió al ticket.`,
                                         });
                                       } catch (err: any) {
                                         toast({

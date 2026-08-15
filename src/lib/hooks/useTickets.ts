@@ -98,7 +98,7 @@ export function useAddTicketPart() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ ticketId, data }: { ticketId: number; data: { variantId: number; qty: number } }) => {
+    mutationFn: async ({ ticketId, data }: { ticketId: number; data: { variantId: number; qty: number; includeCost?: boolean } }) => {
       const response = await api.post(`/tickets/${ticketId}/piezas`, data)
       return response.data
     },
