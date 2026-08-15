@@ -15,6 +15,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useToast } from "../../../hooks/use-toast";
 import { parseApiError } from "../../../lib/utils";
+import PlansTab from "./_components/PlansTab";
 
 export default function CommissionsPage() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function CommissionsPage() {
   const [statusFilter, setStatusFilter] = useState<CommissionStatus | "">("");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [activeTab, setActiveTab] = useState<"comisiones" | "planes">("comisiones");
 
   // Queries
   const { data: commissionsData, isLoading } = useCommissions({
@@ -121,17 +123,46 @@ export default function CommissionsPage() {
             Gestionar y pagar comisiones de laboratorio
           </p>
         </div>
-        <button
-          onClick={handleExport}
-          disabled={exportMutation.isPending}
-          className="bg-white hover:bg-gray-50 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 font-medium py-2 px-4 rounded-md transition-colors flex items-center space-x-2"
-        >
-          <Download className="w-5 h-5" />
-          <span>{exportMutation.isPending ? "Exportando..." : "Exportar CSV"}</span>
-        </button>
+        {activeTab === "comisiones" && (
+          <button
+            onClick={handleExport}
+            disabled={exportMutation.isPending}
+            className="bg-white hover:bg-gray-50 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-600 font-medium py-2 px-4 rounded-md transition-colors flex items-center space-x-2"
+          >
+            <Download className="w-5 h-5" />
+            <span>{exportMutation.isPending ? "Exportando..." : "Exportar CSV"}</span>
+          </button>
+        )}
       </div>
 
-      {/* Tarjetas de Resumen */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab("comisiones")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "comisiones"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400"
+            }`}
+          >
+            Comisiones
+          </button>
+          <button
+            onClick={() => setActiveTab("planes")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "planes"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400"
+            }`}
+          >
+            Planes
+          </button>
+        </nav>
+      </div>
+
+      {activeTab === "comisiones" && (
+        <>
+          {/* Tarjetas de Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {isSummaryLoading ? (
           <div className="col-span-full py-4 text-center text-gray-500">Cargando resumen...</div>
@@ -300,6 +331,11 @@ export default function CommissionsPage() {
           </div>
         )}
       </div>
+
+        </>
+      )}
+
+      {activeTab === "planes" && <PlansTab />}
     </div>
   );
 }
