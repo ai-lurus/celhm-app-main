@@ -11,6 +11,8 @@ import {
 import { useToast } from "../../../hooks/use-toast";
 import { useCreateMovement } from "../../../lib/hooks/useMovements";
 import { useCategories, useBrands, useProducts } from "../../../lib/hooks/useCatalog";
+import { useDebounce } from "../../../lib/hooks/useDebounce";
+import { useSkuPreview } from "../../../lib/hooks/useSku";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import {
@@ -41,6 +43,7 @@ interface NewProductForm {
   min_stock: number;
   isPriceEditable: boolean;
   tracksInventory: boolean;
+  categoryId: string;
 }
 
 const newProductInitialState: NewProductForm = {
@@ -54,6 +57,7 @@ const newProductInitialState: NewProductForm = {
   min_stock: 5,
   isPriceEditable: false,
   tracksInventory: true,
+  categoryId: "",
 };
 
 const CSV_TEMPLATE_HEADERS =
@@ -122,11 +126,21 @@ export default function InventoryPage() {
     ? (catalogProductsData as any).data
     : [];
 
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [newProduct, setNewProduct] = useState<NewProductForm>(
     newProductInitialState
   );
   const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
+
+  const [skuTouched, setSkuTouched] = useState(false);
+  const debouncedProductName = useDebounce(newProduct.name, 400);
+  const previewCategoryId = newProduct.categoryId ? parseInt(newProduct.categoryId, 10) : undefined;
+  const { data: skuPreview } = useSkuPreview(previewCategoryId, debouncedProductName);
+
+  useEffect(() => {
+    if (!skuTouched && skuPreview?.sku && createMode === "new" && !itemToEdit) {
+      setNewProduct((prev) => ({ ...prev, sku: skuPreview.sku }));
+    }
+  }, [skuPreview, skuTouched, createMode, itemToEdit]);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
@@ -179,11 +193,11 @@ export default function InventoryPage() {
   const openAddModal = () => {
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategory("");
     setCreateMode("new");
     setCatalogSearch("");
     setIsModalOpen(true);
     setShowActionsDropdown(false);
+    setSkuTouched(false);
   };
 
   const handlePriceChange = (field: keyof NewProductForm, value: string) => {
@@ -248,16 +262,17 @@ export default function InventoryPage() {
       min_stock: item.min,
       isPriceEditable: item.isPriceEditable || false,
       tracksInventory: item.tracksInventory ?? true,
+      categoryId: item.categoryId?.toString() || "",
     });
-    setSelectedCategory("");
     setIsModalOpen(true);
+    setSkuTouched(false);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setItemToEdit(null);
     setNewProduct(newProductInitialState);
-    setSelectedCategory("");
+    setSkuTouched(false);
   };
 
   const renderCategorySelectors = () => {
@@ -267,8 +282,8 @@ export default function InventoryPage() {
           Categoría
         </label>
         <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
+          value={newProduct.categoryId}
+          onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
           className="mt-1 block w-full border border-border rounded-md p-2"
         >
           <option value="">Selecciona una categoría</option>
@@ -277,9 +292,9 @@ export default function InventoryPage() {
             if (subs.length > 0) {
               return (
                 <optgroup key={cat.id} label={cat.name}>
-                  <option value={cat.name}>{cat.name} (general)</option>
+                  <option value={cat.id}>{cat.name} (general)</option>
                   {subs.map((sub) => (
-                    <option key={sub.id} value={sub.name}>
+                    <option key={sub.id} value={sub.id}>
                       {sub.name}
                     </option>
                   ))}
@@ -287,7 +302,7 @@ export default function InventoryPage() {
               );
             }
             return (
-              <option key={cat.id} value={cat.name}>
+              <option key={cat.id} value={cat.id}>
                 {cat.name}
               </option>
             );
@@ -353,6 +368,7 @@ export default function InventoryPage() {
           brand: newProduct.brand,
           model: "Nuevo Modelo",
           sku: newProduct.sku || undefined,
+          categoryId: newProduct.categoryId ? parseInt(newProduct.categoryId, 10) : undefined,
           price:
             typeof newProduct.price === "string"
               ? parseFloat(newProduct.price)
@@ -635,7 +651,8 @@ export default function InventoryPage() {
               name: item.name,
               brand: item.brand,
               model: item.model,
-              sku: item.sku,
+              sku: item.sku || undefined,
+              categoryId: item.categoryId,
               price: item.price,
               qty: item.qty,
               min: item.min,
@@ -1327,9 +1344,10 @@ export default function InventoryPage() {
                   <input
                     type="text"
                     value={newProduct.sku}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, sku: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setSkuTouched(true);
+                      setNewProduct({ ...newProduct, sku: e.target.value });
+                    }}
                     className="mt-1 block w-full border border-border rounded-md p-2"
                   />
                 </div>
