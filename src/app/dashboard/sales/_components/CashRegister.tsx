@@ -586,7 +586,7 @@ export function CashRegister({
                           {form.payments.length === 1 ? "+ Dividir pago" : "+ Agregar método"}
                         </button>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {form.payments.map((payment, index) => (
                           <div key={index} className="flex items-center space-x-1">
                             <select
@@ -633,9 +633,12 @@ export function CashRegister({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const newPayments = form.payments.filter((_, i) => i !== index);
-                                    // Ensure the remaining method has 0 amount or auto amounts since it's only one.
-                                    if (newPayments.length === 1) newPayments[0].amount = calculateCashRegisterTotal({ ...form, payments: newPayments });
+                                    const remaining = form.payments.filter((_, i) => i !== index);
+                                    const total = calculateCashRegisterTotal({ ...form, payments: remaining });
+                                    const newPayments =
+                                      remaining.length === 1
+                                        ? [{ ...remaining[0], amount: total }]
+                                        : rebalanceLastPayment(remaining, total);
                                     onFormChange({ ...form, payments: newPayments });
                                   }}
                                   className="text-red-500 hover:text-red-700"
