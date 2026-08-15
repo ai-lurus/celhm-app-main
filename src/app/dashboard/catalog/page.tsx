@@ -78,8 +78,8 @@ const IconDelete = ({ className }: { className?: string }) => (
 interface NewProductForm {
   name: string;
   description: string;
-  parentCategory: string;
-  category: string;
+  parentCategoryId: string;
+  categoryId: string;
   brand: string;
   model: string;
   isPriceEditable: boolean;
@@ -104,8 +104,8 @@ interface Brand {
 const newProductInitialState: NewProductForm = {
   name: "",
   description: "",
-  parentCategory: "",
-  category: "",
+  parentCategoryId: "",
+  categoryId: "",
   brand: "",
   model: "",
   isPriceEditable: false,
@@ -176,17 +176,21 @@ export default function CatalogPage() {
     setCurrentPage(1);
   }, [selectedCategory, selectedBrand, searchTerm, itemsPerPage]);
 
-  // Recalcular parentCategory cuando categories carga y hay un producto en edición
+  // Recalcular parentCategoryId cuando categories carga y hay un producto en edición
   useEffect(() => {
     if (!productToEdit || categories.length === 0 || !isProductModalOpen)
       return;
     const parentCat = categories.find((cat) =>
-      cat.children?.some((sub) => sub.name === productToEdit.category)
+      cat.children?.some((sub) => sub.id === productToEdit.categoryId)
     );
     setNewProductData((prev) => ({
       ...prev,
-      parentCategory: parentCat ? parentCat.name : productToEdit.category,
-      category: productToEdit.category,
+      parentCategoryId: parentCat
+        ? String(parentCat.id)
+        : productToEdit.categoryId
+          ? String(productToEdit.categoryId)
+          : "",
+      categoryId: productToEdit.categoryId ? String(productToEdit.categoryId) : "",
     }));
   }, [categories, productToEdit, isProductModalOpen]);
 
@@ -195,15 +199,18 @@ export default function CatalogPage() {
   // -------------------------------------
   const openEditProductModal = (product: Product) => {
     setProductToEdit(product);
-    // Determine if the product's category is a subcategory and find its parent
     const parentCat = categories.find((cat) =>
-      cat.children?.some((sub) => sub.name === product.category)
+      cat.children?.some((sub) => sub.id === product.categoryId)
     );
     setNewProductData({
       name: product.name,
       description: product.description,
-      parentCategory: parentCat ? parentCat.name : product.category,
-      category: product.category,
+      parentCategoryId: parentCat
+        ? String(parentCat.id)
+        : product.categoryId
+          ? String(product.categoryId)
+          : "",
+      categoryId: product.categoryId ? String(product.categoryId) : "",
       brand: product.brand,
       model: product.model,
       isPriceEditable: product.isPriceEditable || false,
@@ -236,7 +243,7 @@ export default function CatalogPage() {
           data: {
             name: newProductData.name,
             description: newProductData.description || undefined,
-            category: newProductData.category || undefined,
+            categoryId: newProductData.categoryId ? parseInt(newProductData.categoryId, 10) : undefined,
             brand: newProductData.brand || undefined,
             model: newProductData.model || undefined,
             isPriceEditable: newProductData.isPriceEditable,
@@ -253,7 +260,7 @@ export default function CatalogPage() {
         await createProduct.mutateAsync({
           name: newProductData.name,
           description: newProductData.description || undefined,
-          category: newProductData.category || undefined,
+          categoryId: newProductData.categoryId ? parseInt(newProductData.categoryId, 10) : undefined,
           brand: newProductData.brand || undefined,
           model: newProductData.model || undefined,
           isPriceEditable: newProductData.isPriceEditable,
@@ -720,20 +727,20 @@ export default function CatalogPage() {
                     Categoría (padre)
                   </label>
                   <select
-                    name="parentCategory"
-                    value={newProductData.parentCategory}
+                    name="parentCategoryId"
+                    value={newProductData.parentCategoryId}
                     onChange={(e) => {
                       setNewProductData({
                         ...newProductData,
-                        parentCategory: e.target.value,
-                        category: e.target.value,
+                        parentCategoryId: e.target.value,
+                        categoryId: e.target.value,
                       });
                     }}
                     className="mt-1 block w-full border border-border rounded-md p-2"
                   >
                     <option value="">Selecciona una categoría</option>
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.name}>
+                      <option key={cat.id} value={cat.id}>
                         {cat.name}
                       </option>
                     ))}
@@ -745,13 +752,13 @@ export default function CatalogPage() {
                   </label>
                   {(() => {
                     const parent = categories.find(
-                      (cat) => cat.name === newProductData.parentCategory
+                      (cat) => String(cat.id) === newProductData.parentCategoryId
                     );
                     const subs = parent?.children ?? [];
                     return (
                       <select
-                        name="category"
-                        value={subs.length > 0 ? newProductData.category : ""}
+                        name="categoryId"
+                        value={subs.length > 0 ? newProductData.categoryId : ""}
                         onChange={handleProductModalChange}
                         disabled={subs.length === 0}
                         className="mt-1 block w-full border border-border rounded-md p-2 disabled:opacity-50"
@@ -762,7 +769,7 @@ export default function CatalogPage() {
                             : "Selecciona una subcategoría"}
                         </option>
                         {subs.map((sub) => (
-                          <option key={sub.id} value={sub.name}>
+                          <option key={sub.id} value={sub.id}>
                             {sub.name}
                           </option>
                         ))}
