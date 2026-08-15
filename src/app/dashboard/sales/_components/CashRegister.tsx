@@ -20,6 +20,7 @@ import {
 import { CustomerSelector } from "./CustomerSelector";
 import { useToast } from "../../../../hooks/use-toast";
 import { useCashRegisters } from "../../../../lib/hooks/useCash";
+import { useCustomerGroups } from "../../../../lib/hooks/useCustomerGroups";
 import { useAuthStore } from "../../../../stores/auth";
 import { useOrganization } from "../../../../lib/hooks/useOrganization";
 
@@ -59,6 +60,7 @@ export function CashRegister({
   const user = useAuthStore((state) => state.user);
   const { data: cashRegisters = [] } = useCashRegisters(user?.branchId || 0);
   const { data: organization } = useOrganization();
+  const { data: customerGroups = [] } = useCustomerGroups();
   const vatRate = organization?.vatRate || 0.16;
   const numericCustomerId = form.customerId ? parseInt(form.customerId) : undefined;
   const { data: pendingSalesData } = usePendingSalesByCustomer(numericCustomerId);
@@ -457,7 +459,8 @@ export function CashRegister({
                     customerName={form.customerName}
                     onSelect={(customerId, customerName, groupDiscountPercent) => {
                       const selected = customers.find((c) => c.id.toString() === customerId);
-                      const groupDiscount = Number(groupDiscountPercent ?? selected?.group?.discountPercent ?? 0);
+                      const group = selected?.group;
+                      const groupDiscount = Number(groupDiscountPercent ?? group?.discountPercent ?? 0);
                       onFormChange({
                         ...form,
                         customerId,
@@ -465,6 +468,7 @@ export function CashRegister({
                         continuingFromSaleId: undefined,
                         discount: groupDiscount,
                         discountPercent: groupDiscount > 0,
+                        discountGroupId: group ? String(group.id) : "",
                       });
                     }}
                     onCreateCustomer={onCreateCustomer}
@@ -881,6 +885,32 @@ export function CashRegister({
 
                 {/* Middle: Discount and Add Details */}
                 <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                      Grupo de descuento:
+                    </label>
+                    <select
+                      value={form.discountGroupId}
+                      onChange={(e) => {
+                        const groupId = e.target.value;
+                        const group = customerGroups.find((g) => g.id.toString() === groupId);
+                        onFormChange({
+                          ...form,
+                          discountGroupId: groupId,
+                          discount: group?.discountPercent ?? 0,
+                          discountPercent: true,
+                        });
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="">Sin descuento</option>
+                      {customerGroups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.discountPercent > 0 ? `${group.name} (${group.discountPercent}%)` : group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <label className="text-sm font-medium text-gray-700">
                       Descto:
