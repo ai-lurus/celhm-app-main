@@ -1,4 +1,5 @@
 import { SaleLineItem, CashRegisterForm } from './types'
+import { PaymentMethod } from '../../../../lib/hooks/useSales'
 
 export const calculateCashRegisterSubtotal = (form: CashRegisterForm, vatRate: number = 0.16): number => {
   const total = calculateCashRegisterTotal(form)
@@ -44,4 +45,33 @@ export const calculateTotalPieces = (lines: SaleLineItem[]): number => {
     const qty = Number(line.qty) || 0
     return sum + qty
   }, 0)
+}
+
+type PaymentEntry = { method: PaymentMethod; amount: number }
+
+export const PAYMENT_METHOD_OPTIONS: PaymentMethod[] = [
+  'EFECTIVO',
+  'TARJETA_DEBITO',
+  'TARJETA_CREDITO',
+  'TRANSFERENCIA',
+  'CHEQUE',
+  'OTRO',
+]
+
+export const getNextAvailablePaymentMethod = (payments: PaymentEntry[]): PaymentMethod => {
+  const usedMethods = new Set(payments.map((p) => p.method))
+  const available = PAYMENT_METHOD_OPTIONS.find((method) => !usedMethods.has(method))
+  return available ?? 'OTRO'
+}
+
+export const rebalanceLastPayment = (payments: PaymentEntry[], total: number): PaymentEntry[] => {
+  if (payments.length <= 1) return payments
+
+  const lastIndex = payments.length - 1
+  const sumOfOthers = payments
+    .slice(0, lastIndex)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+  const lastAmount = parseFloat(Math.max(0, total - sumOfOthers).toFixed(2))
+
+  return payments.map((p, i) => (i === lastIndex ? { ...p, amount: lastAmount } : p))
 }
