@@ -14,6 +14,7 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
   const ticketLegends = (organization?.ticketLegends || []).filter(
     (legend) => legend.enabled && legend.body.trim().length > 0
   )
+  const totalAdvance = sale.lines.reduce((sum, line) => sum + (Number(line.advance) || 0), 0)
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto print:bg-white print:static print:block print:opacity-100">
@@ -83,6 +84,18 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
               <span>Total:</span>
               <span>${(sale.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
             </div>
+            {totalAdvance > 0 && (
+              <>
+                <div className="flex justify-between text-sm text-red-500 mt-1">
+                  <span>Anticipo:</span>
+                  <span>-${totalAdvance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between font-bold border-t border-border pt-2 mt-1">
+                  <span>Saldo pagado en caja:</span>
+                  <span>${((sale.total || 0) - totalAdvance).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </>
+            )}
           </div>
           {sale.payments.length > 0 && (
             <div>
@@ -164,6 +177,18 @@ export function ViewSaleModal({ sale, onClose, getStatusColor }: ViewSaleModalPr
               <span>TOTAL:</span>
               <span>${(sale?.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
             </div>
+            {totalAdvance > 0 && (
+              <>
+                <div className="flex justify-between mb-1">
+                  <span>ANTICIPO:</span>
+                  <span>-${totalAdvance.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between font-bold text-sm border-t border-dashed border-gray-400 pt-1">
+                  <span>SALDO PAGADO EN CAJA:</span>
+                  <span>${((sale?.total || 0) - totalAdvance).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {(sale?.payments?.length || 0) > 0 && (
