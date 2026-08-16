@@ -17,6 +17,7 @@ import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { Role } from "@celhm/types";
 import { useToast } from "../../../hooks/use-toast";
 import { parseApiError } from "../../../lib/utils";
+import { RolesPermissionsTab } from "./_components/RolesPermissionsTab";
 
 // Iconos
 const IconEdit = ({ className }: { className?: string }) => (
@@ -88,6 +89,7 @@ export default function UsersPage() {
   const { data: members, isLoading } = useUsers();
   const { data: branches = [] } = useBranches();
 
+  const [activeTab, setActiveTab] = useState<"usuarios" | "roles">("usuarios");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<Role | "">("");
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -402,6 +404,30 @@ export default function UsersPage() {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            type="button"
+            onClick={() => setActiveTab("usuarios")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${activeTab === "usuarios" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300"}`}
+          >
+            Usuarios
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("roles")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${activeTab === "roles" ? "border-blue-500 text-blue-600 dark:text-blue-400" : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300"}`}
+          >
+            Roles y Permisos
+          </button>
+        </nav>
+      </div>
+
+      {activeTab === "roles" ? (
+        <RolesPermissionsTab />
+      ) : (
+        <>
       {/* Filtros */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -573,6 +599,8 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+        </>
+      )}
 
       {/* Modal Ver Detalles */}
       {isViewModalOpen && viewingMember && (
