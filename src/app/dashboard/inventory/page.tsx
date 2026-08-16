@@ -628,7 +628,7 @@ export default function InventoryPage() {
           const newItem: InventoryItem = {
             id: ++maxId,
             variantId: maxId,
-            sku: obj.sku || `SKU-${Date.now() + i}`,
+            sku: obj.sku || "",
             name: obj.name,
             brand: obj.brand,
             model: obj.model,
