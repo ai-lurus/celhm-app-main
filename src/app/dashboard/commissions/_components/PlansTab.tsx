@@ -17,6 +17,7 @@ import RuleTable from './RuleTable'
 import RuleFormModal from './RuleFormModal'
 import OverridesPanel from './OverridesPanel'
 import PreviewPanel from './PreviewPanel'
+import { useReplaceRuleConfirmation } from './useReplaceRuleConfirmation'
 
 type SubTab = 'plans' | 'overrides' | 'preview'
 
@@ -44,7 +45,7 @@ export default function PlansTab() {
   const openReviseRule = (rule: CommissionRule) => { setRuleToRevise(rule); setIsRuleModalOpen(true) }
   const closeRuleModal = () => { setIsRuleModalOpen(false); setRuleToRevise(null) }
 
-  const handleSubmitAdd = async (data: CommissionRuleInput) => {
+  const saveNewRule = async (data: CommissionRuleInput) => {
     if (selectedPlanId === null) return
     try {
       await addRule.mutateAsync({ planId: selectedPlanId, data })
@@ -54,6 +55,8 @@ export default function PlansTab() {
       toast({ variant: 'destructive', title: 'Error al guardar', description: parseApiError(error, 'Error al agregar regla') })
     }
   }
+
+  const { submit: handleSubmitAdd, dialog: replaceDialog } = useReplaceRuleConfirmation(selectedPlan?.rules ?? [], saveNewRule)
 
   const handleSubmitRevise = async (data: CommissionRuleReviseInput) => {
     if (!ruleToRevise) return
@@ -124,6 +127,7 @@ export default function PlansTab() {
         onSubmitAdd={handleSubmitAdd}
         onSubmitRevise={handleSubmitRevise}
       />
+      {replaceDialog}
     </div>
   )
 }

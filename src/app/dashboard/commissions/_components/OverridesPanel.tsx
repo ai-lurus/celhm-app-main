@@ -15,6 +15,7 @@ import { useToast } from '../../../../hooks/use-toast'
 import { parseApiError } from '../../../../lib/utils'
 import RuleTable from './RuleTable'
 import RuleFormModal from './RuleFormModal'
+import { useReplaceRuleConfirmation } from './useReplaceRuleConfirmation'
 
 export default function OverridesPanel() {
   const { toast } = useToast()
@@ -32,7 +33,7 @@ export default function OverridesPanel() {
   const openReviseRule = (rule: CommissionRule) => { setRuleToRevise(rule); setIsRuleModalOpen(true) }
   const closeRuleModal = () => { setIsRuleModalOpen(false); setRuleToRevise(null) }
 
-  const handleSubmitAdd = async (data: CommissionRuleInput) => {
+  const saveNewRule = async (data: CommissionRuleInput) => {
     if (membershipId === null) return
     try {
       await createOverride.mutateAsync({ ...data, membershipId })
@@ -42,6 +43,8 @@ export default function OverridesPanel() {
       toast({ variant: 'destructive', title: 'Error al guardar', description: parseApiError(error, 'Error al crear override') })
     }
   }
+
+  const { submit: handleSubmitAdd, dialog: replaceDialog } = useReplaceRuleConfirmation(overrides, saveNewRule)
 
   const handleSubmitRevise = async (data: CommissionRuleReviseInput) => {
     if (!ruleToRevise) return
@@ -105,6 +108,7 @@ export default function OverridesPanel() {
         onSubmitAdd={handleSubmitAdd}
         onSubmitRevise={handleSubmitRevise}
       />
+      {replaceDialog}
     </div>
   )
 }

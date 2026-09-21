@@ -20,11 +20,11 @@ function formatScopeLabel(rule: CommissionRule, groupNameById: Map<number, strin
   return `Grupo: ${groupNameById.get(groupId) ?? rule.scopeValue}`
 }
 
-function formatCalc(rule: CommissionRule): string {
+export function formatCalc(rule: CommissionRule): string {
   return rule.calcMethod === 'PERCENTAGE' ? `${rule.value}%` : `$${rule.value} fijo`
 }
 
-function formatBasis(rule: CommissionRule): string {
+export function formatBasis(rule: CommissionRule): string {
   return rule.basis === 'SALE_TOTAL' ? 'Venta total' : 'Ganancia'
 }
 
