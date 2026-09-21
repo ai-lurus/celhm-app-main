@@ -16,6 +16,7 @@ import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { useToast } from "../../../hooks/use-toast";
 import { parseApiError } from "../../../lib/utils";
 import PlansTab from "./_components/PlansTab";
+import EffectiveRuleSummary from "./_components/EffectiveRuleSummary";
 
 export default function CommissionsPage() {
   const router = useRouter();
@@ -186,11 +187,8 @@ export default function CommissionsPage() {
                   <span className="text-sm text-gray-500 dark:text-gray-400">Pagado ({summary.paidCount}):</span>
                   <span className="font-medium text-green-600 dark:text-green-500">${Number(summary.paidAmount).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Tasa actual:</span>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {summary.commissionRate != null ? `${Number(summary.commissionRate).toFixed(1)}%` : "-"}
-                  </span>
+                <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <EffectiveRuleSummary summary={summary} />
                 </div>
               </div>
             </div>
