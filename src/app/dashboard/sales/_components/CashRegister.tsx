@@ -252,6 +252,7 @@ export function CashRegister({
         unitPrice: Number(line.unitPrice),
         amount: Number(line.unitPrice) * line.qty - Number(line.discount || 0),
         isPriceEditable: stockItem?.isPriceEditable,
+        serialNumber: line.serialNumber || undefined,
       };
     });
 
@@ -659,10 +660,11 @@ export function CashRegister({
 
             {/* Products Table Header */}
             <div className="bg-blue-600 text-white px-6 py-2">
-              <div className="grid grid-cols-6 gap-4 text-sm font-medium">
+              <div className="grid grid-cols-7 gap-4 text-sm font-medium">
                 <div>Cant</div>
                 <div>Código</div>
                 <div>Producto</div>
+                <div>Serie</div>
                 <div>Precio</div>
                 <div>Anticipo</div>
                 <div>Importe</div>
@@ -684,7 +686,7 @@ export function CashRegister({
                     return (
                       <div
                         key={index}
-                        className="grid grid-cols-6 gap-4 px-6 py-3 hover:bg-gray-50"
+                        className="grid grid-cols-7 gap-4 px-6 py-3 hover:bg-gray-50"
                       >
                         <input
                           type="number"
@@ -729,6 +731,21 @@ export function CashRegister({
                             />
                           ) : (
                             String(line.product || "")
+                          )}
+                        </div>
+                        <div>
+                          {isRepairOrder ? (
+                            <span className="text-xs text-gray-400" title="La serie de órdenes de reparación es la del equipo registrado en el ticket">
+                              Ver ticket
+                            </span>
+                          ) : (
+                            <input
+                              type="text"
+                              value={line.serialNumber || ""}
+                              onChange={(e) => handleUpdateLine(index, "serialNumber", e.target.value)}
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm bg-white"
+                              placeholder="Serie / IMEI"
+                            />
                           )}
                         </div>
                         <div className="flex items-center">

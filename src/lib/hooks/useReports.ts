@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "../api";
 import { TicketState } from "@celhm/types";
 
@@ -180,5 +180,157 @@ export function useInventoryReport(params: GetInventoryReportParams = {}) {
       return response.data;
     },
     retry: false,
+  });
+}
+
+
+export type CommissionStatusSummary = "SIN_COMISION" | "PENDIENTE" | "PARCIAL" | "PAGADA";
+
+export interface CommissionsSalesReportRow {
+  saleId: number;
+  folio: string;
+  date: string;
+  branch: string;
+  sellerId: number | null;
+  seller: string;
+  subtotal: number;
+  total: number;
+  commissionAmount: number;
+  commissionStatus: CommissionStatusSummary;
+}
+
+export interface CommissionsSalesReport {
+  period: { startDate: string; endDate: string };
+  salesCount: number;
+  totalSales: number;
+  totalCommissions: number;
+  rows: CommissionsSalesReportRow[];
+}
+
+interface GetCommissionsSalesReportParams {
+  branchId?: number;
+  startDate: string;
+  endDate: string;
+}
+
+export function useCommissionsSalesReport(params: GetCommissionsSalesReportParams) {
+  return useQuery<CommissionsSalesReport>({
+    queryKey: ["reports", "commissions-sales", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+
+      const response = await api.get<CommissionsSalesReport>(
+        `/reports/commissions-sales?${queryParams.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!params.startDate && !!params.endDate,
+    retry: false,
+  });
+}
+
+export function useExportCommissionsSalesReport() {
+  return useMutation({
+    mutationFn: async (params: GetCommissionsSalesReportParams) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+
+      const response = await api.get(
+        `/reports/commissions-sales/export?${queryParams.toString()}`,
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ventas_comisiones_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export type SalesBySellerDetailLevel =
+  | "TOTALS_BY_SELLER"
+  | "TOTALS_BY_DOCUMENT"
+  | "DOCUMENT_DETAILS"
+  | "DOCUMENT_DETAILS_SERIAL";
+
+export interface SalesBySellerReport {
+  period: { startDate: string; endDate: string };
+  detailLevel: SalesBySellerDetailLevel;
+  salesCount: number;
+  totalSales: number;
+  rows: any[];
+}
+
+interface GetSalesBySellerReportParams {
+  branchId?: number;
+  sellerId?: number;
+  startDate: string;
+  endDate: string;
+  detailLevel: SalesBySellerDetailLevel;
+}
+
+export function useSalesBySellerReport(params: GetSalesBySellerReportParams) {
+  return useQuery<SalesBySellerReport>({
+    queryKey: ["reports", "sales-by-seller", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      queryParams.append("detailLevel", params.detailLevel);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+      if (params.sellerId)
+        queryParams.append("sellerId", params.sellerId.toString());
+
+      const response = await api.get<SalesBySellerReport>(
+        `/reports/sales-by-seller?${queryParams.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!params.startDate && !!params.endDate,
+    retry: false,
+  });
+}
+
+export function useExportSalesBySellerReport() {
+  return useMutation({
+    mutationFn: async (params: GetSalesBySellerReportParams) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      queryParams.append("detailLevel", params.detailLevel);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+      if (params.sellerId)
+        queryParams.append("sellerId", params.sellerId.toString());
+
+      const response = await api.get(
+        `/reports/sales-by-seller/export?${queryParams.toString()}`,
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ventas_por_vendedor_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
   });
 }
