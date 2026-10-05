@@ -36,11 +36,24 @@ export interface Commission {
   }
 }
 
+export interface CommissionSummaryRule {
+  ruleId: number
+  source: 'OVERRIDE' | 'PLAN'
+  basis: 'SALE_TOTAL' | 'PROFIT'
+  calcMethod: 'PERCENTAGE' | 'FIXED'
+  value: number
+}
+
 export interface CommissionSummary {
   userId: number
   userName: string | null
   userEmail: string | null
-  commissionRate: number | null
+  commissionPlanName: string | null
+  commissionPlanActive: boolean | null
+  /** Winning GENERAL-scope rule right now, from the shared resolver. */
+  effectiveRule: CommissionSummaryRule | null
+  /** Category and customer-group rules in force now. */
+  scopedRuleCount: number
   pendingAmount: number
   paidAmount: number
   totalAmount: number

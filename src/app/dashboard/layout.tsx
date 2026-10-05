@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "../../stores/auth";
 import { Sidebar } from "../../components/Sidebar";
 import { canAccessRoute, getDefaultRoute } from "../../lib/permissions";
+import { Menu } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -15,6 +16,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -30,6 +32,11 @@ export default function DashboardLayout({
       router.replace(getDefaultRoute(user.role));
     }
   }, [user, pathname, router]);
+
+  // Close the mobile drawer whenever the route changes
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [pathname]);
 
   // Show loading only if we're still checking or if we have a token but no user yet
   if ((token && !user) || (user === null && token === null)) {
@@ -57,8 +64,29 @@ export default function DashboardLayout({
 
   return (
     <div className="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
-      <Sidebar />
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <Sidebar
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-[#1e3a8a] text-white flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="p-1 rounded-md hover:bg-blue-800"
+            aria-label="Abrir menú"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <span className="font-semibold text-sm">CelHM</span>
+        </header>
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>

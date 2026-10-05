@@ -7,7 +7,6 @@ export interface OrgMember {
   organizationId: number;
   userId: number;
   role: Role;
-  commissionRate: number | null;
   commissionPlanId: number | null;
   user: {
     id: number;
@@ -74,13 +73,12 @@ export function useUpdateMember() {
       id: number;
       role?: Role;
       branchId?: number | null;
-      commissionRate?: number | null;
       commissionPlanId?: number | null;
     }) => {
+      // No commissionRate key: an omitted key means "no change" on the server.
       const response = await api.patch(`/orgs/members/${data.id}`, {
         role: data.role,
         branchId: data.branchId,
-        commissionRate: data.commissionRate,
         commissionPlanId: data.commissionPlanId,
       });
       return response.data;

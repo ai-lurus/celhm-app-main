@@ -11,6 +11,10 @@ import {
   useAdminChangePassword,
 } from "../../../lib/hooks/useUsers";
 import { useBranches } from "../../../lib/hooks/useBranches";
+import {
+  buildCreateUserPayload,
+  buildUpdateMemberPayload,
+} from "./memberPayloads";
 import { useCommissionPlans } from "../../../lib/hooks/useCommissionPlans";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
@@ -105,7 +109,6 @@ export default function UsersPage() {
   const [editForm, setEditForm] = useState({
     role: "" as Role,
     branchId: "",
-    commissionRate: "",
     commissionPlanId: "",
   });
   const [newUserForm, setNewUserForm] = useState({
@@ -219,8 +222,6 @@ export default function UsersPage() {
     setEditForm({
       role: member.role,
       branchId: member.user.branch?.id.toString() || "",
-      commissionRate:
-        member.commissionRate != null ? member.commissionRate.toString() : "",
       commissionPlanId:
         member.commissionPlanId != null ? member.commissionPlanId.toString() : "",
     });
@@ -247,17 +248,9 @@ export default function UsersPage() {
     e.preventDefault();
     if (!editingMember) return;
     try {
-      await updateMember.mutateAsync({
-        id: editingMember.id,
-        role: editForm.role,
-        branchId: editForm.branchId ? parseInt(editForm.branchId) : null,
-        commissionRate: editForm.commissionRate
-          ? parseFloat(editForm.commissionRate)
-          : null,
-        commissionPlanId: editForm.commissionPlanId
-          ? parseInt(editForm.commissionPlanId)
-          : null,
-      });
+      await updateMember.mutateAsync(
+        buildUpdateMemberPayload(editingMember.id, editForm),
+      );
       handleCloseEdit();
       toast({
         variant: "success",
@@ -349,13 +342,9 @@ export default function UsersPage() {
     }
 
     try {
-      const result = await createUser.mutateAsync({
-        ...newUserForm,
-        organizationId: user.organizationId,
-        branchId: newUserForm.branchId
-          ? parseInt(newUserForm.branchId)
-          : undefined,
-      });
+      const result = await createUser.mutateAsync(
+        buildCreateUserPayload(newUserForm, user.organizationId),
+      );
       handleCloseCreate();
       setTempPasswordModal({
         name: newUserForm.name,
@@ -491,9 +480,6 @@ export default function UsersPage() {
                     Sucursal
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Comisión
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Registrado
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -533,14 +519,6 @@ export default function UsersPage() {
                       <div className="text-sm text-gray-900 dark:text-gray-300">
                         {member.user.branch
                           ? `${member.user.branch.name} (${member.user.branch.code})`
-                          : "-"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 dark:text-gray-300">
-                        {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(member.role) &&
-                        member.commissionRate != null
-                          ? `${Number(member.commissionRate).toFixed(1)}%`
                           : "-"}
                       </div>
                     </td>
@@ -731,27 +709,6 @@ export default function UsersPage() {
               {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(editForm.role) && (
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tasa de Comisión (%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    placeholder="Ej: 10.00"
-                    value={editForm.commissionRate}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        commissionRate: e.target.value,
-                      })
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Porcentaje aplicado al subtotal de cada venta de laboratorio
-                  </p>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 mt-4">
                     Plan de comisión
                   </label>
                   <select
@@ -774,7 +731,7 @@ export default function UsersPage() {
                       ))}
                   </select>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Si se asigna un plan, sus reglas tienen prioridad sobre la tasa fija de arriba.
+                    Si el empleado tiene una regla individual para el mismo alcance, esa regla se usa en lugar de la del plan.
                   </p>
                 </div>
               )}
@@ -886,32 +843,6 @@ export default function UsersPage() {
                   </select>
                 </div>
               </div>
-
-              {["TECNICO", "ADMINISTRADOR", "VENDEDOR", "CAJERO"].includes(newUserForm.role) && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tasa de Comisión (%)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    placeholder="Ej: 10.00"
-                    value={(newUserForm as any).commissionRate || ""}
-                    onChange={(e) =>
-                      setNewUserForm({
-                        ...newUserForm,
-                        commissionRate: e.target.value,
-                      } as any)
-                    }
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Porcentaje aplicado al subtotal de comisiones
-                  </p>
-                </div>
-              )}
 
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
