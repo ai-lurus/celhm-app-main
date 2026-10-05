@@ -13,6 +13,7 @@ import { useBranches } from "../../../lib/hooks/useBranches";
 import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { TicketState } from "@celhm/types";
+import { CommissionsReportsTab } from "./_components/CommissionsReportsTab";
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function ReportsPage() {
     );
   }
   const [activeTab, setActiveTab] = useState<
-    "sales" | "tickets" | "inventory" | "movements"
+    "sales" | "tickets" | "inventory" | "movements" | "commissions"
   >("sales");
 
   const { data: branches = [] } = useBranches();
@@ -136,8 +137,22 @@ export default function ReportsPage() {
           >
             Movimientos
           </button>
+          <button
+            onClick={() => setActiveTab("commissions")}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === "commissions"
+                ? "border-blue-500 text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+            }`}
+          >
+            Comisiones
+          </button>
         </nav>
       </div>
+
+      {activeTab === "commissions" && (
+        <CommissionsReportsTab branchId={branchId} />
+      )}
 
       {activeTab === "sales" && (
         <div className="space-y-4">

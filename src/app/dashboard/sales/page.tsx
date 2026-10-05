@@ -179,6 +179,7 @@ export default function SalesPage() {
             description: line.product,
             qty: Number(line.qty),
             unitPrice: Number(line.unitPrice),
+            serialNumber: line.serialNumber || undefined,
           };
         }
       });
