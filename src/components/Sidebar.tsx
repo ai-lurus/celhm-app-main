@@ -8,7 +8,7 @@ import { PermissionKey } from "../lib/permissions";
 import { useOrganization } from "../lib/hooks/useOrganization";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Moon, Sun, KeyRound, LogOut } from "lucide-react";
+import { Moon, Sun, KeyRound, LogOut, X } from "lucide-react";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 
 function SidebarThemeToggle() {
@@ -51,7 +51,13 @@ interface NavSection {
   items: NavItem[];
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  /** Mobile drawer open state. Ignored on md+ where the sidebar is always visible. */
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export function Sidebar({ isMobileOpen = false, onCloseMobile }: SidebarProps) {
   const pathname = usePathname() || "";
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -126,7 +132,11 @@ export function Sidebar() {
   );
 
   return (
-    <div className="w-64 bg-[#1e3a8a] h-full flex flex-col text-white">
+    <div
+      className={`fixed inset-y-0 left-0 z-40 w-64 bg-[#1e3a8a] h-full flex flex-col text-white transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+        isMobileOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
       {/* Logo y Nombre de la Empresa */}
       <div className="p-6 border-b border-blue-700">
         <div className="flex items-center space-x-3">
@@ -154,11 +164,19 @@ export function Sidebar() {
               </svg>
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="font-bold text-lg leading-tight truncate">
               {organization?.name || "CelHM"}
             </h1>
           </div>
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            className="md:hidden flex-shrink-0 p-1 rounded-md text-blue-200 hover:bg-blue-800 hover:text-white"
+            aria-label="Cerrar menú"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -168,6 +186,7 @@ export function Sidebar() {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onCloseMobile}
             className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
               isActive(item.href)
                 ? "bg-blue-600 text-white font-medium"
@@ -190,6 +209,7 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onCloseMobile}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive(item.href)
                     ? "bg-blue-600 text-white font-medium"
