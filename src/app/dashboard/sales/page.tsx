@@ -179,6 +179,7 @@ export default function SalesPage() {
             description: line.product,
             qty: Number(line.qty),
             unitPrice: Number(line.unitPrice),
+            serialNumber: line.serialNumber || undefined,
           };
         }
       });
@@ -360,12 +361,26 @@ export default function SalesPage() {
           <h1 className="text-2xl font-bold text-foreground">Ventas</h1>
           <p className="text-muted-foreground">Gestiona las ventas y pagos</p>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
-        >
-          + Nueva Venta
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              window.open(
+                "/pos",
+                "_blank",
+                "width=1200,height=800,toolbar=no,location=no,menubar=no,status=no"
+              );
+            }}
+            className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md"
+          >
+            Abrir en ventana nueva
+          </button>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md"
+          >
+            + Nueva Venta
+          </button>
+        </div>
       </div>
 
       {/* Tabla de Ventas */}

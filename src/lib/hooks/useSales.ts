@@ -15,6 +15,7 @@ export interface SaleLine {
   unitPrice: number
   discount: number
   advance: number
+  serialNumber?: string | null
   subtotal: number
 }
 
@@ -71,6 +72,7 @@ export interface CreateSaleLine {
   unitPrice: number
   discount?: number
   advance?: number
+  serialNumber?: string
 }
 
 export interface CreateSaleRequest {

@@ -8,6 +8,7 @@ export interface SaleLineItem {
   unitPrice: number
   isPriceEditable?: boolean
   advance?: number // Anticipo para órdenes de reparación
+  serialNumber?: string // Número de serie / IMEI del producto vendido
   amount: number
 }
 
