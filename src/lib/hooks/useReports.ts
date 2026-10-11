@@ -334,3 +334,81 @@ export function useExportSalesBySellerReport() {
     },
   });
 }
+
+export interface VentasPorVendedorRow {
+  saleId: number;
+  folio: string;
+  date: string;
+  branch: string;
+  sellerId: number | null;
+  seller: string;
+  customer: string;
+  code: string | null;
+  description: string;
+  qty: number;
+  paymentMethod: string | null;
+  cost: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface VentasPorVendedorReport {
+  period: { startDate: string; endDate: string };
+  salesCount: number;
+  totalCost: number;
+  totalSales: number;
+  rows: VentasPorVendedorRow[];
+}
+
+interface GetVentasPorVendedorReportParams {
+  branchId?: number;
+  startDate: string;
+  endDate: string;
+}
+
+export function useVentasPorVendedorReport(params: GetVentasPorVendedorReportParams) {
+  return useQuery<VentasPorVendedorReport>({
+    queryKey: ["reports", "ventas-por-vendedor", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+
+      const response = await api.get<VentasPorVendedorReport>(
+        `/reports/ventas-por-vendedor?${queryParams.toString()}`
+      );
+      return response.data;
+    },
+    enabled: !!params.startDate && !!params.endDate,
+    retry: false,
+  });
+}
+
+export function useExportVentasPorVendedorReport() {
+  return useMutation({
+    mutationFn: async (params: GetVentasPorVendedorReportParams) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append("startDate", params.startDate);
+      queryParams.append("endDate", params.endDate);
+      if (params.branchId)
+        queryParams.append("branchId", params.branchId.toString());
+
+      const response = await api.get(
+        `/reports/ventas-por-vendedor/export?${queryParams.toString()}`,
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ventas_detalle_vendedor_${new Date().toISOString().split("T")[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}
