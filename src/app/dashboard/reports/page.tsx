@@ -14,6 +14,7 @@ import { useAuthStore } from "../../../stores/auth";
 import { usePermissions } from "../../../lib/hooks/usePermissions";
 import { TicketState } from "@celhm/types";
 import { CommissionsReportsTab } from "./_components/CommissionsReportsTab";
+import { VentasReportsTab } from "./_components/VentasReportsTab";
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -43,6 +44,9 @@ export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<
     "sales" | "tickets" | "inventory" | "movements" | "commissions"
   >("sales");
+  const [ventasSubTab, setVentasSubTab] = useState<"resumen" | "por-vendedor">(
+    "resumen"
+  );
 
   const { data: branches = [] } = useBranches();
   const branchId =
@@ -156,6 +160,37 @@ export default function ReportsPage() {
 
       {activeTab === "sales" && (
         <div className="space-y-4">
+          <div className="border-b border-border">
+            <nav className="-mb-px flex space-x-6">
+              <button
+                onClick={() => setVentasSubTab("resumen")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  ventasSubTab === "resumen"
+                    ? "border-blue-500 text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                Resumen
+              </button>
+              <button
+                onClick={() => setVentasSubTab("por-vendedor")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  ventasSubTab === "por-vendedor"
+                    ? "border-blue-500 text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                }`}
+              >
+                Por vendedor
+              </button>
+            </nav>
+          </div>
+
+          {ventasSubTab === "por-vendedor" && (
+            <VentasReportsTab branchId={branchId} />
+          )}
+
+          {ventasSubTab === "resumen" && (
+          <div className="space-y-4">
           <div className="bg-card p-4 rounded-lg shadow">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               <div>
@@ -301,6 +336,8 @@ export default function ReportsPage() {
               </div>
             )}
           </div>
+          </div>
+          )}
         </div>
       )}
 
