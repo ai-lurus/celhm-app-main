@@ -53,9 +53,9 @@ export const tabRegistry: TabRegistryEntry[] = [
     Component: dynamic(() => import("../app/dashboard/inventory/page"), { ssr: false }),
   },
   {
-    path: "/dashboard/catalog",
+    path: "/dashboard/inventory/catalog",
     label: "Catálogo",
-    Component: dynamic(() => import("../app/dashboard/catalog/page"), { ssr: false }),
+    Component: dynamic(() => import("../app/dashboard/inventory/catalog/page"), { ssr: false }),
   },
   {
     path: "/dashboard/cash",
@@ -126,7 +126,7 @@ const TAB_GROUPS: { key: string; label: string; paths: string[] }[] = [
     label: "Catálogo",
     paths: [
       "/dashboard/inventory",
-      "/dashboard/catalog",
+      "/dashboard/inventory/catalog",
       "/dashboard/inventory/categories",
       "/dashboard/inventory/brands",
     ],

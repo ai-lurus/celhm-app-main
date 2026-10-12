@@ -51,7 +51,7 @@ test.describe('Dashboard', () => {
 
     // Test navigation to catalog
     await page.click('text=Catálogo');
-    await expect(page).toHaveURL('/dashboard/catalog');
+    await expect(page).toHaveURL('/dashboard/inventory/catalog');
 
     // Test navigation back to dashboard
     await page.click('text=Dashboard');

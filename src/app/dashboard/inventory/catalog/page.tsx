@@ -9,13 +9,13 @@ import {
   useCategories,
   useBrands,
   Product,
-} from "../../../lib/hooks/useCatalog";
-import { useToast } from "../../../hooks/use-toast";
-import { useAuthStore } from "../../../stores/auth";
-import { usePermissions } from "../../../lib/hooks/usePermissions";
+} from "../../../../lib/hooks/useCatalog";
+import { useToast } from "../../../../hooks/use-toast";
+import { useAuthStore } from "../../../../stores/auth";
+import { usePermissions } from "../../../../lib/hooks/usePermissions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { parseApiError } from "../../../lib/utils";
+import { parseApiError } from "../../../../lib/utils";
 import { CategoryTree } from "./_components/CategoryTree";
 
 // --- Iconos ---
@@ -372,9 +372,9 @@ export default function CatalogPage() {
               Inventario
             </Link>
             <Link
-              href="/dashboard/catalog"
+              href="/dashboard/inventory/catalog"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === "/dashboard/catalog"
+                pathname === "/dashboard/inventory/catalog"
                   ? "border-blue-500 text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
               }`}

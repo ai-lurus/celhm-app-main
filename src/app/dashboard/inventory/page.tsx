@@ -711,9 +711,9 @@ export default function InventoryPage() {
               Inventario
             </Link>
             <Link
-              href="/dashboard/catalog"
+              href="/dashboard/inventory/catalog"
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer ${
-                pathname === "/dashboard/catalog"
+                pathname === "/dashboard/inventory/catalog"
                   ? "border-blue-500 text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
               }`}
