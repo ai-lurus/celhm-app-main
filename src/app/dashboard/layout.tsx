@@ -4,8 +4,45 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "../../stores/auth";
 import { Sidebar } from "../../components/Sidebar";
+import { TabBar } from "../../components/TabBar";
+import { TabContent } from "../../components/TabContent";
+import { TabsProvider, useTabs } from "../../contexts/TabsContext";
+import { findTabEntry } from "../../lib/tabRegistry";
 import { canAccessRoute, getDefaultRoute } from "../../lib/permissions";
 import { Menu } from "lucide-react";
+
+/**
+ * Keeps the open-tabs state and the browser URL in sync in both directions:
+ * navigating (sidebar link, browser back/forward, a bookmark) opens/activates
+ * the matching tab; switching or closing a tab updates the URL to match.
+ * Both effects are idempotent against each other's updates, so they settle
+ * instead of looping: setting state/pushing a route to its current value is
+ * a no-op in React and Next.
+ */
+function TabSync({ pathname }: { pathname: string }) {
+  const router = useRouter();
+  const { activeTab, openTab } = useTabs();
+
+  useEffect(() => {
+    const entry = findTabEntry(pathname);
+    if (entry) openTab(entry.path, entry.label);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  useEffect(() => {
+    if (activeTab && activeTab !== pathname) router.push(activeTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  return (
+    <>
+      <TabBar />
+      <main className="flex-1 overflow-y-auto p-6">
+        <TabContent />
+      </main>
+    </>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -62,6 +99,8 @@ export default function DashboardLayout({
     );
   }
 
+  const initialEntry = findTabEntry(pathname || "/dashboard");
+
   return (
     <div className="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
       {isMobileSidebarOpen && (
@@ -87,7 +126,12 @@ export default function DashboardLayout({
           </button>
           <span className="font-semibold text-sm">CelHM</span>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <TabsProvider
+          initialPath={initialEntry?.path || "/dashboard"}
+          initialLabel={initialEntry?.label || "Dashboard"}
+        >
+          <TabSync pathname={pathname || "/dashboard"} />
+        </TabsProvider>
       </div>
     </div>
   );
