@@ -7,7 +7,7 @@ import { Sidebar } from "../../components/Sidebar";
 import { TabBar } from "../../components/TabBar";
 import { TabContent } from "../../components/TabContent";
 import { TabsProvider, useTabs } from "../../contexts/TabsContext";
-import { findTabEntry } from "../../lib/tabRegistry";
+import { getTabIdentity } from "../../lib/tabRegistry";
 import { canAccessRoute, getDefaultRoute } from "../../lib/permissions";
 import { Menu } from "lucide-react";
 
@@ -21,16 +21,17 @@ import { Menu } from "lucide-react";
  */
 function TabSync({ pathname }: { pathname: string }) {
   const router = useRouter();
-  const { activeTab, openTab } = useTabs();
+  const { tabs, activeTab, openTab } = useTabs();
 
   useEffect(() => {
-    const entry = findTabEntry(pathname);
-    if (entry) openTab(entry.path, entry.label);
+    const identity = getTabIdentity(pathname);
+    if (identity) openTab(identity.tabKey, identity.label, pathname);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useEffect(() => {
-    if (activeTab && activeTab !== pathname) router.push(activeTab);
+    const tab = tabs.find((t) => t.key === activeTab);
+    if (tab && tab.currentPath !== pathname) router.push(tab.currentPath);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
@@ -99,7 +100,7 @@ export default function DashboardLayout({
     );
   }
 
-  const initialEntry = findTabEntry(pathname || "/dashboard");
+  const initialIdentity = getTabIdentity(pathname || "/dashboard");
 
   return (
     <div className="h-screen bg-gray-100 dark:bg-gray-900 flex overflow-hidden">
@@ -127,8 +128,9 @@ export default function DashboardLayout({
           <span className="font-semibold text-sm">CelHM</span>
         </header>
         <TabsProvider
-          initialPath={initialEntry?.path || "/dashboard"}
-          initialLabel={initialEntry?.label || "Dashboard"}
+          initialKey={initialIdentity?.tabKey || "/dashboard"}
+          initialLabel={initialIdentity?.label || "Dashboard"}
+          initialPath={pathname || "/dashboard"}
         >
           <TabSync pathname={pathname || "/dashboard"} />
         </TabsProvider>
