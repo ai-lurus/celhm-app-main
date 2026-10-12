@@ -108,3 +108,53 @@ export function findTabEntry(pathname: string): TabRegistryEntry | undefined {
   }
   return undefined;
 }
+
+/**
+ * Routes that share a single TabBar tab. Each page in a group renders its own
+ * internal sub-nav to the others (see e.g. catalog/page.tsx's "Inventario |
+ * Catálogo | Categorías | Marcas" strip, or customers/page.tsx's "Clientes |
+ * Grupos" strip), so moving between them should update the content of the
+ * SAME tab instead of opening a new one. `key` is the group's canonical path
+ * (used as the tab's stable id) and `label` is what the tab shows — matching
+ * how the sidebar names the section, which can differ from any one member
+ * page's own title (e.g. the sidebar's "Catálogo" link opens
+ * /dashboard/inventory, whose own page title is "Inventario").
+ */
+const TAB_GROUPS: { key: string; label: string; paths: string[] }[] = [
+  {
+    key: "/dashboard/inventory",
+    label: "Catálogo",
+    paths: [
+      "/dashboard/inventory",
+      "/dashboard/catalog",
+      "/dashboard/inventory/categories",
+      "/dashboard/inventory/brands",
+    ],
+  },
+  {
+    key: "/dashboard/customers",
+    label: "Clientes",
+    paths: ["/dashboard/customers", "/dashboard/customers/groups"],
+  },
+];
+
+function findGroup(pathname: string) {
+  return TAB_GROUPS.find((group) => group.paths.includes(pathname));
+}
+
+export interface TabIdentity {
+  /** Stable key for the TabBar tab: a group's canonical path, or the route's own path if ungrouped. */
+  tabKey: string;
+  /** Fixed label for the tab. */
+  label: string;
+}
+
+/** Resolves which TabBar tab a pathname belongs to (grouped routes share one tab). */
+export function getTabIdentity(pathname: string): TabIdentity | undefined {
+  const group = findGroup(pathname);
+  if (group) return { tabKey: group.key, label: group.label };
+
+  const entry = findTabEntry(pathname);
+  if (!entry) return undefined;
+  return { tabKey: entry.path, label: entry.label };
+}
