@@ -1,6 +1,6 @@
 "use client";
 
-import { Category } from "../../../../lib/hooks/useCatalog";
+import { Category } from "../../../../../lib/hooks/useCatalog";
 
 interface CategoryTreeProps {
   categories: Category[];

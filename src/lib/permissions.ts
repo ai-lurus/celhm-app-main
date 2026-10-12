@@ -114,7 +114,6 @@ export const routePermissions: Record<string, PermissionKey> = {
   '/dashboard/sales': 'canManageSales',
   '/dashboard/cash': 'canManageCash',
   '/dashboard/customers': 'canManageCustomers',
-  '/dashboard/catalog': 'canManageCatalog',
   '/dashboard/inventory': 'canManageCatalog',
   '/dashboard/reports': 'canViewFinancialReports',
   '/dashboard/users': 'canManageUsers',
