@@ -16,6 +16,7 @@ import { usePermissions } from "../../../lib/hooks/usePermissions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { parseApiError } from "../../../lib/utils";
+import { CategoryTree } from "./_components/CategoryTree";
 
 // --- Iconos ---
 const IconEdit = ({ className }: { className?: string }) => (
@@ -418,37 +419,17 @@ export default function CatalogPage() {
         </div>
       </div>
 
+      {/* --- Panel de categorías + filtros/tabla --- */}
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 items-start">
+        <CategoryTree
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+        <div className="space-y-4">
       {/* --- Filtros en la parte superior --- */}
       <div className="bg-card p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-foreground">
-              Categoría
-            </label>
-            <select
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              value={selectedCategory}
-              className="w-full border border-border rounded-md px-3 py-2 text-sm"
-            >
-              <option value="">Todas las categorías</option>
-              {categories.map((cat) =>
-                cat.children && cat.children.length > 0 ? (
-                  <optgroup key={cat.id} label={cat.name}>
-                    <option value={cat.name}>— Todas en {cat.name}</option>
-                    {cat.children.map((sub) => (
-                      <option key={sub.id} value={sub.name}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ) : (
-                  <option key={cat.id} value={cat.name}>
-                    {cat.name}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="block text-sm font-medium text-foreground">
               Marca
@@ -684,6 +665,8 @@ export default function CatalogPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
         </div>
       </div>
 
