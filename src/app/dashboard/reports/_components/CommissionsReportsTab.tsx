@@ -9,6 +9,7 @@ import {
   SalesBySellerDetailLevel,
 } from "../../../../lib/hooks/useReports";
 import { useUsers } from "../../../../lib/hooks/useUsers";
+import { PAYMENT_METHOD_LABELS } from "../../sales/_components/ReturnModal";
 
 interface CommissionsReportsTabProps {
   branchId?: number;
@@ -44,6 +45,12 @@ function formatCurrency(value: number) {
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("es-MX");
+}
+
+function paymentMethodLabel(method: string | null) {
+  if (!method) return "-";
+  if (method === "MIXTO") return "Mixto";
+  return PAYMENT_METHOD_LABELS[method as keyof typeof PAYMENT_METHOD_LABELS] || method;
 }
 
 export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) {
@@ -211,11 +218,17 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
                   <table className="min-w-full divide-y divide-border">
                     <thead className="bg-muted">
                       <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Vendedor</th>
                         <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Folio</th>
                         <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Fecha</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Sucursal</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Vendedor</th>
-                        <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Total</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Código</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Producto</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Cant</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Costo</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Precio</th>
+                        <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Importe</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Método de Pago</th>
                         <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase">Comisión</th>
                         <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Estado</th>
                       </tr>
@@ -223,18 +236,24 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
                     <tbody className="bg-card divide-y divide-border">
                       {commissionsSalesReport.rows.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="px-4 py-4 text-center text-muted-foreground">
+                          <td colSpan={13} className="px-4 py-4 text-center text-muted-foreground">
                             No hay ventas en el rango seleccionado
                           </td>
                         </tr>
                       ) : (
-                        commissionsSalesReport.rows.map((row) => (
-                          <tr key={row.saleId}>
+                        commissionsSalesReport.rows.map((row, idx) => (
+                          <tr key={`${row.saleId}-${idx}`}>
+                            <td className="px-4 py-2 text-sm">{row.seller}</td>
                             <td className="px-4 py-2 text-sm">{row.folio}</td>
                             <td className="px-4 py-2 text-sm">{formatDate(row.date)}</td>
-                            <td className="px-4 py-2 text-sm">{row.branch}</td>
-                            <td className="px-4 py-2 text-sm">{row.seller}</td>
+                            <td className="px-4 py-2 text-sm">{row.customer}</td>
+                            <td className="px-4 py-2 text-sm">{row.code || "-"}</td>
+                            <td className="px-4 py-2 text-sm">{row.description}</td>
+                            <td className="px-4 py-2 text-sm text-right">{row.qty}</td>
+                            <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.cost)}</td>
+                            <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.unitPrice)}</td>
                             <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.total)}</td>
+                            <td className="px-4 py-2 text-sm">{paymentMethodLabel(row.paymentMethod)}</td>
                             <td className="px-4 py-2 text-sm text-right">{formatCurrency(row.commissionAmount)}</td>
                             <td className="px-4 py-2 text-sm">
                               {commissionStatusLabel[row.commissionStatus] || row.commissionStatus}
