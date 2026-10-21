@@ -193,7 +193,13 @@ export interface CommissionsSalesReportRow {
   branch: string;
   sellerId: number | null;
   seller: string;
-  subtotal: number;
+  customer: string;
+  code: string | null;
+  description: string;
+  qty: number;
+  paymentMethod: string | null;
+  cost: number;
+  unitPrice: number;
   total: number;
   commissionAmount: number;
   commissionStatus: CommissionStatusSummary;

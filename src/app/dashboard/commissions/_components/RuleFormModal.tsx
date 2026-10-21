@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import {
-  useCommissionCategories,
+  useCommissionCategoryTree,
   CommissionBasis,
   CommissionScope,
   CommissionCalcMethod,
@@ -59,7 +59,7 @@ export default function RuleFormModal({
 }: RuleFormModalProps) {
   const [form, setForm] = useState(emptyForm);
   const titleId = useId();
-  const { data: categories = [] } = useCommissionCategories();
+  const { data: categoryTree = [] } = useCommissionCategoryTree();
   const { data: customerGroups = [] } = useCustomerGroups();
 
   useEffect(() => {
@@ -198,9 +198,9 @@ export default function RuleFormModal({
                   disabled={isSaving}
                 >
                   <option value="">Selecciona una categoría</option>
-                  {categories.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
+                  {categoryTree.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.parentId ? `\u2014 ${c.name}` : c.name}
                     </option>
                   ))}
                 </select>

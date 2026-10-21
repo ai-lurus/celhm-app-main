@@ -189,3 +189,26 @@ export function useCommissionCategories() {
     },
   })
 }
+
+export interface CommissionCategoryTreeItem {
+  id: number
+  name: string
+  parentId: number | null
+  parentName: string | null
+}
+
+/**
+ * Árbol completo de categorías de Catálogo (padres e hijas), ya ordenado para que
+ * cada subcategoría aparezca justo debajo de su categoría padre. Usado en el
+ * selector de "Alcance de producto: categoría" al crear una regla de comisión, para
+ * que se vean todas las categorías aunque no tengan un producto asignado todavía.
+ */
+export function useCommissionCategoryTree() {
+  return useQuery<CommissionCategoryTreeItem[]>({
+    queryKey: ['commission-category-tree'],
+    queryFn: async () => {
+      const response = await api.get<CommissionCategoryTreeItem[]>('/commissions/categories/tree')
+      return response.data
+    },
+  })
+}

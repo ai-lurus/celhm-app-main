@@ -2,7 +2,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import RuleFormModal from './RuleFormModal'
 
 jest.mock('../../../../lib/hooks/useCommissionPlans', () => ({
-  useCommissionCategories: () => ({ data: ['Accesorios', 'Pantallas'] }),
+  useCommissionCategoryTree: () => ({
+    data: [
+      { id: 1, name: 'Accesorios', parentId: null, parentName: null },
+      { id: 2, name: 'Pantallas', parentId: null, parentName: null },
+    ],
+  }),
 }))
 jest.mock('../../../../lib/hooks/useCustomerGroups', () => ({
   useCustomerGroups: () => ({ data: [{ id: 1, name: 'Mayorista', discountPercent: 10, isDefault: false, isFrequentBuyerTarget: false }] }),
