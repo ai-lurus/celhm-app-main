@@ -40,7 +40,7 @@ export function VentasReportsTab({ branchId }: VentasReportsTabProps) {
     startDate: thirtyDaysAgoIso(),
     endDate: todayIso(),
   });
-  const { data: report, isLoading } = useVentasPorVendedorReport({
+  const { data: report, isLoading, isError, refetch } = useVentasPorVendedorReport({
     branchId,
     ...params,
   });
@@ -95,6 +95,19 @@ export function VentasReportsTab({ branchId }: VentasReportsTabProps) {
       {isLoading ? (
         <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
           Cargando...
+        </div>
+      ) : isError ? (
+        <div className="bg-card p-8 rounded-lg shadow text-center space-y-3">
+          <p className="text-red-600 font-medium">No se pudo cargar el reporte.</p>
+          <p className="text-sm text-muted-foreground">
+            Intenta de nuevo o avisa a soporte si el problema persiste.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium"
+          >
+            Reintentar
+          </button>
         </div>
       ) : report ? (
         <div className="space-y-4">

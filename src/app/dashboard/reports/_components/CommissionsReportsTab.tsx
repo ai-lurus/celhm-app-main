@@ -56,8 +56,12 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
     startDate: thirtyDaysAgoIso(),
     endDate: todayIso(),
   });
-  const { data: commissionsSalesReport, isLoading: commissionsSalesLoading } =
-    useCommissionsSalesReport({ branchId, ...commissionsSalesParams });
+  const {
+    data: commissionsSalesReport,
+    isLoading: commissionsSalesLoading,
+    isError: commissionsSalesError,
+    refetch: refetchCommissionsSales,
+  } = useCommissionsSalesReport({ branchId, ...commissionsSalesParams });
   const exportCommissionsSales = useExportCommissionsSalesReport();
 
   // --- Reporte: Ventas por vendedor ---
@@ -70,7 +74,12 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
     endDate: todayIso(),
     detailLevel: "TOTALS_BY_SELLER" as SalesBySellerDetailLevel,
   });
-  const { data: sellerReport, isLoading: sellerLoading } = useSalesBySellerReport({
+  const {
+    data: sellerReport,
+    isLoading: sellerLoading,
+    isError: sellerError,
+    refetch: refetchSeller,
+  } = useSalesBySellerReport({
     branchId,
     ...sellerParams,
   });
@@ -156,6 +165,19 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
           {commissionsSalesLoading ? (
             <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
               Cargando...
+            </div>
+          ) : commissionsSalesError ? (
+            <div className="bg-card p-8 rounded-lg shadow text-center space-y-3">
+              <p className="text-red-600 font-medium">No se pudo cargar el reporte.</p>
+              <p className="text-sm text-muted-foreground">
+                Intenta de nuevo o avisa a soporte si el problema persiste.
+              </p>
+              <button
+                onClick={() => refetchCommissionsSales()}
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Reintentar
+              </button>
             </div>
           ) : commissionsSalesReport ? (
             <div className="space-y-4">
@@ -319,6 +341,19 @@ export function CommissionsReportsTab({ branchId }: CommissionsReportsTabProps) 
           {sellerLoading ? (
             <div className="bg-card p-8 rounded-lg shadow text-center text-muted-foreground">
               Cargando...
+            </div>
+          ) : sellerError ? (
+            <div className="bg-card p-8 rounded-lg shadow text-center space-y-3">
+              <p className="text-red-600 font-medium">No se pudo cargar el reporte.</p>
+              <p className="text-sm text-muted-foreground">
+                Intenta de nuevo o avisa a soporte si el problema persiste.
+              </p>
+              <button
+                onClick={() => refetchSeller()}
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Reintentar
+              </button>
             </div>
           ) : sellerReport ? (
             <div className="bg-card rounded-lg shadow overflow-hidden">
