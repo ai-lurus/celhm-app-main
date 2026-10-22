@@ -381,23 +381,21 @@ export default function CategoriesPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex items-center space-x-3">
-                            {!isSubcat && (
-                              <button
-                                onClick={() => {
-                                  setSelectedParentCategory(
-                                    category.id.toString()
-                                  );
-                                  setIsSubcategory(true);
-                                  setNewCategoryName("");
-                                  setCategoryToEdit(null);
-                                  setIsCategoryModalOpen(true);
-                                }}
-                                title="Agregar subcategoría"
-                                className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
-                              >
-                                <IconPlus className="w-5 h-5" />
-                              </button>
-                            )}
+                            <button
+                              onClick={() => {
+                                setSelectedParentCategory(
+                                  category.id.toString()
+                                );
+                                setIsSubcategory(true);
+                                setNewCategoryName("");
+                                setCategoryToEdit(null);
+                                setIsCategoryModalOpen(true);
+                              }}
+                              title="Agregar subcategoría"
+                              className="p-1 rounded-md text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors"
+                            >
+                              <IconPlus className="w-5 h-5" />
+                            </button>
                             <button
                               onClick={() => openEditCategoryModal(category)}
                               title="Editar"
