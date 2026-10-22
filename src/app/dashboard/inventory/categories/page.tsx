@@ -354,7 +354,7 @@ export default function CategoriesPage() {
                 ) : (
                   filteredCategories.map((category) => {
                     const isSubcat = !!category.parentId;
-                    const parentCategory = categories.find(
+                    const parentCategory = allCategoriesFlat.find(
                       (c) => c.id === category.parentId
                     );
                     return (
