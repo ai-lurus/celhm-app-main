@@ -83,8 +83,23 @@ export default function CategoriesPage() {
     return cat.name.toLowerCase().includes(categorySearch.toLowerCase());
   });
 
-  // Obtener todas las categorías planas para el filtro (sin subcategorías anidadas en el select)
-  const flatCategories = categories.filter((cat) => !cat.parentId);
+  // Cualquier categoría existente (de cualquier nivel) puede ser "categoría principal"
+  // de una nueva subcategoría, para soportar más de un nivel de anidamiento.
+  const flatCategories = allCategoriesFlat;
+
+  // Profundidad de cada categoría (0 = raíz), para indentar el selector de
+  // "categoría principal" y que se note la jerarquía al elegir entre niveles.
+  const categoryDepth = (cat: Category): number => {
+    let depth = 0;
+    let current = cat;
+    while (current.parentId) {
+      const parent = allCategoriesFlat.find((c) => c.id === current.parentId);
+      if (!parent) break;
+      depth += 1;
+      current = parent;
+    }
+    return depth;
+  };
 
   //-------------------
   // GESTIÓN DE CATEGORÍAS
@@ -472,7 +487,7 @@ export default function CategoriesPage() {
                       )
                       .map((cat) => (
                         <option key={cat.id} value={cat.id.toString()}>
-                          {cat.name}
+                          {"\u2014 ".repeat(categoryDepth(cat))}{cat.name}
                         </option>
                       ))}
                   </select>
